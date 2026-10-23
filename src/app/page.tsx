@@ -62,7 +62,6 @@ const content = {
         placeholder: "Enter website URL (e.g. example.com)",
         button: "Analyze Website →",
         errorMsg: "Please enter a URL.",
-        helperText: "Fast. Simple. Clear. Results follow the language of the actual policy.",
 
         howTitle: "How It Works",
         steps: [
@@ -318,7 +317,7 @@ export default function HomePage() {
                         {t.button}
                     </button>
                 </form>
-                ```tsx
+            
 {/* Upload policy image */}
 
 <div
@@ -374,7 +373,7 @@ export default function HomePage() {
         }}
     />
 </div>
-```
+
 
 
                 {error && (
