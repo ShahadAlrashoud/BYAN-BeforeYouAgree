@@ -223,15 +223,9 @@ Return ONLY valid JSON in this exact format:
     return JSON.parse(data.choices[0].message.content);
 }
 
-export async function runAnalysisForUrl(url, preferredLang = "en", userId = null) {
-    if (!isValidHttpUrl(url)) {
-        throw new Error("Invalid URL");
-    }
-
-    const { text: policyText, resolvedUrl } = await fetchPolicyText(url);
-
-    const detectedLang = detectLanguage(policyText);
-    const lang = detectedLang; // result always follows the actual document's language
+// Shared by URL and text analysis: scores, builds the record, and saves it
+async function buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang, userId }) {
+    const lang = detectLanguage(policyText); // result always follows the actual document's language
 
     const keywordClauses = detectRiskClauses(policyText);
     const keywordScoring = scoreRisk(keywordClauses);
@@ -270,11 +264,39 @@ export async function runAnalysisForUrl(url, preferredLang = "en", userId = null
             title: record.resolvedUrl || record.url,
             query: record.url,
             result: record.summaryEn,
+            riskScore: record.riskScore,
+            riskLevel: record.riskLevel,
         });
     }
 
     return record;
+}
 
-    return record;
-    return record;
+export async function runAnalysisForUrl(url, preferredLang = "en", userId = null) {
+    if (!isValidHttpUrl(url)) {
+        throw new Error("Invalid URL");
+    }
+
+    const { text: policyText, resolvedUrl } = await fetchPolicyText(url);
+
+    return buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang, userId });
+}
+
+export async function runAnalysisForText(text, preferredLang = "en", userId = null) {
+    const policyText = (text || "").replace(/\s+/g, " ").trim();
+
+    if (policyText.length < 50) {
+        throw new Error("Not enough text to analyze.");
+    }
+
+    // Screenshots have no URL, so use a placeholder label
+    const label = "Screenshot";
+
+    return buildAndSaveRecord({
+        policyText,
+        url: label,
+        resolvedUrl: label,
+        preferredLang,
+        userId
+    });
 }

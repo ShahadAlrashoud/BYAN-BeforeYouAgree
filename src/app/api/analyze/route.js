@@ -1,17 +1,18 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
-import { runAnalysisForUrl } from "../analysisService";
+import { runAnalysisForUrl, runAnalysisForText } from "../analysisService";
 
 export async function POST(request) {
     try {
         const body = await request.json();
         const url = body?.url?.trim();
+        const text = body?.text?.trim();
         const preferredLang = body?.lang === "ar" ? "ar" : "en";
 
-        if (!url) {
+        if (!url && !text) {
             return NextResponse.json(
-                { error: "URL is required." },
+                { error: "URL or text is required." },
                 { status: 400 }
             );
         }
@@ -19,13 +20,11 @@ export async function POST(request) {
         const session = await getServerSession(authOptions);
         const userId = session?.user?.id || null;
 
-        const result = await runAnalysisForUrl(url, preferredLang, userId);
+        const result = text
+            ? await runAnalysisForText(text, preferredLang, userId)
+            : await runAnalysisForUrl(url, preferredLang, userId);
 
-        return NextResponse.json(
-            { id: result.id },
-            { status: 200 }
-        );
-
+        return NextResponse.json({ id: result.id }, { status: 200 });
     } catch (error) {
         console.error("ANALYSIS API ERROR:", error);
 
@@ -38,7 +37,4 @@ export async function POST(request) {
             { status: 500 }
         );
     }
-    const session = await getServerSession(authOptions);
-    const userId = session?.user?.id || null;
-    console.log("DEBUG session userId:", userId);
 }

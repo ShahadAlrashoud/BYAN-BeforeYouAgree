@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTheme } from "../providers";
 import BYANLogo from "./BYANLogo";
 
@@ -75,7 +76,8 @@ const sections: { title: FooterKey; links: { key: FooterKey; href: string }[] }[
 ];
 
 export default function Footer() {
-    const { theme, lang } = useTheme();
+    const { theme, lang, colors } = useTheme();
+    const pathname = usePathname();
     const isDark = theme === "dark";
     const isAr = lang === "ar";
     const t = content[lang];
@@ -94,7 +96,7 @@ export default function Footer() {
         margin: "0 0 12px",
         fontSize: "0.8rem",
         fontWeight: 700,
-        color: "#6366f1",
+        color: colors.accentText,
         letterSpacing: isAr ? 0 : "0.1em",
         textTransform: "uppercase" as const
     };
@@ -107,6 +109,15 @@ export default function Footer() {
         flexDirection: "column" as const,
         gap: 10
     };
+
+    // Already on the homepage: scroll to top and focus the input (if it has id="analyze-input")
+    function handleLinkClick(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
+        if (href === "/" && pathname === "/") {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            setTimeout(() => document.getElementById("analyze-input")?.focus(), 400);
+        }
+    }
 
     return (
         <footer
@@ -149,7 +160,11 @@ export default function Footer() {
                             <ul style={colList}>
                                 {section.links.map((link) => (
                                     <li key={link.key}>
-                                        <Link href={link.href} style={linkStyle}>
+                                        <Link
+                                            href={link.href}
+                                            onClick={(e) => handleLinkClick(e, link.href)}
+                                            style={linkStyle}
+                                        >
                                             {t[link.key]}
                                         </Link>
                                     </li>

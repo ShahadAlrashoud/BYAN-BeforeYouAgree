@@ -1,7 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { IBM_Plex_Sans_Arabic } from "next/font/google";
 import { useTheme } from "../providers";
+
+const plex = IBM_Plex_Sans_Arabic({
+    subsets: ["arabic", "latin"],
+    weight: ["400", "500", "600", "700"],
+    display: "swap"
+});
+
+type Person = {
+    name: string;
+    role: string; // leave "" to hide
+    linkedin: string; // leave "" to hide the link
+};
 
 const content = {
     en: {
@@ -26,7 +39,15 @@ const content = {
         ],
         aboutTitle: "About BYAN",
         about: `BYAN is built bilingually from the ground up, with analysis grounded in Saudi Arabia's Personal Data Protection Law (PDPL), because digital rights shouldn't be lost in translation. It's designed for everyday users across Saudi Arabia and the Arab world, as well as digital rights advocates, legal educators, and compliance professionals who need a faster, clearer way to evaluate the agreements shaping our digital lives.`,
-        mission: `Our mission is simple: replace blind clicking with conscious consent. Before you agree, know what you're agreeing to.`
+        mission: `Our mission is simple: replace blind clicking with conscious consent. Before you agree, know what you're agreeing to.`,
+        teamTitle: "The BYAN Team",
+        teamSub: "The people who built BYAN.",
+        linkedinLabel: "LinkedIn",
+        team: [
+            { name: "Shahad Alrashoud", role: "", linkedin: "" },
+            { name: "Ghadah Almutairi", role: "", linkedin: "" },
+            { name: "Nourah Almudbil", role: "", linkedin: "" }
+        ] as Person[]
     },
     ar: {
         tagline: "قبل أن توافق",
@@ -50,34 +71,51 @@ const content = {
         ],
         aboutTitle: "عن بيان",
         about: `بُني بيان ليكون ثنائي اللغة من الأساس، مع تحليل مستند إلى نظام حماية البيانات الشخصية السعودي (PDPL)، لأن الحقوق الرقمية لا ينبغي أن تضيع في الترجمة. صُمم للمستخدمين في السعودية والعالم العربي، وكذلك للمدافعين عن الحقوق الرقمية، والمعلمين القانونيين، ومتخصصي الامتثال الذين يحتاجون إلى طريقة أسرع وأوضح لتقييم الاتفاقيات التي تشكل حياتنا الرقمية.`,
-        mission: `مهمتنا بسيطة: استبدال النقر الأعمى بموافقة واعية. قبل أن توافق، اعرف على ماذا توافق.`
+        mission: `مهمتنا بسيطة: استبدال النقر الأعمى بموافقة واعية. قبل أن توافق، اعرف على ماذا توافق.`,
+        teamTitle: "فريق بيان",
+        teamSub: "الأشخاص الذين بنوا بيان.",
+        linkedinLabel: "LinkedIn",
+        team: [
+            { name: "شهد الرشود", role: "", linkedin: "" },
+            { name: "غادة المطيري", role: "", linkedin: "" },
+            { name: "نورة المدبل", role: "", linkedin: "" }
+        ] as Person[]
     }
 };
 
-const ACCENT = "#6366f1";
+function LinkedInIcon() {
+    return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z" />
+        </svg>
+    );
+}
 
 export default function AboutPage() {
-    const { theme, lang } = useTheme();
+    const { theme, lang, colors: themeColors } = useTheme();
     const isDark = theme === "dark";
     const isAr = lang === "ar";
     const t = content[lang];
     const align = isAr ? "right" : "left";
 
+    // Page-specific neutral tokens + accent-derived tokens (all from themeColors)
     const colors = {
         bg: isDark ? "linear-gradient(180deg, #0a0e1a 0%, #111827 100%)" : "#ffffff",
         heading: isDark ? "#f1f1f1" : "#1e293b",
         body: isDark ? "#94a3b8" : "#64748b",
         lead: isDark ? "#e2e8f0" : "#334155",
-        line: isDark ? "#334155" : "#c7d2fe",
+        line: `color-mix(in srgb, ${themeColors.accent} 35%, transparent)`,
         divider: isDark ? "#1e293b" : "#e2e8f0",
-        glow: isDark ? "rgba(99, 102, 241, 0.18)" : "rgba(99, 102, 241, 0.10)",
-        soft: isDark ? "rgba(99, 102, 241, 0.12)" : "#eef0ff",
-        softBorder: isDark ? "rgba(99, 102, 241, 0.4)" : "rgba(99, 102, 241, 0.25)"
+        glow: themeColors.accentSoft,
+        soft: themeColors.accentSoft,
+        softBorder: `color-mix(in srgb, ${themeColors.accent} ${isDark ? 40 : 25}%, transparent)`,
+        card: isDark ? "rgba(255, 255, 255, 0.04)" : "#f8f9ff",
+        cardBorder: isDark ? "rgba(148, 163, 184, 0.18)" : "#e2e8f0"
     };
 
     const sectionLabel = {
         margin: "0 0 28px",
-        color: ACCENT,
+        color: themeColors.accentText,
         fontSize: "0.85rem",
         fontWeight: 700,
         letterSpacing: isAr ? 0 : "0.12em",
@@ -85,10 +123,81 @@ export default function AboutPage() {
         textAlign: align as "left" | "right"
     };
 
+    const renderCard = (p: Person) => (
+        <div
+            key={p.name}
+            style={{
+                background: colors.card,
+                border: `1px solid ${colors.cardBorder}`,
+                borderRadius: 20,
+                padding: "30px 20px",
+                textAlign: "center",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 6
+            }}
+        >
+            <div
+                style={{
+                    width: 68,
+                    height: 68,
+                    borderRadius: "50%",
+                    background: themeColors.accent,
+                    color: themeColors.onAccent,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "1.7rem",
+                    fontWeight: 700,
+                    marginBottom: 10,
+                    boxShadow: `0 0 0 6px ${colors.soft}`
+                }}
+            >
+                {p.name.charAt(0)}
+            </div>
+            <h3
+                style={{
+                    margin: 0,
+                    color: colors.heading,
+                    fontSize: "1.15rem",
+                    fontWeight: 700,
+                    lineHeight: 1.5
+                }}
+            >
+                {p.name}
+            </h3>
+            {p.role && (
+                <p style={{ margin: 0, color: colors.body, fontSize: "0.95rem", lineHeight: 1.6 }}>{p.role}</p>
+            )}
+            {p.linkedin && (
+                <a
+                    href={p.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                        marginTop: 12,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        color: themeColors.accentText,
+                        fontWeight: 600,
+                        fontSize: "0.9rem",
+                        textDecoration: "none"
+                    }}
+                >
+                    <LinkedInIcon />
+                    {t.linkedinLabel}
+                </a>
+            )}
+        </div>
+    );
+
     return (
         <main
             dir={isAr ? "rtl" : "ltr"}
-            style={{ minHeight: "100vh", background: colors.bg, fontFamily: "Segoe UI, Arial, sans-serif" }}
+            className={plex.className}
+            style={{ minHeight: "100vh", background: colors.bg }}
         >
             {/* Hero */}
             <section
@@ -108,7 +217,7 @@ export default function AboutPage() {
                         margin: "0 0 10px",
                         color: colors.heading,
                         fontSize: "clamp(2.2rem, 6vw, 3.2rem)",
-                        fontWeight: 800,
+                        fontWeight: 700,
                         letterSpacing: isAr ? 0 : "0.04em"
                     }}
                 >
@@ -121,7 +230,7 @@ export default function AboutPage() {
                         borderRadius: 999,
                         border: `1px solid ${colors.softBorder}`,
                         background: colors.soft,
-                        color: ACCENT,
+                        color: themeColors.accentText,
                         fontSize: "0.9rem",
                         fontWeight: 600
                     }}
@@ -137,7 +246,7 @@ export default function AboutPage() {
                         margin: "0 0 12px",
                         color: colors.lead,
                         fontSize: "clamp(1.15rem, 2.5vw, 1.4rem)",
-                        lineHeight: 1.7,
+                        lineHeight: 1.8,
                         fontWeight: 500,
                         textAlign: align
                     }}
@@ -147,7 +256,7 @@ export default function AboutPage() {
                 <p
                     style={{
                         margin: "0 0 56px",
-                        color: ACCENT,
+                        color: themeColors.accentText,
                         fontSize: "clamp(1.15rem, 2.5vw, 1.4rem)",
                         fontWeight: 700,
                         textAlign: align
@@ -163,20 +272,19 @@ export default function AboutPage() {
                         const isLast = i === t.steps.length - 1;
                         return (
                             <div key={i} style={{ display: "flex", gap: 20 }}>
-                                {/* Number + connector */}
                                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
                                     <div
                                         style={{
                                             width: 44,
                                             height: 44,
                                             borderRadius: "50%",
-                                            background: ACCENT,
-                                            color: "#fff",
+                                            background: themeColors.accent,
+                                            color: themeColors.onAccent,
                                             display: "flex",
                                             alignItems: "center",
                                             justifyContent: "center",
                                             fontSize: "1.1rem",
-                                            fontWeight: 800,
+                                            fontWeight: 700,
                                             boxShadow: `0 0 0 6px ${colors.soft}`
                                         }}
                                     >
@@ -187,7 +295,6 @@ export default function AboutPage() {
                                     )}
                                 </div>
 
-                                {/* Content */}
                                 <div style={{ paddingBottom: isLast ? 0 : 36, textAlign: align }}>
                                     <h3
                                         style={{
@@ -199,7 +306,7 @@ export default function AboutPage() {
                                     >
                                         {step.title}
                                     </h3>
-                                    <p style={{ margin: 0, color: colors.body, lineHeight: 1.8, fontSize: "1rem" }}>
+                                    <p style={{ margin: 0, color: colors.body, lineHeight: 1.9, fontSize: "1rem" }}>
                                         {step.text}
                                     </p>
                                 </div>
@@ -215,7 +322,7 @@ export default function AboutPage() {
                         style={{
                             margin: "0 0 48px",
                             color: colors.body,
-                            lineHeight: 1.8,
+                            lineHeight: 1.9,
                             fontSize: "1rem",
                             textAlign: align
                         }}
@@ -223,19 +330,20 @@ export default function AboutPage() {
                         {t.about}
                     </p>
 
-                    {/* Mission */}
                     <blockquote
                         style={{
                             margin: 0,
                             padding: "32px 28px",
                             background: colors.soft,
-                            border: `1px solid ${colors.softBorder}`,
-                            [isAr ? "borderRight" : "borderLeft"]: `5px solid ${ACCENT}`,
+                            borderTop: `1px solid ${colors.softBorder}`,
+                            borderBottom: `1px solid ${colors.softBorder}`,
+                            borderRight: isAr ? `5px solid ${themeColors.accent}` : `1px solid ${colors.softBorder}`,
+                            borderLeft: isAr ? `1px solid ${colors.softBorder}` : `5px solid ${themeColors.accent}`,
                             borderRadius: 12,
                             color: colors.heading,
                             fontSize: "clamp(1.1rem, 2.4vw, 1.3rem)",
                             fontWeight: 600,
-                            lineHeight: 1.7,
+                            lineHeight: 1.8,
                             textAlign: align
                         }}
                     >
@@ -243,12 +351,40 @@ export default function AboutPage() {
                     </blockquote>
                 </div>
 
+                {/* Team */}
+                <section style={{ borderTop: `1px solid ${colors.divider}`, marginTop: 56, paddingTop: 48 }}>
+                    <h2 style={{ ...sectionLabel, margin: "0 0 12px", textAlign: "center" }}>{t.teamTitle}</h2>
+                    <p
+                        style={{
+                            margin: "0 auto 40px",
+                            maxWidth: 520,
+                            textAlign: "center",
+                            color: colors.lead,
+                            fontSize: "clamp(1.05rem, 2.2vw, 1.25rem)",
+                            fontWeight: 500,
+                            lineHeight: 1.8
+                        }}
+                    >
+                        {t.teamSub}
+                    </p>
+
+                    <div
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+                            gap: 20
+                        }}
+                    >
+                        {t.team.map((p) => renderCard(p))}
+                    </div>
+                </section>
+
                 <Link
                     href="/"
                     style={{
                         display: "inline-block",
-                        marginTop: 36,
-                        color: ACCENT,
+                        marginTop: 48,
+                        color: themeColors.accentText,
                         fontWeight: 600,
                         textDecoration: "none"
                     }}

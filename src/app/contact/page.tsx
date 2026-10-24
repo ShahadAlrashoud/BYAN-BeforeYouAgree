@@ -50,10 +50,8 @@ const content = {
     }
 };
 
-const ACCENT = "#6366f1";
-
 export default function ContactPage() {
-    const { theme, lang } = useTheme();
+    const { theme, lang, colors: themeColors } = useTheme();
     const isDark = theme === "dark";
     const isAr = lang === "ar";
     const t = content[lang];
@@ -63,14 +61,15 @@ export default function ContactPage() {
     const [error, setError] = useState("");
     const [sent, setSent] = useState(false);
 
+    // Page-specific neutral tokens + accent-derived tokens (all from themeColors)
     const colors = {
         bg: isDark ? "linear-gradient(180deg, #0a0e1a 0%, #111827 100%)" : "#ffffff",
         heading: isDark ? "#f1f1f1" : "#1e293b",
         body: isDark ? "#94a3b8" : "#64748b",
         line: isDark ? "#334155" : "#e2e8f0",
         input: isDark ? "#111827" : "#f8fafc",
-        soft: isDark ? "rgba(99, 102, 241, 0.12)" : "#eef0ff",
-        softBorder: isDark ? "rgba(99, 102, 241, 0.4)" : "rgba(99, 102, 241, 0.25)"
+        soft: themeColors.accentSoft,
+        softBorder: `color-mix(in srgb, ${themeColors.accent} ${isDark ? 40 : 25}%, transparent)`
     };
 
     const labelStyle = { display: "block", margin: "0 0 6px", fontSize: "0.85rem", fontWeight: 600, color: colors.heading };
@@ -120,7 +119,7 @@ export default function ContactPage() {
                 <p
                     style={{
                         margin: "0 0 12px",
-                        color: ACCENT,
+                        color: themeColors.accentText,
                         fontSize: "0.85rem",
                         fontWeight: 700,
                         letterSpacing: isAr ? 0 : "0.12em",
@@ -175,7 +174,7 @@ export default function ContactPage() {
                     {error && <p style={{ margin: 0, color: "#dc2626", fontSize: "0.88rem" }}>{error}</p>}
                     {sent && (
                         <p style={{ margin: 0, color: "#4a8f68", fontSize: "0.88rem", lineHeight: 1.6 }}>
-                            {t.sent} <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: ACCENT }}>{CONTACT_EMAIL}</a>
+                            {t.sent} <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: themeColors.accentText }}>{CONTACT_EMAIL}</a>
                         </p>
                     )}
 
@@ -186,8 +185,8 @@ export default function ContactPage() {
                             border: "none",
                             borderRadius: 10,
                             padding: "13px 30px",
-                            background: "linear-gradient(135deg, #6366f1 0%, #5b7ba8 100%)",
-                            color: "#fff",
+                            background: themeColors.accent,
+                            color: themeColors.onAccent,
                             fontWeight: 700,
                             fontSize: "0.95rem",
                             cursor: "pointer"
@@ -209,13 +208,13 @@ export default function ContactPage() {
                     <h2 style={{ margin: "0 0 6px", fontSize: "1rem" }}>{t.directTitle}</h2>
                     <p style={{ margin: 0, color: colors.body, fontSize: "0.92rem" }}>
                         {t.directText}{" "}
-                        <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: ACCENT, fontWeight: 600, textDecoration: "none" }}>
+                        <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: themeColors.accentText, fontWeight: 600, textDecoration: "none" }}>
                             {CONTACT_EMAIL}
                         </a>
                     </p>
                 </div>
 
-                <Link href="/" style={{ display: "inline-block", marginTop: 36, color: ACCENT, fontWeight: 600, textDecoration: "none" }}>
+                <Link href="/" style={{ display: "inline-block", marginTop: 36, color: themeColors.accentText, fontWeight: 600, textDecoration: "none" }}>
                     {t.backLink}
                 </Link>
             </div>

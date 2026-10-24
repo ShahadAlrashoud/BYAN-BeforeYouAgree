@@ -96,8 +96,6 @@ const content = {
     }
 };
 
-const ACCENT = "#6366f1";
-
 const RISK_COLORS = [
     { ring: "#86d9a4", bg: "#eafcf1", text: "#4a8f68" },
     { ring: "#f2c96b", bg: "#fdf6e3", text: "#a17f2d" },
@@ -106,27 +104,25 @@ const RISK_COLORS = [
 const WEIGHT_COLORS = ["#c06a6a", "#a17f2d", "#4a8f68"];
 
 export default function HowItWorksPage() {
-    const { theme, lang } = useTheme();
+    const { theme, lang, colors: themeColors } = useTheme();
     const isDark = theme === "dark";
     const isAr = lang === "ar";
     const t = content[lang];
     const align = isAr ? "right" : "left";
 
+    // Page-specific neutral tokens (accents come from themeColors)
     const colors = {
         bg: isDark ? "linear-gradient(180deg, #0a0e1a 0%, #111827 100%)" : "#ffffff",
         altBg: isDark ? "#0f172a" : "#f8fafc",
         heading: isDark ? "#f1f1f1" : "#1e293b",
         body: isDark ? "#94a3b8" : "#64748b",
         line: isDark ? "#1e293b" : "#e2e8f0",
-        connector: isDark ? "#334155" : "#c7d2fe",
-        soft: isDark ? "rgba(99, 102, 241, 0.12)" : "#eef0ff",
-        softBorder: isDark ? "rgba(99, 102, 241, 0.4)" : "rgba(99, 102, 241, 0.25)",
         card: isDark ? "#111827" : "#ffffff"
     };
 
     const sectionLabel = {
         margin: "0 0 24px",
-        color: ACCENT,
+        color: themeColors.accentText,
         fontSize: "0.85rem",
         fontWeight: 700,
         letterSpacing: isAr ? 0 : "0.12em",
@@ -135,6 +131,13 @@ export default function HowItWorksPage() {
     };
 
     const num = (n: number) => (isAr ? n.toLocaleString("ar-SA") : n);
+
+    // Gradient: first step is the lightest, last step is the full accent color
+    const MIN_STRENGTH = 35;
+    const stepStrength = (i: number, total: number) =>
+        total <= 1
+            ? 100
+            : Math.round(MIN_STRENGTH + (i / (total - 1)) * (100 - MIN_STRENGTH));
 
     return (
         <main
@@ -155,6 +158,10 @@ export default function HowItWorksPage() {
                 <h2 style={sectionLabel}>{t.stepsTitle}</h2>
                 {t.steps.map((step, i) => {
                     const isLast = i === t.steps.length - 1;
+                    const strength = stepStrength(i, t.steps.length);
+                    const nextStrength = stepStrength(i + 1, t.steps.length);
+                    const isStrong = strength >= 70;
+
                     return (
                         <div key={i} style={{ display: "flex", gap: 20 }}>
                             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
@@ -163,19 +170,28 @@ export default function HowItWorksPage() {
                                         width: 44,
                                         height: 44,
                                         borderRadius: "50%",
-                                        background: ACCENT,
-                                        color: "#fff",
+                                        background: `color-mix(in srgb, ${themeColors.accent} ${strength}%, transparent)`,
+                                        color: isStrong ? themeColors.onAccent : themeColors.accentText,
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
                                         fontWeight: 800,
                                         fontSize: "1.1rem",
-                                        boxShadow: `0 0 0 6px ${colors.soft}`
+                                        boxShadow: `0 0 0 6px ${themeColors.accentSoft}`
                                     }}
                                 >
                                     {num(i + 1)}
                                 </div>
-                                {!isLast && <div style={{ flex: 1, width: 2, background: colors.connector, margin: "8px 0" }} />}
+                                {!isLast && (
+                                    <div
+                                        style={{
+                                            flex: 1,
+                                            width: 2,
+                                            margin: "8px 0",
+                                            background: `linear-gradient(180deg, color-mix(in srgb, ${themeColors.accent} ${strength}%, transparent), color-mix(in srgb, ${themeColors.accent} ${nextStrength}%, transparent))`
+                                        }}
+                                    />
+                                )}
                             </div>
                             <div style={{ paddingBottom: isLast ? 0 : 32, textAlign: align }}>
                                 <h3 style={{ margin: "8px 0 8px", fontSize: "1.15rem", fontWeight: 700 }}>{step.title}</h3>
@@ -246,7 +262,14 @@ export default function HowItWorksPage() {
                 <h2 style={sectionLabel}>{t.moreTitle}</h2>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 24 }}>
                     {t.more.map((m) => (
-                        <div key={m.title} style={{ textAlign: align, [isAr ? "borderRight" : "borderLeft"]: `3px solid ${ACCENT}`, padding: "4px 16px" }}>
+                        <div
+                            key={m.title}
+                            style={{
+                                textAlign: align,
+                                [isAr ? "borderRight" : "borderLeft"]: `3px solid ${themeColors.accent}`,
+                                padding: "4px 16px"
+                            }}
+                        >
                             <h3 style={{ margin: "0 0 6px", fontSize: "1rem" }}>{m.title}</h3>
                             <p style={{ margin: 0, color: colors.body, fontSize: "0.9rem", lineHeight: 1.7 }}>{m.text}</p>
                         </div>
@@ -255,7 +278,7 @@ export default function HowItWorksPage() {
 
                 <p style={{ margin: "40px 0 0", color: colors.body, fontSize: "0.88rem", textAlign: align }}>
                     {t.noteText}{" "}
-                    <Link href="/disclaimer" style={{ color: ACCENT, fontWeight: 600, textDecoration: "none" }}>
+                    <Link href="/disclaimer" style={{ color: themeColors.accentText, fontWeight: 600, textDecoration: "none" }}>
                         {t.noteLink}
                     </Link>
                 </p>
@@ -267,15 +290,15 @@ export default function HowItWorksPage() {
                             display: "inline-block",
                             padding: "13px 32px",
                             borderRadius: 10,
-                            background: "linear-gradient(135deg, #6366f1 0%, #5b7ba8 100%)",
-                            color: "#fff",
+                            background: themeColors.accent,
+                            color: themeColors.onAccent,
                             fontWeight: 700,
                             textDecoration: "none"
                         }}
                     >
                         {t.cta}
                     </Link>
-                    <Link href="/" style={{ color: ACCENT, fontWeight: 600, textDecoration: "none" }}>
+                    <Link href="/" style={{ color: themeColors.accentText, fontWeight: 600, textDecoration: "none" }}>
                         {t.backLink}
                     </Link>
                 </div>

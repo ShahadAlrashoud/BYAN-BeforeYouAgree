@@ -44,7 +44,7 @@ export default function LoginPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
-    const { theme, lang } = useTheme();
+    const { theme, lang, colors } = useTheme();
 
     const isDark = theme === "dark";
     const isAr = lang === "ar";
@@ -105,25 +105,36 @@ export default function LoginPage() {
                     />
 
                     <div style={{ textAlign: "end", marginBottom: 16 }}>
-                        <Link href="/forgot-password" style={{ color: "#6366f1", fontSize: "0.85rem", fontWeight: 600, textDecoration: "none" }}>
+                        <Link
+                            href="/forgot-password"
+                            style={{ color: colors.accentText, fontSize: "0.85rem", fontWeight: 600, textDecoration: "none" }}
+                        >
                             {t.forgot}
                         </Link>
                     </div>
 
                     {error && (
-                        <p role="alert" style={{ color: "#dc2626", fontSize: "0.85rem", marginBottom: 12 }}>
+                        <p role="alert" style={{ color: colors.high, fontSize: "0.85rem", marginBottom: 12 }}>
                             {error}
                         </p>
                     )}
 
-                    <button type="submit" disabled={loading} style={btn(loading)}>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        style={{
+                            ...btn(loading),
+                            background: colors.accent,
+                            color: colors.onAccent,
+                        }}
+                    >
                         {loading ? t.loading : t.button}
                     </button>
                 </form>
 
                 <p style={{ textAlign: "center", marginTop: 16, fontSize: "0.9rem", color: muted(isDark) }}>
                     {t.noAccount}{" "}
-                    <Link href="/signup" style={{ color: "#6366f1", fontWeight: 600 }}>
+                    <Link href="/signup" style={{ color: colors.accentText, fontWeight: 600 }}>
                         {t.signup}
                     </Link>
                 </p>

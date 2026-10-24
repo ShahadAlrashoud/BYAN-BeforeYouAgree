@@ -13,7 +13,7 @@ const content = {
         email: "Email",
         password: "Password",
         confirm: "Confirm password",
-        hint: "At least 6 characters.",
+        hint: "At least 8 characters.",
         show: "Show password",
         hide: "Hide password",
         agreePrefix: "I agree to the ",
@@ -60,12 +60,12 @@ export default function SignupPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
-    const { theme, lang } = useTheme();
+    const { theme, lang, colors } = useTheme();
 
     const isDark = theme === "dark";
     const isAr = lang === "ar";
     const t = content[lang];
-    const linkStyle = { color: "#6366f1", fontWeight: 600 };
+    const linkStyle = { color: colors.accentText, fontWeight: 600 };
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -148,7 +148,7 @@ export default function SignupPage() {
                             checked={agreed}
                             onChange={(e) => setAgreed(e.target.checked)}
                             required
-                            style={{ marginTop: 3, accentColor: "#6366f1" }}
+                            style={{ marginTop: 3, accentColor: colors.accent }}
                         />
                         <span>
                             {t.agreePrefix}
@@ -159,12 +159,20 @@ export default function SignupPage() {
                     </label>
 
                     {error && (
-                        <p role="alert" style={{ color: "#dc2626", fontSize: "0.85rem", marginBottom: 12 }}>
+                        <p role="alert" style={{ color: colors.high, fontSize: "0.85rem", marginBottom: 12 }}>
                             {error}
                         </p>
                     )}
 
-                    <button type="submit" disabled={loading} style={btn(loading)}>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        style={{
+                            ...btn(loading),
+                            background: colors.accent,
+                            color: colors.onAccent,
+                        }}
+                    >
                         {loading ? t.loading : t.button}
                     </button>
                 </form>

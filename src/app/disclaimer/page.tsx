@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useTheme } from "../providers";
 
 // TODO: update whenever you change this page
-const LAST_UPDATED = { en: "[Date]", ar: "[التاريخ]" };
+const LAST_UPDATED = { en: "October 24, 2026", ar: "أكتوبر 24, 2026" };
 
 const content = {
     en: {
@@ -87,15 +87,14 @@ const content = {
     }
 };
 
-const ACCENT = "#6366f1";
-
 export default function DisclaimerPage() {
-    const { theme, lang } = useTheme();
+    const { theme, lang, colors: themeColors } = useTheme();
     const isDark = theme === "dark";
     const isAr = lang === "ar";
     const t = content[lang];
     const align = isAr ? "right" : "left";
 
+    // Page-specific neutral tokens (accent comes from themeColors)
     const colors = {
         bg: isDark ? "linear-gradient(180deg, #0a0e1a 0%, #111827 100%)" : "#ffffff",
         heading: isDark ? "#f1f1f1" : "#1e293b",
@@ -114,7 +113,7 @@ export default function DisclaimerPage() {
                 <p
                     style={{
                         margin: "0 0 12px",
-                        color: ACCENT,
+                        color: themeColors.accentText,
                         fontSize: "0.85rem",
                         fontWeight: 700,
                         letterSpacing: isAr ? 0 : "0.12em",
@@ -139,7 +138,7 @@ export default function DisclaimerPage() {
                                 style={{
                                     flexShrink: 0,
                                     width: 32,
-                                    color: ACCENT,
+                                    color: themeColors.accentText,
                                     fontWeight: 700,
                                     fontSize: "0.9rem",
                                     paddingTop: 2,
@@ -158,12 +157,12 @@ export default function DisclaimerPage() {
 
                 <p style={{ margin: "36px 0 0", color: colors.body }}>
                     {t.questions}{" "}
-                    <Link href="/contact" style={{ color: ACCENT, fontWeight: 600, textDecoration: "none" }}>
+                    <Link href="/contact" style={{ color: themeColors.accentText, fontWeight: 600, textDecoration: "none" }}>
                         {t.contact}
                     </Link>
                 </p>
 
-                <Link href="/" style={{ display: "inline-block", marginTop: 28, color: ACCENT, fontWeight: 600, textDecoration: "none" }}>
+                <Link href="/" style={{ display: "inline-block", marginTop: 28, color: themeColors.accentText, fontWeight: 600, textDecoration: "none" }}>
                     {t.backLink}
                 </Link>
             </div>

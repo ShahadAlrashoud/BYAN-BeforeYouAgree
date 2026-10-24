@@ -26,13 +26,14 @@ const content = {
 
 export default function UserMenu() {
   const { data: session, status } = useSession();
-  const { lang, theme } = useTheme();
+  const { lang, theme, colors } = useTheme();
 
   const isAr = lang === "ar";
   const isDark = theme === "dark";
   const t = content[lang];
 
   const [open, setOpen] = useState(false);
+  const [signupHover, setSignupHover] = useState(false);
   const ref = useRef(null);
 
   useEffect(() => {
@@ -82,6 +83,8 @@ export default function UserMenu() {
 
         <Link
           href="/signup"
+          onMouseEnter={() => setSignupHover(true)}
+          onMouseLeave={() => setSignupHover(false)}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -89,12 +92,13 @@ export default function UserMenu() {
             height: 36,
             padding: "0 14px",
             borderRadius: 8,
-            background: "#6366f1",
-            color: "#ffffff",
+            background: signupHover ? colors.accentHover : colors.accent,
+            color: colors.onAccent,
             textDecoration: "none",
             fontSize: 14,
             fontWeight: 600,
             boxShadow: "0 1px 2px rgba(0, 0, 0, 0.08)",
+            transition: "background-color 0.2s ease",
           }}
         >
           {t.signup}
@@ -130,20 +134,16 @@ export default function UserMenu() {
           width: 38,
           height: 38,
           borderRadius: "50%",
-          border: isDark
-            ? "1px solid #4f46e5"
-            : "1px solid rgba(99, 102, 241, 0.25)",
-          background: "#6366f1",
-          color: "#ffffff",
+          border: `1px solid ${colors.accent}`,
+          background: colors.accent,
+          color: colors.onAccent,
           fontWeight: 700,
           fontSize: 14,
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          boxShadow: open
-            ? "0 0 0 3px rgba(99, 102, 241, 0.15)"
-            : "none",
+          boxShadow: open ? `0 0 0 3px ${colors.accentSoft}` : "none",
           transition: "box-shadow 0.2s ease",
         }}
       >
@@ -236,7 +236,7 @@ export default function UserMenu() {
             type="button"
             onClick={() => signOut({ callbackUrl: "/login" })}
             style={{
-              ...itemStyle("#dc2626"),
+              ...itemStyle(colors.high),
               width: "100%",
               textAlign: isAr ? "right" : "left",
               border: "none",

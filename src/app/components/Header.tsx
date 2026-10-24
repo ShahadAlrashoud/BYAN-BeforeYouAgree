@@ -114,22 +114,6 @@ const navItems = [
     { href: "/about", key: "about" },
 ] as const;
 
-/* ---------- Theme tokens ---------- */
-
-const ACCENT = "#6366f1";
-
-function getColors(isDark: boolean) {
-    return {
-        accent: ACCENT,
-        border: isDark ? "#1e293b" : "#e2e8f0",
-        bg: isDark ? "rgba(15, 23, 42, 0.8)" : "rgba(255, 255, 255, 0.8)",
-        mobileBg: isDark ? "#0f172a" : "#ffffff",
-        link: isDark ? "#dbe4f0" : "#4338ca",
-        langBorder: isDark ? "#334155" : "#e2e8f0",
-        langText: isDark ? "#94a3b8" : "#64748b",
-    };
-}
-
 /* ---------- Hooks ---------- */
 
 function useIsMobile(breakpoint = 768) {
@@ -151,7 +135,7 @@ function useIsMobile(breakpoint = 768) {
 /* ---------- Component ---------- */
 
 export default function Header() {
-    const { theme, toggleTheme, lang, setLang } = useTheme();
+    const { theme, toggleTheme, lang, setLang, colors: themeColors } = useTheme();
     const pathname = usePathname();
 
     const isMobile = useIsMobile();
@@ -160,7 +144,19 @@ export default function Header() {
     const isDark = theme === "dark";
     const isAr = lang === "ar";
     const t = content[lang];
-    const c = getColors(isDark);
+
+    // Header-specific tokens, driven by the shared theme colors
+    const c = {
+        accent: themeColors.accent,
+        accentText: themeColors.accentText,
+        onAccent: themeColors.onAccent,
+        border: isDark ? "#1e293b" : "#e2e8f0",
+        bg: isDark ? "rgba(15, 23, 42, 0.8)" : "rgba(255, 255, 255, 0.8)",
+        mobileBg: isDark ? "#0f172a" : "#ffffff",
+        link: isDark ? "#dbe4f0" : "#334155",
+        langBorder: isDark ? "#334155" : "#e2e8f0",
+        langText: isDark ? "#94a3b8" : "#64748b",
+    };
 
     /* Close mobile menu on navigation */
     useEffect(() => {
@@ -197,7 +193,7 @@ export default function Header() {
 
     /* Desktop navigation link */
     const navLinkStyle = (href: string): CSSProperties => ({
-        color: c.link,
+        color: isActive(href) ? c.accentText : c.link,
         textDecoration: "none",
         fontSize: "0.9rem",
         fontWeight: isActive(href) ? 700 : 500,
@@ -205,12 +201,12 @@ export default function Header() {
         borderBottom: isActive(href)
             ? `2px solid ${c.accent}`
             : "2px solid transparent",
-        transition: "border-color 0.2s ease",
+        transition: "border-color 0.2s ease, color 0.2s ease",
     });
 
     /* Mobile navigation link */
     const mobileLinkStyle = (href: string): CSSProperties => ({
-        color: isActive(href) ? c.accent : c.link,
+        color: isActive(href) ? c.accentText : c.link,
         textDecoration: "none",
         fontSize: "1rem",
         fontWeight: isActive(href) ? 700 : 500,
@@ -247,7 +243,7 @@ export default function Header() {
                         style={{
                             border: "none",
                             background: active ? c.accent : "transparent",
-                            color: active ? "#fff" : c.langText,
+                            color: active ? c.onAccent : c.langText,
                             borderRadius: 999,
                             padding: "4px 9px",
                             minWidth: 34,
@@ -255,7 +251,7 @@ export default function Header() {
                             fontWeight: active ? 700 : 600,
                             cursor: "pointer",
                             lineHeight: 1.2,
-                            transition: "background 0.2s ease, color 0.2s ease",
+                            transition: "background-color 0.2s ease, color 0.2s ease",
                         }}
                     >
                         {l.toUpperCase()}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "./providers";
+import ImageAnalyzer from "./components/ImageAnalyzer";
 
 /* ---------- Icons ---------- */
 
@@ -54,7 +55,37 @@ function IconSparkle({ color }: { color: string }) {
 
 /* ---------- Content ---------- */
 
-const content = {
+type Content = {
+    heroTitlePrefix: string;
+    heroTitleAccent: string;
+    heroSubtitle: string;
+    placeholder: string;
+    button: string;
+    errorMsg: string;
+    helperText: string;
+    tabUrl: string;
+    tabImages: string;
+    chips: string[];
+
+    howTitle: string;
+    steps: { title: string; text: string }[];
+
+    featuresTitle: string;
+    features: { title: string; text: string }[];
+
+    legendTitle: string;
+    legendText: string;
+    legend: string[];
+
+    disclaimerTitle: string;
+    disclaimerText: string;
+    disclaimerLink: string;
+
+    ctaTitle: string;
+    ctaButton: string;
+};
+
+const content: Record<"en" | "ar", Content> = {
     en: {
         heroTitlePrefix: "Before you ",
         heroTitleAccent: "agree",
@@ -62,6 +93,10 @@ const content = {
         placeholder: "Enter website URL (e.g. example.com)",
         button: "Analyze Website →",
         errorMsg: "Please enter a URL.",
+        helperText: "Fast. Simple. Clear. Results appear in the policy's actual language.",
+        tabUrl: "Website link",
+        tabImages: "Screenshots",
+        chips: ["Arabic & English", "0–100 risk score", "Plain language"],
 
         howTitle: "How It Works",
         steps: [
@@ -92,11 +127,6 @@ const content = {
     },
 
     ar: {
-        disclaimerTitle: "تنبيه",
-        disclaimerText:
-            "يقدّم بيان تحليلاً آلياً للأغراض المعلوماتية فقط، وهو ليس استشارة قانونية، وقد تكون النتائج ناقصة أو غير دقيقة. يرجى قراءة السياسات الأصلية قبل الموافقة.",
-        disclaimerLink: "اقرأ إخلاء المسؤولية كاملاً",
-
         heroTitlePrefix: "قبل أن ",
         heroTitleAccent: "توافق",
         heroSubtitle: "اعرف حقوقك. افهم شروطك الآن.",
@@ -104,6 +134,9 @@ const content = {
         button: "← تحليل الموقع",
         errorMsg: "الرجاء إدخال رابط.",
         helperText: "سريع. بسيط. واضح. تظهر النتائج بلغة السياسة الفعلية.",
+        tabUrl: "رابط الموقع",
+        tabImages: "صور",
+        chips: ["عربي وإنجليزي", "درجة من 0 إلى 100", "لغة بسيطة"],
 
         howTitle: "كيف يعمل",
         steps: [
@@ -125,12 +158,15 @@ const content = {
             "يتم تلخيص كل سياسة في درجة مخاطر واحدة من 0 إلى 100، وتُصنَّف ضمن واحد من ثلاثة مستويات.",
         legend: ["آمن", "خطر متوسط", "خطر مرتفع"],
 
+        disclaimerTitle: "تنبيه",
+        disclaimerText:
+            "يقدّم بيان تحليلاً آلياً للأغراض المعلوماتية فقط، وهو ليس استشارة قانونية، وقد تكون النتائج ناقصة أو غير دقيقة. يرجى قراءة السياسات الأصلية قبل الموافقة.",
+        disclaimerLink: "اقرأ إخلاء المسؤولية كاملاً",
+
         ctaTitle: "قبل أن توافق، اعرف على ماذا توافق.",
         ctaButton: "جرّب الآن",
     },
 };
-
-const ACCENT = "#6366f1";
 
 const LEGEND_COLORS = [
     { ring: "#86d9a4", bg: "#eafcf1", text: "#4a8f68" },
@@ -143,10 +179,11 @@ const LEGEND_COLORS = [
 export default function HomePage() {
     const [url, setUrl] = useState("");
     const [error, setError] = useState("");
+    const [mode, setMode] = useState<"url" | "images">("url");
     const inputRef = useRef<HTMLInputElement>(null);
 
     const router = useRouter();
-    const { theme, lang } = useTheme();
+    const { theme, lang, colors: themeColors } = useTheme();
 
     const isDark = theme === "dark";
     const isAr = lang === "ar";
@@ -168,25 +205,19 @@ export default function HomePage() {
     }
 
     function focusInput() {
+        setMode("url");
         window.scrollTo({ top: 0, behavior: "smooth" });
-
-        setTimeout(() => {
-            inputRef.current?.focus();
-        }, 400);
+        setTimeout(() => inputRef.current?.focus(), 400);
     }
 
-    const icons = [
-        IconDocument,
-        IconShield,
-        IconWarning,
-        IconSparkle,
-    ];
+    const icons = [IconDocument, IconShield, IconWarning, IconSparkle];
 
     const features = t.features.map((f, i) => ({
         ...f,
         Icon: icons[i],
     }));
 
+    // Page-specific tokens (neutral backgrounds/text only; accents come from themeColors)
     const colors = {
         pageBg: isDark
             ? "linear-gradient(180deg, #0a0e1a 0%, #111827 100%)"
@@ -202,9 +233,7 @@ export default function HomePage() {
 
         iconBox: isDark ? "#1e293b" : "#eef2f8",
 
-        soft: isDark
-            ? "rgba(99, 102, 241, 0.15)"
-            : "#eef0ff",
+        soft: themeColors.accentSoft,
     };
 
     const sectionTitle = {
@@ -232,167 +261,200 @@ export default function HomePage() {
             <div
                 className="byan-hero"
                 style={{
-                    maxWidth: 700,
+                    maxWidth: 760,
                     margin: "0 auto",
                     width: "100%",
-                    padding: "90px 24px 50px",
-                    textAlign: isAr ? "right" : "left",
+                    padding: "80px 24px 64px",
+                    textAlign: "center",
                 }}
             >
                 <h1
                     style={{
-                        fontSize: "2.6rem",
+                        fontSize: "clamp(2.2rem, 5vw, 3.4rem)",
                         fontWeight: 800,
-                        margin: "0 0 20px",
-                        lineHeight: 1.2,
+                        margin: "0 0 16px",
+                        lineHeight: 1.15,
                     }}
                 >
                     {t.heroTitlePrefix}
-
-                    <span style={{ color: ACCENT }}>
+                    <span style={{ color: themeColors.accent }}>
                         {t.heroTitleAccent}
                     </span>
                 </h1>
 
                 <p
                     style={{
-                        fontSize: "1.05rem",
+                        fontSize: "1.1rem",
                         color: colors.body,
-                        margin: "0 0 24px",
+                        margin: "0 auto 32px",
+                        maxWidth: 520,
                         lineHeight: 1.6,
                     }}
                 >
                     {t.heroSubtitle}
                 </p>
 
-                <form
-                    onSubmit={handleSubmit}
-                    dir={isAr ? "rtl" : "ltr"}
+                {/* Input card */}
+                <div
                     style={{
-                        display: "flex",
-                        gap: 10,
-                        background: isDark ? "#111827" : "#f4f7fb",
-                        border: isDark
-                            ? "1px solid #334155"
-                            : "1px solid #e2e8f0",
-                        borderRadius: 14,
-                        padding: 8,
-                        maxWidth: 480,
+                        maxWidth: 580,
+                        margin: "0 auto",
+                        padding: 20,
+                        borderRadius: 20,
+                        background: themeColors.card,
+                        border: `1px solid ${themeColors.border}`,
+                        boxShadow: isDark
+                            ? "0 10px 30px rgba(0,0,0,0.35)"
+                            : "0 10px 30px rgba(15,23,42,0.08)",
+                        textAlign: isAr ? "right" : "left",
                     }}
                 >
-                    <input
-                        ref={inputRef}
-                        id="analyze-input"
-                        type="text"
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        placeholder={t.placeholder}
+                    {/* Tabs */}
+                    <div
+                        role="tablist"
                         style={{
-                            flex: 1,
-                            border: "none",
-                            background: "transparent",
-                            outline: "none",
-                            padding: "10px 12px",
-                            fontSize: "0.95rem",
-                            color: colors.heading,
-                            textAlign: isAr ? "right" : "left",
-                        }}
-                    />
-
-                    <button
-                        type="submit"
-                        style={{
-                            border: "none",
-                            borderRadius: 10,
-                            padding: "13px 26px",
-                            background:
-                                "linear-gradient(135deg, #6366f1 0%, #5b7ba8 100%)",
-                            color: "#fff",
-                            fontWeight: 700,
-                            fontSize: "0.95rem",
-                            cursor: "pointer",
-                            whiteSpace: "nowrap",
+                            display: "flex",
+                            gap: 4,
+                            padding: 4,
+                            marginBottom: 16,
+                            borderRadius: 12,
+                            background: themeColors.accentSoft,
                         }}
                     >
-                        {t.button}
-                    </button>
-                </form>
-            
-{/* Upload policy image */}
+                        {(["url", "images"] as const).map((m) => {
+                            const active = mode === m;
+                            return (
+                                <button
+                                    key={m}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={active}
+                                    onClick={() => setMode(m)}
+                                    style={{
+                                        flex: 1,
+                                        border: "none",
+                                        borderRadius: 9,
+                                        padding: "9px 12px",
+                                        fontWeight: 700,
+                                        fontSize: "0.9rem",
+                                        cursor: "pointer",
+                                        background: active
+                                            ? themeColors.accent
+                                            : "transparent",
+                                        color: active
+                                            ? themeColors.onAccent
+                                            : themeColors.accentText,
+                                        transition:
+                                            "background-color 0.2s ease, color 0.2s ease",
+                                    }}
+                                >
+                                    {m === "url"
+                                        ? `🔗 ${t.tabUrl}`
+                                        : `📷 ${t.tabImages}`}
+                                </button>
+                            );
+                        })}
+                    </div>
 
-<div
-    style={{
-        marginTop: 18,
-        maxWidth: 480,
-        textAlign: "center",
-    }}
->
-    <p
-        style={{
-            margin: "0 0 10px",
-            fontSize: "0.82rem",
-            color: colors.body,
-        }}
-    >
-        {isAr
-            ? "أو ارفع صورة للسياسة"
-            : "Or upload a screenshot of the policy"}
-    </p>
+                    {mode === "url" ? (
+                        <form
+                            onSubmit={handleSubmit}
+                            dir={isAr ? "rtl" : "ltr"}
+                            style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: 10,
+                            }}
+                        >
+                            <input
+                                ref={inputRef}
+                                id="analyze-input"
+                                type="text"
+                                value={url}
+                                onChange={(e) => setUrl(e.target.value)}
+                                placeholder={t.placeholder}
+                                style={{
+                                    flex: "1 1 220px",
+                                    minWidth: 0,
+                                    padding: "14px 16px",
+                                    fontSize: "1rem",
+                                    borderRadius: 12,
+                                    outline: "none",
+                                    border: `1px solid ${themeColors.border}`,
+                                    background: themeColors.input,
+                                    color: themeColors.heading,
+                                    textAlign: isAr ? "right" : "left",
+                                }}
+                            />
 
-    <label
-        htmlFor="policy-image"
-        style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-            padding: "10px 18px",
-            borderRadius: 10,
-            border: `1px solid ${isDark ? "#334155" : "#dbe2ea"}`,
-            background: isDark ? "#111827" : "#ffffff",
-            color: ACCENT,
-            fontWeight: 700,
-            fontSize: "0.85rem",
-            cursor: "pointer",
-        }}
-    >
-        📷 {isAr ? "اختيار صورة" : "Choose Image"}
-    </label>
+                            <button
+                                type="submit"
+                                style={{
+                                    flex: "0 0 auto",
+                                    border: "none",
+                                    borderRadius: 12,
+                                    padding: "14px 26px",
+                                    background: themeColors.accent,
+                                    color: themeColors.onAccent,
+                                    fontWeight: 700,
+                                    fontSize: "0.95rem",
+                                    cursor: "pointer",
+                                    whiteSpace: "nowrap",
+                                    boxShadow: `0 0 0 6px ${themeColors.accentSoft}`,
+                                }}
+                            >
+                                {t.button}
+                            </button>
+                        </form>
+                    ) : (
+                        <ImageAnalyzer showIntro={false} />
+                    )}
 
-    <input
-        id="policy-image"
-        type="file"
-        accept="image/*"
-        style={{ display: "none" }}
-        onChange={(e) => {
-            const file = e.target.files?.[0];
+                    {error && (
+                        <p
+                            style={{
+                                color: themeColors.high,
+                                fontSize: "0.85rem",
+                                margin: "10px 0 0",
+                            }}
+                        >
+                            {error}
+                        </p>
+                    )}
+                </div>
 
-            if (file) {
-                console.log("Policy image selected:", file);
-            }
-        }}
-    />
-</div>
-
-
-
-                {error && (
-                    <p
-                        style={{
-                            color: "#dc2626",
-                            fontSize: "0.85rem",
-                            marginTop: 10,
-                        }}
-                    >
-                        {error}
-                    </p>
-                )}
+                {/* Trust chips */}
+                <div
+                    style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        justifyContent: "center",
+                        gap: 10,
+                        marginTop: 22,
+                    }}
+                >
+                    {t.chips.map((chip) => (
+                        <span
+                            key={chip}
+                            style={{
+                                padding: "6px 14px",
+                                borderRadius: 999,
+                                fontSize: "0.8rem",
+                                fontWeight: 600,
+                                background: themeColors.accentSoft,
+                                color: themeColors.accentText,
+                            }}
+                        >
+                            ✓ {chip}
+                        </span>
+                    ))}
+                </div>
 
                 <p
                     style={{
                         marginTop: 14,
                         fontSize: "0.8rem",
-                        color: isDark ? "#64748b" : "#94a3b8",
+                        color: colors.body,
                     }}
                 >
                     {t.helperText}
@@ -418,15 +480,8 @@ export default function HomePage() {
                     background: colors.altBg,
                 }}
             >
-                <div
-                    style={{
-                        maxWidth: 900,
-                        margin: "0 auto",
-                    }}
-                >
-                    <h2 style={sectionTitle}>
-                        {t.howTitle}
-                    </h2>
+                <div style={{ maxWidth: 900, margin: "0 auto" }}>
+                    <h2 style={sectionTitle}>{t.howTitle}</h2>
 
                     <div
                         style={{
@@ -437,26 +492,20 @@ export default function HomePage() {
                         }}
                     >
                         {t.steps.map((s, i) => (
-                            <div
-                                key={i}
-                                style={{
-                                    textAlign: "center",
-                                }}
-                            >
+                            <div key={i} style={{ textAlign: "center" }}>
                                 <div
                                     style={{
                                         width: 44,
                                         height: 44,
                                         margin: "0 auto 14px",
                                         borderRadius: "50%",
-                                        background: ACCENT,
-                                        color: "#fff",
+                                        background: themeColors.accent,
+                                        color: themeColors.onAccent,
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
                                         fontWeight: 800,
-                                        boxShadow:
-                                            `0 0 0 6px ${colors.soft}`,
+                                        boxShadow: `0 0 0 6px ${colors.soft}`,
                                     }}
                                 >
                                     {isAr
@@ -491,21 +540,9 @@ export default function HomePage() {
 
             {/* What you get */}
 
-            <section
-                style={{
-                    width: "100%",
-                    padding: "60px 24px",
-                }}
-            >
-                <div
-                    style={{
-                        maxWidth: 900,
-                        margin: "0 auto",
-                    }}
-                >
-                    <h2 style={sectionTitle}>
-                        {t.featuresTitle}
-                    </h2>
+            <section style={{ width: "100%", padding: "60px 24px" }}>
+                <div style={{ maxWidth: 900, margin: "0 auto" }}>
+                    <h2 style={sectionTitle}>{t.featuresTitle}</h2>
 
                     <div
                         style={{
@@ -530,7 +567,7 @@ export default function HomePage() {
                                         justifyContent: "center",
                                     }}
                                 >
-                                    <f.Icon color={ACCENT} />
+                                    <f.Icon color={themeColors.accentText} />
                                 </div>
 
                                 <h3
@@ -573,12 +610,7 @@ export default function HomePage() {
                         textAlign: "center",
                     }}
                 >
-                    <h2
-                        style={{
-                            ...sectionTitle,
-                            margin: "0 0 12px",
-                        }}
-                    >
+                    <h2 style={{ ...sectionTitle, margin: "0 0 12px" }}>
                         {t.legendTitle}
                     </h2>
 
@@ -610,12 +642,9 @@ export default function HomePage() {
                                     gap: 8,
                                     padding: "8px 18px",
                                     borderRadius: 999,
-                                    background:
-                                        LEGEND_COLORS[i].bg,
-                                    color:
-                                        LEGEND_COLORS[i].text,
-                                    border:
-                                        `1.5px solid ${LEGEND_COLORS[i].ring}`,
+                                    background: LEGEND_COLORS[i].bg,
+                                    color: LEGEND_COLORS[i].text,
+                                    border: `1.5px solid ${LEGEND_COLORS[i].ring}`,
                                     fontWeight: 600,
                                     fontSize: "0.9rem",
                                 }}
@@ -625,8 +654,7 @@ export default function HomePage() {
                                         width: 10,
                                         height: 10,
                                         borderRadius: "50%",
-                                        background:
-                                            LEGEND_COLORS[i].ring,
+                                        background: LEGEND_COLORS[i].ring,
                                     }}
                                 />
 
@@ -664,7 +692,7 @@ export default function HomePage() {
                             marginBottom: 8,
                         }}
                     >
-                        <IconWarning color="#d89b32" />
+                        <IconWarning color={themeColors.medium} />
 
                         <h3
                             style={{
@@ -694,7 +722,7 @@ export default function HomePage() {
                         href="/disclaimer"
                         style={{
                             fontSize: "0.78rem",
-                            color: ACCENT,
+                            color: themeColors.accentText,
                             fontWeight: 700,
                             textDecoration: "none",
                         }}
@@ -733,9 +761,8 @@ export default function HomePage() {
                         border: "none",
                         borderRadius: 10,
                         padding: "13px 32px",
-                        background:
-                            "linear-gradient(135deg, #6366f1 0%, #5b7ba8 100%)",
-                        color: "#fff",
+                        background: themeColors.accent,
+                        color: themeColors.onAccent,
                         fontWeight: 700,
                         fontSize: "0.95rem",
                         cursor: "pointer",
@@ -744,20 +771,6 @@ export default function HomePage() {
                     {t.ctaButton}
                 </button>
             </section>
-
-            {/* Responsive */}
-
-            <style>{`
-                @media (max-width: 760px) {
-                    .byan-hero {
-                        text-align: center;
-                    }
-
-                    .byan-hero form {
-                        margin: 0 auto;
-                    }
-                }
-            `}</style>
         </div>
     );
 }

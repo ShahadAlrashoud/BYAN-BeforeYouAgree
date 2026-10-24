@@ -117,23 +117,22 @@ const content = {
     }
 };
 
-const ACCENT = "#6366f1";
-
 export default function FAQPage() {
-    const { theme, lang } = useTheme();
+    const { theme, lang, colors: themeColors } = useTheme();
     const isDark = theme === "dark";
     const isAr = lang === "ar";
     const t = content[lang];
     const align = isAr ? "right" : "left";
     const [open, setOpen] = useState<number | null>(0);
 
+    // Page-specific neutral tokens + accent-derived tokens (all from themeColors)
     const colors = {
         bg: isDark ? "linear-gradient(180deg, #0a0e1a 0%, #111827 100%)" : "#ffffff",
         heading: isDark ? "#f1f1f1" : "#1e293b",
         body: isDark ? "#94a3b8" : "#64748b",
         line: isDark ? "#1e293b" : "#e2e8f0",
-        soft: isDark ? "rgba(99, 102, 241, 0.12)" : "#eef0ff",
-        softBorder: isDark ? "rgba(99, 102, 241, 0.4)" : "rgba(99, 102, 241, 0.25)"
+        soft: themeColors.accentSoft,
+        softBorder: `color-mix(in srgb, ${themeColors.accent} ${isDark ? 40 : 25}%, transparent)`
     };
 
     return (
@@ -145,7 +144,7 @@ export default function FAQPage() {
                 <p
                     style={{
                         margin: "0 0 12px",
-                        color: ACCENT,
+                        color: themeColors.accentText,
                         fontSize: "0.85rem",
                         fontWeight: 700,
                         letterSpacing: isAr ? 0 : "0.12em",
@@ -177,7 +176,7 @@ export default function FAQPage() {
                                         background: "none",
                                         border: "none",
                                         cursor: "pointer",
-                                        color: isOpen ? ACCENT : colors.heading,
+                                        color: isOpen ? themeColors.accentText : colors.heading,
                                         fontSize: "1.02rem",
                                         fontWeight: 600,
                                         fontFamily: "inherit",
@@ -191,7 +190,7 @@ export default function FAQPage() {
                                             flexShrink: 0,
                                             fontSize: "1.4rem",
                                             lineHeight: 1,
-                                            color: ACCENT,
+                                            color: themeColors.accentText,
                                             transform: isOpen ? "rotate(45deg)" : "none",
                                             transition: "transform 0.2s ease"
                                         }}
@@ -232,8 +231,8 @@ export default function FAQPage() {
                         style={{
                             padding: "11px 24px",
                             borderRadius: 10,
-                            background: "linear-gradient(135deg, #6366f1 0%, #5b7ba8 100%)",
-                            color: "#fff",
+                            background: themeColors.accent,
+                            color: themeColors.onAccent,
                             fontWeight: 700,
                             textDecoration: "none"
                         }}
@@ -242,7 +241,7 @@ export default function FAQPage() {
                     </Link>
                 </div>
 
-                <Link href="/" style={{ display: "inline-block", marginTop: 36, color: ACCENT, fontWeight: 600, textDecoration: "none" }}>
+                <Link href="/" style={{ display: "inline-block", marginTop: 36, color: themeColors.accentText, fontWeight: 600, textDecoration: "none" }}>
                     {t.backLink}
                 </Link>
             </div>
