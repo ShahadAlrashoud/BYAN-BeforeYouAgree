@@ -4,8 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTheme } from "../providers";
 
-// TODO: replace with your real contact address
-const CONTACT_EMAIL = "contact@example.com";
+const CONTACT_EMAIL = "contact@byan.website";
 
 const content = {
     en: {
@@ -19,11 +18,13 @@ const content = {
         topics: ["General question", "Feedback", "Report an incorrect result", "Partnership"],
         messagePlaceholder: "Tell us how we can help. If you're reporting a result, include the website URL.",
         send: "Send message",
+        sending: "Sending...",
         errors: {
             required: "Please fill in all fields.",
             email: "Please enter a valid email address."
         },
-        sent: "Your email app should open with your message. If it didn't, email us directly at:",
+        sentOk: "Thanks! Your message has been sent.",
+        failed: "Something went wrong. Please try again or email us directly.",
         directTitle: "Prefer email?",
         directText: "Write to us directly at",
         backLink: "← Back to Homepage"
@@ -39,11 +40,13 @@ const content = {
         topics: ["سؤال عام", "ملاحظات", "الإبلاغ عن نتيجة غير صحيحة", "شراكة"],
         messagePlaceholder: "أخبرنا كيف يمكننا مساعدتك. إذا كنت تبلّغ عن نتيجة، فأرفق رابط الموقع.",
         send: "إرسال الرسالة",
+        sending: "جارٍ الإرسال...",
         errors: {
             required: "يرجى تعبئة جميع الحقول.",
             email: "يرجى إدخال بريد إلكتروني صحيح."
         },
-        sent: "من المفترض أن يُفتح تطبيق البريد لديك مع رسالتك. إذا لم يحدث ذلك، راسلنا مباشرة على:",
+        sentOk: "شكرًا لك! تم إرسال رسالتك.",
+        failed: "حدث خطأ ما. يرجى المحاولة مرة أخرى أو مراسلتنا مباشرة.",
         directTitle: "تفضّل البريد الإلكتروني؟",
         directText: "راسلنا مباشرة على",
         backLink: "→ العودة إلى الصفحة الرئيسية"
@@ -59,7 +62,7 @@ export default function ContactPage() {
 
     const [form, setForm] = useState({ name: "", email: "", topic: 0, message: "" });
     const [error, setError] = useState("");
-    const [sent, setSent] = useState(false);
+    const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
     // Page-specific neutral tokens + accent-derived tokens (all from themeColors)
     const colors = {
@@ -90,11 +93,13 @@ export default function ContactPage() {
     function update(field: string, value: string | number) {
         setForm((f) => ({ ...f, [field]: value }));
         setError("");
-        setSent(false);
+        setStatus("idle");
     }
 
-    function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+        if (status === "sending") return;
+
         if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
             setError(t.errors.required);
             return;
@@ -104,10 +109,25 @@ export default function ContactPage() {
             return;
         }
 
-        const subject = `[BYAN] ${content.en.topics[form.topic]}`;
-        const body = `Name: ${form.name.trim()}\nEmail: ${form.email.trim()}\n\n${form.message.trim()}`;
-        window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        setSent(true);
+        setError("");
+        setStatus("sending");
+        try {
+            const res = await fetch("/api/contact", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: form.name.trim(),
+                    email: form.email.trim(),
+                    topic: content.en.topics[form.topic], // always English in the email you receive
+                    message: form.message.trim()
+                })
+            });
+            if (!res.ok) throw new Error();
+            setStatus("sent");
+            setForm({ name: "", email: "", topic: 0, message: "" });
+        } catch {
+            setStatus("error");
+        }
     }
 
     return (
@@ -172,14 +192,19 @@ export default function ContactPage() {
                     </div>
 
                     {error && <p style={{ margin: 0, color: "#dc2626", fontSize: "0.88rem" }}>{error}</p>}
-                    {sent && (
-                        <p style={{ margin: 0, color: "#4a8f68", fontSize: "0.88rem", lineHeight: 1.6 }}>
-                            {t.sent} <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: themeColors.accentText }}>{CONTACT_EMAIL}</a>
+                    {status === "sent" && (
+                        <p style={{ margin: 0, color: "#4a8f68", fontSize: "0.88rem", lineHeight: 1.6 }}>{t.sentOk}</p>
+                    )}
+                    {status === "error" && (
+                        <p style={{ margin: 0, color: "#dc2626", fontSize: "0.88rem", lineHeight: 1.6 }}>
+                            {t.failed}{" "}
+                            <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: themeColors.accentText }}>{CONTACT_EMAIL}</a>
                         </p>
                     )}
 
                     <button
                         type="submit"
+                        disabled={status === "sending"}
                         style={{
                             alignSelf: isAr ? "flex-end" : "flex-start",
                             border: "none",
@@ -189,10 +214,11 @@ export default function ContactPage() {
                             color: themeColors.onAccent,
                             fontWeight: 700,
                             fontSize: "0.95rem",
-                            cursor: "pointer"
+                            cursor: status === "sending" ? "not-allowed" : "pointer",
+                            opacity: status === "sending" ? 0.7 : 1
                         }}
                     >
-                        {t.send}
+                        {status === "sending" ? t.sending : t.send}
                     </button>
                 </form>
 
