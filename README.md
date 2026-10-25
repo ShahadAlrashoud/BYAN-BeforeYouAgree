@@ -37,43 +37,6 @@ BYAN (formerly PrivacyCheck) is a web app that analyzes a website's Terms of Ser
 | E-mail | Resend, Nodemailer |
 | Hosting | Vercel |
 
-## Getting Started
-
-### Prerequisites
-- Node.js [version]
-- A Neon database
-- A Groq API key
-- A Resend API key
-
-### Installation
-
-```bash
-git clone [repo URL]
-cd [repo folder]
-npm install
-```
-
-### Environment variables
-
-Create a `.env.local` file in the project root:
-
-```env
-DATABASE_URL=your_neon_connection_string
-GROQ_API_KEY=your_groq_api_key
-NEXTAUTH_SECRET=[confirm name and value]
-NEXTAUTH_URL=http://localhost:3000
-RESEND_API_KEY=[confirm variable name used in /api/contact]
-```
-
-### Run locally
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
-
-### Database
 
 ## Testing
 
