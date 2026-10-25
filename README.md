@@ -1,13 +1,15 @@
-Here's a README draft built only from what's in your report and commits. Items in [brackets] need your input. I marked the places where I couldn't confirm details, such as environment variable names and tests.
+<p align="center">
+<img width="500" height="500" alt="privacy-check-logo-transparent" src="https://github.com/user-attachments/assets/a8a208b6-f5e6-484c-baa9-b967c5ae4b2c" />   
+</p>
 
-````markdown
+
 # BYAN – Before You Agree
 
 > Know your rights. Understand your terms.
 
 BYAN (formerly PrivacyCheck) is a web app that analyzes a website's Terms of Service and Privacy Policy. It extracts the important clauses, gives a 0–100 risk score, and writes a short summary in English or Arabic. It is our graduation project.
 
-**Live demo:** [add Vercel URL]
+**Live demo:** www.byan.website
 
 ## Features
 
@@ -86,23 +88,6 @@ Manual checks:
 
 ## Project Structure
 
-src/
-├── app/
-│   ├── page.tsx              # Homepage
-│   ├── about/  how-it-works/  faq/  contact/  disclaimer/
-│   ├── compare/              # Comparison page
-│   ├── login/  signup/
-│   ├── api/
-│   │   ├── analyze/          # URL or text analysis
-│   │   ├── translate/
-│   │   ├── contact/          # Contact form e-mail (Resend)
-│   │   ├── save/  saved/     # Save and list analyses
-│   │   └── results/          # Fetch an analysis by ID
-│   ├── components/           # Header, Footer, BYANLogo, ImageAnalyzer, ...
-│   └── providers.tsx         # Theme and colour provider
-└── database/                 # DB connection and queries
-```
-
 ## Team
 
 | Member | Role |
@@ -111,11 +96,12 @@ src/
 | Gadah Almutairi | Front end |
 | Nourah Almudbil | Back end |
 
-**Supervisor:** [name]
+**Supervisor:**  Dr. Nisreen Innab
 
 ## Screenshots
+<img width="1123" height="646" alt="image" src="https://github.com/user-attachments/assets/4b618096-b85d-49cd-bab4-a78f7f1637d1" /> homepage
 
-[Add screenshots here: homepage, results page, comparison, screenshot upload, Arabic/dark mode.]
+[screenshots here: , results page, comparison, screenshot upload, Arabic/dark mode.]
 
 ## Disclaimer
 
