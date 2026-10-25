@@ -21,7 +21,7 @@ const display = Noto_Naskh_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "BYAN",
+  title: "BYAN - Before You Agree",
   description: "Analyze Terms of Service and Privacy Policy pages with an analysis of the risks involved."
 };
 

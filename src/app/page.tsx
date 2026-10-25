@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "./providers";
 import ImageAnalyzer from "./components/ImageAnalyzer";
+import TermsBackground from "./components/TermsBackground";
 
 /* ---------- Icons ---------- */
 
@@ -258,6 +259,23 @@ export default function HomePage() {
         >
             {/* Hero */}
 
+<div style={{ position: "relative", overflow: "hidden", width: "100%" }}>  
+    <TermsBackground />  
+  
+    <div  
+        className="byan-hero"  
+        style={{  
+            position: "relative",  
+            zIndex: 1,  
+            maxWidth: 760,  
+            margin: "0 auto",  
+            width: "100%",  
+            padding: "80px 24px 64px",  
+            textAlign: "center",  
+        }}  
+    >
+  
+
             <div
                 className="byan-hero"
                 style={{
@@ -309,6 +327,9 @@ export default function HomePage() {
                         textAlign: isAr ? "right" : "left",
                     }}
                 >
+
+                    </div>  
+</div>
                     {/* Tabs */}
                     <div
                         role="tablist"
