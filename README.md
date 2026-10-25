@@ -101,7 +101,7 @@ Manual checks:
 ## Screenshots
 <img width="1123" height="646" alt="image" src="https://github.com/user-attachments/assets/4b618096-b85d-49cd-bab4-a78f7f1637d1" /> homepage
 
-[screenshots here: , results page, comparison, screenshot upload, Arabic/dark mode.]
+[screenshots: results page, comparison, screenshot upload, Arabic/dark mode.]
 
 ## Disclaimer
 
