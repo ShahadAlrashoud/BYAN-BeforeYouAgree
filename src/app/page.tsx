@@ -257,229 +257,215 @@ export default function HomePage() {
                 flexDirection: "column",
             }}
         >
-            {/* Hero */}
+           {/* Hero */}
 
-<div style={{ position: "relative", overflow: "hidden", width: "100%" }}>  
-    <TermsBackground />  
-  
-    <div  
-        className="byan-hero"  
-        style={{  
-            position: "relative",  
-            zIndex: 1,  
-            maxWidth: 760,  
-            margin: "0 auto",  
-            width: "100%",  
-            padding: "80px 24px 64px",  
-            textAlign: "center",  
-        }}  
-    >
-  
+            <div style={{ position: "relative", overflow: "hidden", width: "100%" }}>
+                <TermsBackground />
 
-            <div
-                className="byan-hero"
-                style={{
-                    maxWidth: 760,
-                    margin: "0 auto",
-                    width: "100%",
-                    padding: "80px 24px 64px",
-                    textAlign: "center",
-                }}
-            >
-                <h1
-                    style={{
-                        fontSize: "clamp(2.2rem, 5vw, 3.4rem)",
-                        fontWeight: 800,
-                        margin: "0 0 16px",
-                        lineHeight: 1.15,
-                    }}
-                >
-                    {t.heroTitlePrefix}
-                    <span style={{ color: themeColors.accent }}>
-                        {t.heroTitleAccent}
-                    </span>
-                </h1>
-
-                <p
-                    style={{
-                        fontSize: "1.1rem",
-                        color: colors.body,
-                        margin: "0 auto 32px",
-                        maxWidth: 520,
-                        lineHeight: 1.6,
-                    }}
-                >
-                    {t.heroSubtitle}
-                </p>
-
-                {/* Input card */}
                 <div
+                    className="byan-hero"
                     style={{
-                        maxWidth: 580,
+                        position: "relative",
+                        zIndex: 1,
+                        maxWidth: 760,
                         margin: "0 auto",
-                        padding: 20,
-                        borderRadius: 20,
-                        background: themeColors.card,
-                        border: `1px solid ${themeColors.border}`,
-                        boxShadow: isDark
-                            ? "0 10px 30px rgba(0,0,0,0.35)"
-                            : "0 10px 30px rgba(15,23,42,0.08)",
-                        textAlign: isAr ? "right" : "left",
+                        width: "100%",
+                        padding: "80px 24px 64px",
+                        textAlign: "center",
                     }}
                 >
-
-                    </div>  
-</div>
-                    {/* Tabs */}
-                    <div
-                        role="tablist"
+                    <h1
                         style={{
-                            display: "flex",
-                            gap: 4,
-                            padding: 4,
-                            marginBottom: 16,
-                            borderRadius: 12,
-                            background: themeColors.accentSoft,
+                            fontSize: "clamp(2.2rem, 5vw, 3.4rem)",
+                            fontWeight: 800,
+                            margin: "0 0 16px",
+                            lineHeight: 1.15,
                         }}
                     >
-                        {(["url", "images"] as const).map((m) => {
-                            const active = mode === m;
-                            return (
-                                <button
-                                    key={m}
-                                    type="button"
-                                    role="tab"
-                                    aria-selected={active}
-                                    onClick={() => setMode(m)}
-                                    style={{
-                                        flex: 1,
-                                        border: "none",
-                                        borderRadius: 9,
-                                        padding: "9px 12px",
-                                        fontWeight: 700,
-                                        fontSize: "0.9rem",
-                                        cursor: "pointer",
-                                        background: active
-                                            ? themeColors.accent
-                                            : "transparent",
-                                        color: active
-                                            ? themeColors.onAccent
-                                            : themeColors.accentText,
-                                        transition:
-                                            "background-color 0.2s ease, color 0.2s ease",
-                                    }}
-                                >
-                                    {m === "url"
-                                        ? `🔗 ${t.tabUrl}`
-                                        : `📷 ${t.tabImages}`}
-                                </button>
-                            );
-                        })}
-                    </div>
+                        {t.heroTitlePrefix}
+                        <span style={{ color: themeColors.accent }}>
+                            {t.heroTitleAccent}
+                        </span>
+                    </h1>
 
-                    {mode === "url" ? (
-                        <form
-                            onSubmit={handleSubmit}
-                            dir={isAr ? "rtl" : "ltr"}
+                    <p
+                        style={{
+                            fontSize: "1.1rem",
+                            color: colors.body,
+                            margin: "0 auto 32px",
+                            maxWidth: 520,
+                            lineHeight: 1.6,
+                        }}
+                    >
+                        {t.heroSubtitle}
+                    </p>
+
+                    {/* Input card */}
+                    <div
+                        style={{
+                            maxWidth: 580,
+                            margin: "0 auto",
+                            padding: 20,
+                            borderRadius: 20,
+                            background: themeColors.card,
+                            border: `1px solid ${themeColors.border}`,
+                            boxShadow: isDark
+                                ? "0 10px 30px rgba(0,0,0,0.35)"
+                                : "0 10px 30px rgba(15,23,42,0.08)",
+                            textAlign: isAr ? "right" : "left",
+                        }}
+                    >
+                        {/* Tabs */}
+                        <div
+                            role="tablist"
                             style={{
                                 display: "flex",
-                                flexWrap: "wrap",
-                                gap: 10,
+                                gap: 4,
+                                padding: 4,
+                                marginBottom: 16,
+                                borderRadius: 12,
+                                background: themeColors.accentSoft,
                             }}
                         >
-                            <input
-                                ref={inputRef}
-                                id="analyze-input"
-                                type="text"
-                                value={url}
-                                onChange={(e) => setUrl(e.target.value)}
-                                placeholder={t.placeholder}
-                                style={{
-                                    flex: "1 1 220px",
-                                    minWidth: 0,
-                                    padding: "14px 16px",
-                                    fontSize: "1rem",
-                                    borderRadius: 12,
-                                    outline: "none",
-                                    border: `1px solid ${themeColors.border}`,
-                                    background: themeColors.input,
-                                    color: themeColors.heading,
-                                    textAlign: isAr ? "right" : "left",
-                                }}
-                            />
+                            {(["url", "images"] as const).map((m) => {
+                                const active = mode === m;
+                                return (
+                                    <button
+                                        key={m}
+                                        type="button"
+                                        role="tab"
+                                        aria-selected={active}
+                                        onClick={() => setMode(m)}
+                                        style={{
+                                            flex: 1,
+                                            border: "none",
+                                            borderRadius: 9,
+                                            padding: "9px 12px",
+                                            fontWeight: 700,
+                                            fontSize: "0.9rem",
+                                            cursor: "pointer",
+                                            background: active
+                                                ? themeColors.accent
+                                                : "transparent",
+                                            color: active
+                                                ? themeColors.onAccent
+                                                : themeColors.accentText,
+                                            transition:
+                                                "background-color 0.2s ease, color 0.2s ease",
+                                        }}
+                                    >
+                                        {m === "url"
+                                            ? `🔗 ${t.tabUrl}`
+                                            : `📷 ${t.tabImages}`}
+                                    </button>
+                                );
+                            })}
+                        </div>
 
-                            <button
-                                type="submit"
+                        {mode === "url" ? (
+                            <form
+                                onSubmit={handleSubmit}
+                                dir={isAr ? "rtl" : "ltr"}
                                 style={{
-                                    flex: "0 0 auto",
-                                    border: "none",
-                                    borderRadius: 12,
-                                    padding: "14px 26px",
-                                    background: themeColors.accent,
-                                    color: themeColors.onAccent,
-                                    fontWeight: 700,
-                                    fontSize: "0.95rem",
-                                    cursor: "pointer",
-                                    whiteSpace: "nowrap",
-                                    boxShadow: `0 0 0 6px ${themeColors.accentSoft}`,
+                                    display: "flex",
+                                    flexWrap: "wrap",
+                                    gap: 10,
                                 }}
                             >
-                                {t.button}
-                            </button>
-                        </form>
-                    ) : (
-                        <ImageAnalyzer showIntro={false} />
-                    )}
+                                <input
+                                    ref={inputRef}
+                                    id="analyze-input"
+                                    type="text"
+                                    value={url}
+                                    onChange={(e) => setUrl(e.target.value)}
+                                    placeholder={t.placeholder}
+                                    style={{
+                                        flex: "1 1 220px",
+                                        minWidth: 0,
+                                        padding: "14px 16px",
+                                        fontSize: "1rem",
+                                        borderRadius: 12,
+                                        outline: "none",
+                                        border: `1px solid ${themeColors.border}`,
+                                        background: themeColors.input,
+                                        color: themeColors.heading,
+                                        textAlign: isAr ? "right" : "left",
+                                    }}
+                                />
 
-                    {error && (
-                        <p
-                            style={{
-                                color: themeColors.high,
-                                fontSize: "0.85rem",
-                                margin: "10px 0 0",
-                            }}
-                        >
-                            {error}
-                        </p>
-                    )}
+                                <button
+                                    type="submit"
+                                    style={{
+                                        flex: "0 0 auto",
+                                        border: "none",
+                                        borderRadius: 12,
+                                        padding: "14px 26px",
+                                        background: themeColors.accent,
+                                        color: themeColors.onAccent,
+                                        fontWeight: 700,
+                                        fontSize: "0.95rem",
+                                        cursor: "pointer",
+                                        whiteSpace: "nowrap",
+                                        boxShadow: `0 0 0 6px ${themeColors.accentSoft}`,
+                                    }}
+                                >
+                                    {t.button}
+                                </button>
+                            </form>
+                        ) : (
+                            <ImageAnalyzer showIntro={false} />
+                        )}
+
+                        {error && (
+                            <p
+                                style={{
+                                    color: themeColors.high,
+                                    fontSize: "0.85rem",
+                                    margin: "10px 0 0",
+                                }}
+                            >
+                                {error}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Trust chips */}
+                    <div
+                        style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            justifyContent: "center",
+                            gap: 10,
+                            marginTop: 22,
+                        }}
+                    >
+                        {t.chips.map((chip) => (
+                            <span
+                                key={chip}
+                                style={{
+                                    padding: "6px 14px",
+                                    borderRadius: 999,
+                                    fontSize: "0.8rem",
+                                    fontWeight: 600,
+                                    background: themeColors.accentSoft,
+                                    color: themeColors.accentText,
+                                }}
+                            >
+                                ✓ {chip}
+                            </span>
+                        ))}
+                    </div>
+
+                    <p
+                        style={{
+                            marginTop: 14,
+                            fontSize: "0.8rem",
+                            color: colors.body,
+                        }}
+                    >
+                        {t.helperText}
+                    </p>
                 </div>
-
-                {/* Trust chips */}
-                <div
-                    style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        justifyContent: "center",
-                        gap: 10,
-                        marginTop: 22,
-                    }}
-                >
-                    {t.chips.map((chip) => (
-                        <span
-                            key={chip}
-                            style={{
-                                padding: "6px 14px",
-                                borderRadius: 999,
-                                fontSize: "0.8rem",
-                                fontWeight: 600,
-                                background: themeColors.accentSoft,
-                                color: themeColors.accentText,
-                            }}
-                        >
-                            ✓ {chip}
-                        </span>
-                    ))}
-                </div>
-
-                <p
-                    style={{
-                        marginTop: 14,
-                        fontSize: "0.8rem",
-                        color: colors.body,
-                    }}
-                >
-                    {t.helperText}
-                </p>
             </div>
 
             {/* Divider */}
