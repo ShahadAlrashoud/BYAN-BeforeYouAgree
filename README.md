@@ -42,13 +42,6 @@ BYAN (formerly PrivacyCheck) is a web app that analyzes a website's Terms of Ser
 
 [No automated tests are in the repository yet.]
 
-Manual checks:
-1. Enter an invalid URL and confirm that an error message appears.
-2. Analyze a valid privacy policy URL and confirm that the score, summary and clauses appear.
-3. Upload a screenshot and confirm that the text is analyzed.
-4. Switch between English and Arabic and confirm that the layout is RTL in Arabic.
-5. Submit the contact form and confirm that both e-mails arrive.
-
 ## Project Structure
 
 ## Team
