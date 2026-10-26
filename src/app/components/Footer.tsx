@@ -142,7 +142,7 @@ export default function Footer() {
             >
                 {/* Brand */}
                 <div style={{ flex: "1 1 280px", maxWidth: 380 }}>
-                    <BYANLogo />
+                    <BYANLogo isDark={isDark} />
                     <p style={{ margin: "14px 0 4px", color: heading, fontWeight: 600, fontSize: "0.95rem" }}>
                         {t.tagline}
                     </p>
