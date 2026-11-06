@@ -63,6 +63,8 @@ type Content = {
     placeholder: string;
     button: string;
     errorMsg: string;
+    privacyNote: string;
+    privacyLink: string;
     helperText: string;
     tabUrl: string;
     tabImages: string;
@@ -94,6 +96,8 @@ const content: Record<"en" | "ar", Content> = {
         placeholder: "Enter website URL (e.g. example.com)",
         button: "Analyze Website →",
         errorMsg: "Please enter a URL.",
+        privacyNote: "We don't store the policy text, only the link and your results.",
+        privacyLink: "Privacy Policy",
         helperText: "Fast. Simple. Clear. Results appear in the policy's actual language.",
         tabUrl: "Website link",
         tabImages: "Screenshots",
@@ -134,6 +138,8 @@ const content: Record<"en" | "ar", Content> = {
         placeholder: "أدخل رابط الموقع (مثال: example.com)",
         button: "← تحليل الموقع",
         errorMsg: "الرجاء إدخال رابط.",
+        privacyNote: "لا نحتفظ بنص السياسة، نحفظ الرابط والنتائج فقط.",
+        privacyLink: "سياسة الخصوصية",
         helperText: "سريع. بسيط. واضح. تظهر النتائج بلغة السياسة الفعلية.",
         tabUrl: "رابط الموقع",
         tabImages: "صور",
@@ -427,6 +433,27 @@ export default function HomePage() {
                                 {error}
                             </p>
                         )}
+
+                        {/* Privacy note */}
+                        <p
+                            style={{
+                                margin: "12px 0 0",
+                                fontSize: "0.78rem",
+                                color: colors.body,
+                            }}
+                        >
+                             {t.privacyNote}{" "}
+                            <Link
+                                href="/privacy"
+                                style={{
+                                    color: themeColors.accentText,
+                                    fontWeight: 700,
+                                    textDecoration: "none",
+                                }}
+                            >
+                                {t.privacyLink}
+                            </Link>
+                        </p>
                     </div>
 
                     {/* Trust chips */}
