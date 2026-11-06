@@ -11,6 +11,21 @@ function isValidHttpUrl(value) {
     }
 }
 
+function normalizeUrl(value) {
+    let input = (value || "").trim();
+    if (!input) return input;
+
+    // Handle protocol-relative URLs like //example.com
+    if (input.startsWith("//")) input = "https:" + input;
+
+    // Add https:// when no scheme is given
+    if (!/^[a-z][a-z\d+\-.]*:\/\//i.test(input)) {
+        input = "https://" + input;
+    }
+
+    return input;
+}
+
 const POLICY_KEYWORDS = [
     "terms of service",
     "terms and conditions",
@@ -272,7 +287,9 @@ async function buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang,
     return record;
 }
 
-export async function runAnalysisForUrl(url, preferredLang = "en", userId = null) {
+export async function runAnalysisForUrl(rawUrl, preferredLang = "en", userId = null) {
+    const url = normalizeUrl(rawUrl);
+
     if (!isValidHttpUrl(url)) {
         throw new Error("Invalid URL");
     }
