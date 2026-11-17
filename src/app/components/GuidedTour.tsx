@@ -7,8 +7,8 @@ import { useTheme } from "../providers";
 const STEPS = [
     {
         target: "tabs",
-        en: { title: "Choose how to analyze", body: "Paste a website link, or switch to Screenshots if you have images of the policy." },
-        ar: { title: "اختر طريقة التحليل", body: "الصق رابط موقع، أو انتقل إلى الصور إذا كانت لديك لقطات للسياسة." },
+        en: { title: "Choose how to analyze", body: "Paste a website link, or switch to Upload Files if you have files of the policy." },
+        ar: { title: "اختر طريقة التحليل", body: "الصق رابط موقع، أو انتقل إلى الملفات إذا كانت لديك لقطات للسياسة." },
     },
     {
         target: "form",

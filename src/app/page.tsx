@@ -102,7 +102,7 @@ const content: Record<"en" | "ar", Content> = {
         privacyLink: "Privacy Policy",
         helperText: "Fast. Simple. Clear. Results appear in the policy's actual language.",
         tabUrl: "Website link",
-        tabImages: "Screenshots",
+        tabImages: "Upload Files",
         chips: ["Arabic & English", "0–100 risk score", "Plain language"],
         tourLink: "Take a quick tour",
 

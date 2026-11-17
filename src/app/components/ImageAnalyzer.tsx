@@ -40,8 +40,8 @@ export default function ImageAnalyzer({
     if (incoming.length > room) {
       setError(
         isAr
-          ? `الحد الأقصى ${MAX_IMAGES} صور.`
-          : `Maximum ${MAX_IMAGES} images.`
+          ? `الحد الأقصى ${MAX_IMAGES} ملف.`
+          : `Maximum ${MAX_IMAGES} files.`
       );
     }
 
@@ -97,8 +97,8 @@ export default function ImageAnalyzer({
       if (text.length < 50) {
         throw new Error(
           isAr
-            ? "ما قدرنا نقرأ نص كافٍ من الصور."
-            : "Couldn't read enough text from the images."
+            ? "ما قدرنا نقرأ نص كافٍ من الملفات."
+            : "Couldn't read enough text from the files."
         );
       }
 
@@ -136,8 +136,8 @@ export default function ImageAnalyzer({
       {showIntro && (
         <p style={{ color: colors.muted, marginBottom: 10 }}>
           {isAr
-            ? "أو ارفع لقطات شاشة للسياسة (يمكن أكثر من صورة)"
-            : "Or upload screenshots of the policy (multiple images allowed)"}
+            ? "أو ارفع لقطات شاشة للسياسة (يمكن رفع أكثر من ملف )"
+            : "Or upload files of the policy (multiple files allowed)"}
         </p>
       )}
 
@@ -174,7 +174,7 @@ export default function ImageAnalyzer({
           }}
         >
           {items.length === 0
-            ? isAr ? "📷 اختر صور" : "📷 Choose Images"
+            ? isAr ? " اختر ملف" : " Choose files"
             : isAr ? "➕ أضف المزيد" : "➕ Add more"}
         </label>
 
