@@ -361,8 +361,8 @@ export default function HomePage() {
                                         }}
                                     >
                                         {m === "url"
-                                            ? `🔗 ${t.tabUrl}`
-                                            : `📷 ${t.tabImages}`}
+                                            ? ` ${t.tabUrl}`
+                                            : ` ${t.tabImages}`}
                                     </button>
                                 );
                             })}
