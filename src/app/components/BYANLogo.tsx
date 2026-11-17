@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type BYANLogoProps = {
   isDark?: boolean;
   size?: "sm" | "md" | "lg";
-  rotate?: boolean; // true = new phrase on every hover
+  rotate?: boolean; // true = new phrase each time the badge opens
+  focused?: boolean; // lets a parent (link focus / mobile tap) open the badge
 };
 
+// Trimmed to phrases about reading terms and knowing your rights.
+// Every phrase starts with "N" to match the badge letter.
 const PHRASES = [
   "Know Now",
   "Need to Know",
@@ -16,15 +19,11 @@ const PHRASES = [
   "Know Your Rights",
   "Nothing Hidden",
   "No Fine Print",
-  "Not So Fast",
-  "Negotiate",
   "Note the Terms",
   "Never Assume",
   "Next, Read This",
-  "No Rush",
   "Navigate the Terms",
-  "Needs a Look",
-  "Name Your Terms",
+  "Never Skip the Terms",
 ];
 
 const SIZES = {
@@ -33,40 +32,67 @@ const SIZES = {
   lg: { fontSize: "2.2rem", badge: 42, pad: "0 12px" },
 };
 
+// Fisher-Yates shuffle
+function shuffle(n: number): number[] {
+  const arr = Array.from({ length: n }, (_, i) => i);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 export default function BYANLogo({
   isDark = false,
   size = "md",
   rotate = true,
+  focused = false,
 }: BYANLogoProps) {
-  const [active, setActive] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  // Always start at index 0 so server and client HTML match (no hydration mismatch)
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
 
+  const queue = useRef<number[]>([]);
+  const current = useRef(0);
+
+  const active = hovered || focused;
+
   useEffect(() => {
-    if (window.matchMedia) {
-      setReducedMotion(
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      );
-    }
+    if (!window.matchMedia) return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReducedMotion(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
   }, []);
 
-  // Pick a different random phrase each time the logo is activated.
-  // It swaps while the badge is collapsed, so the change isn't visible mid-animation.
-  const activate = () => {
-    if (active) return;
-    if (rotate) {
-      setPhraseIndex((current) => {
-        let next = current;
-        while (next === current) {
-          next = Math.floor(Math.random() * PHRASES.length);
-        }
-        return next;
-      });
+  // Shuffled queue: every phrase shows once before any repeats
+  const pickNewPhrase = () => {
+    if (!rotate) return;
+
+    if (queue.current.length === 0) {
+      queue.current = shuffle(PHRASES.length);
+      // avoid showing the same phrase twice in a row at the reshuffle boundary
+      if (queue.current[queue.current.length - 1] === current.current) {
+        const last = queue.current.length - 1;
+        [queue.current[0], queue.current[last]] = [
+          queue.current[last],
+          queue.current[0],
+        ];
+      }
     }
-    setActive(true);
+
+    const next = queue.current.pop()!;
+    current.current = next;
+    setPhraseIndex(next);
   };
 
-  const deactivate = () => setActive(false);
+  // New phrase when the parent opens the badge (keyboard focus or mobile tap)
+  useEffect(() => {
+    if (focused) pickNewPhrase();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focused]);
 
   const s = SIZES[size];
 
@@ -75,32 +101,39 @@ export default function BYANLogo({
   const badgeText = isDark ? "#1e293b" : "#ffffff";
   const phrase = PHRASES[phraseIndex];
 
+  const gridTransition = (delay = 0) =>
+    reducedMotion
+      ? "none"
+      : `grid-template-columns 300ms cubic-bezier(0.4,0,0.2,1) ${delay}ms`;
+
   return (
-    <button
-      type="button"
-      onMouseEnter={activate}
-      onMouseLeave={deactivate}
-      onFocus={activate}
-      onBlur={deactivate}
-      aria-label={`BYAN — Before You Agree. ${phrase}.`}
+    <span
+      // Decorative: the parent Link's aria-label names the logo.
+      // The changing phrase is intentionally not announced.
+      aria-hidden="true"
+      // Mouse only, so touch devices don't get a "sticky hover"
+      onPointerEnter={(e) => {
+        if (e.pointerType !== "mouse") return;
+        if (!hovered) pickNewPhrase();
+        setHovered(true);
+      }}
+      onPointerLeave={(e) => {
+        if (e.pointerType !== "mouse") return;
+        setHovered(false);
+      }}
       style={{
         display: "inline-flex",
         flexDirection: "row",
         alignItems: "center",
         direction: "ltr",
         unicodeBidi: "isolate",
-        border: "none",
-        background: "transparent",
         cursor: "pointer",
-        padding: 0,
         fontFamily: "Segoe UI, Arial, sans-serif",
         fontWeight: 700,
         fontSize: s.fontSize,
         color: textColor,
-        outline: "none",
       }}
     >
-      {/* Keep BYAN visually LTR even when the page is Arabic */}
       <span
         dir="ltr"
         style={{
@@ -131,7 +164,7 @@ export default function BYANLogo({
           direction: "ltr",
           unicodeBidi: "isolate",
           transition: reducedMotion
-            ? "opacity 200ms ease"
+            ? "none"
             : "all 320ms cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
@@ -139,7 +172,7 @@ export default function BYANLogo({
           style={{
             display: "inline-grid",
             gridTemplateColumns: active ? "0fr" : "1fr",
-            transition: "grid-template-columns 300ms cubic-bezier(0.4,0,0.2,1)",
+            transition: gridTransition(),
           }}
         >
           <span style={{ overflow: "hidden", minWidth: 0, direction: "ltr" }}>
@@ -151,8 +184,7 @@ export default function BYANLogo({
           style={{
             display: "inline-grid",
             gridTemplateColumns: active ? "1fr" : "0fr",
-            transition:
-              "grid-template-columns 300ms cubic-bezier(0.4,0,0.2,1) 60ms",
+            transition: gridTransition(60),
           }}
         >
           <span
@@ -168,6 +200,6 @@ export default function BYANLogo({
           </span>
         </span>
       </span>
-    </button>
+    </span>
   );
 }

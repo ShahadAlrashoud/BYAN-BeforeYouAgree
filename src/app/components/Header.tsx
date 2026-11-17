@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "../providers";
 import BYANLogo from "./BYANLogo";
 import UserMenu from "./UserMenu";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 /* ---------- Icons ---------- */
 
@@ -140,10 +140,36 @@ export default function Header() {
 
     const isMobile = useIsMobile();
     const [menuOpen, setMenuOpen] = useState(false);
-
     const isDark = theme === "dark";
     const isAr = lang === "ar";
     const t = content[lang];
+
+    const [logoFocused, setLogoFocused] = useState(false);
+const [logoTapped, setLogoTapped] = useState(false);
+const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+// Mobile: first tap opens the badge, second tap (within 2.5s) navigates home
+const handleLogoClick = (e: React.MouseEvent) => {
+    if (!isMobile || logoTapped) return;
+
+    e.preventDefault();
+    setLogoTapped(true);
+
+    if (tapTimer.current) clearTimeout(tapTimer.current);
+    tapTimer.current = setTimeout(() => setLogoTapped(false), 2500);
+};
+
+// Clean up the timer on unmount
+useEffect(() => {
+    return () => {
+        if (tapTimer.current) clearTimeout(tapTimer.current);
+    };
+}, []);
+
+// Collapse the badge after navigating
+useEffect(() => {
+    setLogoTapped(false);
+}, [pathname]);
 
     // Header-specific tokens, driven by the shared theme colors
     const c = {
@@ -307,19 +333,26 @@ export default function Header() {
                     padding: isMobile ? "12px 16px" : "14px 24px",
                 }}
             >
-                {/* Logo */}
-                <div dir="ltr" style={{ justifySelf: "start" }}>
-                    <Link
-                        href="/"
-                        aria-label="BYAN"
-                        style={{
-                            display: "inline-flex",
-                            unicodeBidi: "bidi-override",
-                        }}
-                    >
-                        <BYANLogo isDark={isDark} size="sm" rotate={false} />
-                    </Link>
-                </div>
+           {/* Logo */}
+<div dir="ltr" style={{ justifySelf: "start" }}>
+    <Link
+        href="/"
+        aria-label="BYAN — Before You Agree"
+        onClick={handleLogoClick}
+        onFocus={() => setLogoFocused(true)}
+        onBlur={() => setLogoFocused(false)}
+        style={{
+            display: "inline-flex",
+            unicodeBidi: "bidi-override",
+        }}
+    >
+        <BYANLogo
+            isDark={isDark}
+            size="sm"
+            focused={logoFocused || logoTapped}
+        />
+    </Link>
+</div>
 
                 {/* Desktop navigation */}
                 {!isMobile && (
