@@ -1,11 +1,18 @@
 "use client";
 
+import {
+    useEffect,
+    useRef,
+    useState,
+    type CSSProperties,
+    type MouseEvent,
+} from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "../providers";
 import BYANLogo from "./BYANLogo";
 import UserMenu from "./UserMenu";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import TutorialModal from "./TutorialModal";
 
 /* ---------- Icons ---------- */
 
@@ -93,6 +100,7 @@ const content = {
         openMenu: "Open menu",
         closeMenu: "Close menu",
         mainNav: "Main navigation",
+        help: "How to use",
     },
     ar: {
         home: "الرئيسية",
@@ -103,6 +111,7 @@ const content = {
         openMenu: "فتح القائمة",
         closeMenu: "إغلاق القائمة",
         mainNav: "التنقل الرئيسي",
+        help: "كيف يعمل؟",
     },
 };
 
@@ -140,36 +149,18 @@ export default function Header() {
 
     const isMobile = useIsMobile();
     const [menuOpen, setMenuOpen] = useState(false);
+
+    // Logo state
+    const [logoFocused, setLogoFocused] = useState(false);
+    const [logoTapped, setLogoTapped] = useState(false);
+    const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Tutorial state
+    const [tutorialOpen, setTutorialOpen] = useState(false);
+
     const isDark = theme === "dark";
     const isAr = lang === "ar";
-    const t = content[lang];
-
-    const [logoFocused, setLogoFocused] = useState(false);
-const [logoTapped, setLogoTapped] = useState(false);
-const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-// Mobile: first tap opens the badge, second tap (within 2.5s) navigates home
-const handleLogoClick = (e: React.MouseEvent) => {
-    if (!isMobile || logoTapped) return;
-
-    e.preventDefault();
-    setLogoTapped(true);
-
-    if (tapTimer.current) clearTimeout(tapTimer.current);
-    tapTimer.current = setTimeout(() => setLogoTapped(false), 2500);
-};
-
-// Clean up the timer on unmount
-useEffect(() => {
-    return () => {
-        if (tapTimer.current) clearTimeout(tapTimer.current);
-    };
-}, []);
-
-// Collapse the badge after navigating
-useEffect(() => {
-    setLogoTapped(false);
-}, [pathname]);
+    const t = content[isAr ? "ar" : "en"];
 
     // Header-specific tokens, driven by the shared theme colors
     const c = {
@@ -182,6 +173,45 @@ useEffect(() => {
         link: isDark ? "#dbe4f0" : "#334155",
         langBorder: isDark ? "#334155" : "#e2e8f0",
         langText: isDark ? "#94a3b8" : "#64748b",
+    };
+
+    /* Mobile: first tap opens the badge, second tap (within 2.5s) navigates home */
+    const handleLogoClick = (e: MouseEvent) => {
+        if (!isMobile || logoTapped) return;
+
+        e.preventDefault();
+        setLogoTapped(true);
+
+        if (tapTimer.current) clearTimeout(tapTimer.current);
+        tapTimer.current = setTimeout(() => setLogoTapped(false), 2500);
+    };
+
+    /* Clean up the tap timer on unmount */
+    useEffect(() => {
+        return () => {
+            if (tapTimer.current) clearTimeout(tapTimer.current);
+        };
+    }, []);
+
+    /* Collapse the logo badge after navigating */
+    useEffect(() => {
+        setLogoTapped(false);
+    }, [pathname]);
+
+    /* Auto-open the tutorial once for first-time visitors */
+    useEffect(() => {
+        try {
+            if (!localStorage.getItem("byan-tutorial-seen")) {
+                setTutorialOpen(true);
+            }
+        } catch {}
+    }, []);
+
+    const closeTutorial = () => {
+        setTutorialOpen(false);
+        try {
+            localStorage.setItem("byan-tutorial-seen", "1");
+        } catch {}
     };
 
     /* Close mobile menu on navigation */
@@ -311,6 +341,29 @@ useEffect(() => {
         </button>
     );
 
+    /* Help button (reopens the tutorial) */
+    const helpButton = (
+        <button
+            type="button"
+            onClick={() => setTutorialOpen(true)}
+            aria-label={t.help}
+            style={{
+                width: 28,
+                height: 28,
+                borderRadius: 999,
+                border: `1.5px solid ${c.accent}`,
+                background: "transparent",
+                color: c.accent,
+                fontWeight: 700,
+                fontSize: "0.85rem",
+                cursor: "pointer",
+                lineHeight: 1,
+            }}
+        >
+            ?
+        </button>
+    );
+
     return (
         <header
             dir={isAr ? "rtl" : "ltr"}
@@ -333,26 +386,26 @@ useEffect(() => {
                     padding: isMobile ? "12px 16px" : "14px 24px",
                 }}
             >
-           {/* Logo */}
-<div dir="ltr" style={{ justifySelf: "start" }}>
-    <Link
-        href="/"
-        aria-label="BYAN — Before You Agree"
-        onClick={handleLogoClick}
-        onFocus={() => setLogoFocused(true)}
-        onBlur={() => setLogoFocused(false)}
-        style={{
-            display: "inline-flex",
-            unicodeBidi: "bidi-override",
-        }}
-    >
-        <BYANLogo
-            isDark={isDark}
-            size="sm"
-            focused={logoFocused || logoTapped}
-        />
-    </Link>
-</div>
+                {/* Logo */}
+                <div dir="ltr" style={{ justifySelf: "start" }}>
+                    <Link
+                        href="/"
+                        aria-label="BYAN — Before You Agree"
+                        onClick={handleLogoClick}
+                        onFocus={() => setLogoFocused(true)}
+                        onBlur={() => setLogoFocused(false)}
+                        style={{
+                            display: "inline-flex",
+                            unicodeBidi: "bidi-override",
+                        }}
+                    >
+                        <BYANLogo
+                            isDark={isDark}
+                            size="sm"
+                            focused={logoFocused || logoTapped}
+                        />
+                    </Link>
+                </div>
 
                 {/* Desktop navigation */}
                 {!isMobile && (
@@ -391,6 +444,7 @@ useEffect(() => {
                         <>
                             {langToggle}
                             {themeToggle}
+                            {helpButton}
                         </>
                     )}
 
@@ -458,9 +512,13 @@ useEffect(() => {
                     >
                         {langToggle}
                         {themeToggle}
+                        {helpButton}
                     </div>
                 </div>
             )}
+
+            {/* Tutorial popup */}
+            <TutorialModal open={tutorialOpen} onClose={closeTutorial} />
         </header>
     );
 }

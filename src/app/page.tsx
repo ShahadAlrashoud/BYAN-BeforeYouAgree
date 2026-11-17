@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "./providers";
 import ImageAnalyzer from "./components/ImageAnalyzer";
 import TermsBackground from "./components/TermsBackground";
+import GuidedTour from "./components/GuidedTour";
 
 /* ---------- Icons ---------- */
 
@@ -69,6 +70,7 @@ type Content = {
     tabUrl: string;
     tabImages: string;
     chips: string[];
+    tourLink: string;
 
     howTitle: string;
     steps: { title: string; text: string }[];
@@ -102,6 +104,7 @@ const content: Record<"en" | "ar", Content> = {
         tabUrl: "Website link",
         tabImages: "Screenshots",
         chips: ["Arabic & English", "0–100 risk score", "Plain language"],
+        tourLink: "Take a quick tour",
 
         howTitle: "How It Works",
         steps: [
@@ -144,6 +147,7 @@ const content: Record<"en" | "ar", Content> = {
         tabUrl: "رابط الموقع",
         tabImages: "صور",
         chips: ["عربي وإنجليزي", "درجة من 0 إلى 100", "لغة بسيطة"],
+        tourLink: "خذ جولة سريعة",
 
         howTitle: "كيف يعمل",
         steps: [
@@ -187,6 +191,7 @@ export default function HomePage() {
     const [url, setUrl] = useState("");
     const [error, setError] = useState("");
     const [mode, setMode] = useState<"url" | "images">("url");
+    const [tourOpen, setTourOpen] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const router = useRouter();
@@ -194,7 +199,7 @@ export default function HomePage() {
 
     const isDark = theme === "dark";
     const isAr = lang === "ar";
-    const t = content[lang];
+    const t = content[lang] ?? content.en;
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -215,6 +220,12 @@ export default function HomePage() {
         setMode("url");
         window.scrollTo({ top: 0, behavior: "smooth" });
         setTimeout(() => inputRef.current?.focus(), 400);
+    }
+
+    function startTour() {
+        setMode("url"); // the form step needs the URL tab visible
+        window.scrollTo({ top: 0 });
+        setTimeout(() => setTourOpen(true), 50);
     }
 
     const icons = [IconDocument, IconShield, IconWarning, IconSparkle];
@@ -263,7 +274,7 @@ export default function HomePage() {
                 flexDirection: "column",
             }}
         >
-           {/* Hero */}
+            {/* Hero */}
 
             <div style={{ position: "relative", overflow: "hidden", width: "100%" }}>
                 <TermsBackground />
@@ -324,6 +335,7 @@ export default function HomePage() {
                         {/* Tabs */}
                         <div
                             role="tablist"
+                            data-tour="tabs"
                             style={{
                                 display: "flex",
                                 gap: 4,
@@ -370,6 +382,7 @@ export default function HomePage() {
 
                         {mode === "url" ? (
                             <form
+                                data-tour="form"
                                 onSubmit={handleSubmit}
                                 dir={isAr ? "rtl" : "ltr"}
                                 style={{
@@ -442,7 +455,7 @@ export default function HomePage() {
                                 color: colors.body,
                             }}
                         >
-                             {t.privacyNote}{" "}
+                            {t.privacyNote}{" "}
                             <Link
                                 href="/privacy"
                                 style={{
@@ -458,6 +471,7 @@ export default function HomePage() {
 
                     {/* Trust chips */}
                     <div
+                        data-tour="chips"
                         style={{
                             display: "flex",
                             flexWrap: "wrap",
@@ -492,6 +506,23 @@ export default function HomePage() {
                     >
                         {t.helperText}
                     </p>
+
+                    <button
+                        type="button"
+                        onClick={startTour}
+                        style={{
+                            marginTop: 10,
+                            border: "none",
+                            background: "transparent",
+                            color: themeColors.accentText,
+                            fontWeight: 700,
+                            fontSize: "0.85rem",
+                            cursor: "pointer",
+                            textDecoration: "underline",
+                        }}
+                    >
+                        {t.tourLink}
+                    </button>
                 </div>
             </div>
 
@@ -508,6 +539,7 @@ export default function HomePage() {
             {/* How it works */}
 
             <section
+                data-tour="how"
                 style={{
                     width: "100%",
                     padding: "60px 24px",
@@ -631,6 +663,7 @@ export default function HomePage() {
             {/* Risk score legend */}
 
             <section
+                data-tour="legend"
                 style={{
                     width: "100%",
                     padding: "60px 24px",
@@ -805,6 +838,8 @@ export default function HomePage() {
                     {t.ctaButton}
                 </button>
             </section>
+
+            <GuidedTour open={tourOpen} onClose={() => setTourOpen(false)} />
         </div>
     );
 }
