@@ -469,6 +469,44 @@ export default function HomePage() {
                         </p>
                     </div>
 
+                    {/* Tour button */}
+                    <div style={{ marginTop: 18, display: "flex", justifyContent: "center" }}>
+                        <button
+                            type="button"
+                            onClick={startTour}
+                            style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 8,
+                                padding: "9px 18px",
+                                borderRadius: 999,
+                                border: `1.5px solid ${themeColors.accent}`,
+                                background: themeColors.card,
+                                color: themeColors.accentText,
+                                fontWeight: 700,
+                                fontSize: "0.88rem",
+                                cursor: "pointer",
+                                boxShadow: `0 0 0 4px ${themeColors.accentSoft}`,
+                            }}
+                        >
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden="true"
+                            >
+                                <circle cx="12" cy="12" r="10" />
+                                <polygon points="10 8 16 12 10 16 10 8" />
+                            </svg>
+                            {t.tourLink}
+                        </button>
+                    </div>
+
                     {/* Trust chips */}
                     <div
                         data-tour="chips"
@@ -477,7 +515,7 @@ export default function HomePage() {
                             flexWrap: "wrap",
                             justifyContent: "center",
                             gap: 10,
-                            marginTop: 22,
+                            marginTop: 16,
                         }}
                     >
                         {t.chips.map((chip) => (
@@ -506,23 +544,6 @@ export default function HomePage() {
                     >
                         {t.helperText}
                     </p>
-
-                    <button
-                        type="button"
-                        onClick={startTour}
-                        style={{
-                            marginTop: 10,
-                            border: "none",
-                            background: "transparent",
-                            color: themeColors.accentText,
-                            fontWeight: 700,
-                            fontSize: "0.85rem",
-                            cursor: "pointer",
-                            textDecoration: "underline",
-                        }}
-                    >
-                        {t.tourLink}
-                    </button>
                 </div>
             </div>
 
