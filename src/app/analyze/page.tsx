@@ -1,27 +1,37 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
-import { useTheme } from "../providers";
 import Link from "next/link";
+import { useTheme } from "../providers";
+import TermsBackground from "../components/TermsBackground";
 
 const content = {
     en: {
-        back: "← Back",
+        titlePrefix: "Reading the ",
+        titleAccent: "fine print",
+        failedPrefix: "Analysis ",
+        failedAccent: "failed",
+        wait: "We're reading the policy and checking every finding against the original text. This usually takes a few seconds.",
         analyzing: "Analyzing...",
-        wait: "Please wait while we process the policy.",
-        failed: "Analysis Failed",
+        chips: ["Verified quotes only", "0–100 risk score", "Plain language"],
+        tryAnother: "Analyze another URL",
+        back: "← Back to Homepage",
         missingUrl: "Missing URL. Go back and paste a valid URL.",
         blocked:
             "This site blocks automated tools from reading it directly. Try copying the link to its Terms of Service or Privacy Policy page yourself and paste that instead.",
         connectError: "Could not connect to API."
     },
     ar: {
-        back: "→ رجوع",
+        titlePrefix: "نقرأ ",
+        titleAccent: "التفاصيل الدقيقة",
+        failedPrefix: "فشل ",
+        failedAccent: "التحليل",
+        wait: "نقرأ السياسة ونتحقق من كل نتيجة مقابل النص الأصلي. يستغرق ذلك عادةً بضع ثوانٍ.",
         analyzing: "جارٍ التحليل...",
-        wait: "الرجاء الانتظار بينما نعالج السياسة.",
-        failed: "فشل التحليل",
+        chips: ["اقتباسات موثّقة فقط", "درجة من 0 إلى 100", "لغة بسيطة"],
+        tryAnother: "تحليل رابط آخر",
+        back: "→ العودة إلى الصفحة الرئيسية",
         missingUrl: "الرابط مفقود. ارجع والصق رابطًا صالحًا.",
         blocked:
             "يمنع هذا الموقع الأدوات الآلية من قراءته مباشرة. حاول نسخ رابط صفحة شروط الخدمة أو سياسة الخصوصية بنفسك ولصقه هنا بدلاً من ذلك.",
@@ -29,23 +39,66 @@ const content = {
     }
 };
 
+function Spinner({ track, ring }: { track: string; ring: string }) {
+    const radius = 30;
+    const circumference = 2 * Math.PI * radius;
+    return (
+        <svg width={76} height={76} viewBox="0 0 76 76" aria-hidden="true">
+            <circle cx="38" cy="38" r={radius} fill="none" stroke={track} strokeWidth="7" />
+            <circle
+                cx="38"
+                cy="38"
+                r={radius}
+                fill="none"
+                stroke={ring}
+                strokeWidth="7"
+                strokeLinecap="round"
+                strokeDasharray={`${circumference * 0.28} ${circumference}`}
+            >
+                <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 38 38"
+                    to="360 38 38"
+                    dur="1s"
+                    repeatCount="indefinite"
+                />
+            </circle>
+        </svg>
+    );
+}
+
 function AnalyzeContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const url = searchParams.get("url");
     const [error, setError] = useState("");
-    const { theme, lang } = useTheme();
+    const { theme, lang, colors: themeColors } = useTheme();
     const isDark = theme === "dark";
     const isAr = lang === "ar";
     const t = content[lang];
 
-    useEffect(() => {
-        async function runAnalysis() {
-            if (!url) {
-                setError(t.missingUrl);
-                return;
-            }
+    // Same neutral tokens as the homepage
+    const colors = {
+        pageBg: isDark ? "linear-gradient(180deg, #0a0e1a 0%, #111827 100%)" : "#ffffff",
+        heading: isDark ? "#f1f1f1" : "#1e293b",
+        body: isDark ? "#94a3b8" : "#64748b"
+    };
 
+    // Guard so only ONE analysis request is sent per URL
+    // (blocks Strict Mode's double run and re-runs when `lang` loads from the theme provider)
+    const startedForRef = useRef<string | null>(null);
+
+    useEffect(() => {
+        if (!url) {
+            setError(t.missingUrl);
+            return;
+        }
+
+        if (startedForRef.current === url) return;
+        startedForRef.current = url;
+
+        async function runAnalysis() {
             try {
                 const response = await fetch("/api/analyze", {
                     method: "POST",
@@ -64,139 +117,189 @@ function AnalyzeContent() {
 
                 if (!response.ok) {
                     const message = data.error || "Analysis failed.";
-                    if (message.startsWith("BLOCKED:")) {
-                        setError(t.blocked);
-                    } else {
-                        setError(message);
-                    }
+                    setError(message.startsWith("BLOCKED:") ? t.blocked : message);
                     return;
                 }
 
                 router.replace(`/results?id=${data.id}`);
-            } catch (error) {
-                console.error("Analysis error:", error);
-                setError(error instanceof Error ? error.message : t.connectError);
+            } catch (err) {
+                console.error("Analysis error:", err);
+                setError(err instanceof Error ? err.message : t.connectError);
             }
         }
 
         runAnalysis();
+        // Only re-run when the URL itself changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [url, lang, router]);
+    }, [url]);
+
+    const accentButton = {
+        display: "inline-block",
+        border: "none",
+        borderRadius: 12,
+        padding: "13px 26px",
+        background: themeColors.accent,
+        color: themeColors.onAccent,
+        fontWeight: 700,
+        fontSize: "0.95rem",
+        textDecoration: "none",
+        boxShadow: `0 0 0 6px ${themeColors.accentSoft}`
+    };
 
     return (
         <div
             dir={isAr ? "rtl" : "ltr"}
-            style={{
-                minHeight: "100vh",
-                background: isDark
-                    ? "linear-gradient(180deg, #0a0e1a 0%, #111827 100%)"
-                    : "#ffffff",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "24px",
-                fontFamily: "Segoe UI, Arial, sans-serif"
-            }}
+            style={{ background: colors.pageBg, color: colors.heading }}
         >
-            <div
-                style={{
-                    maxWidth: 480,
-                    width: "100%",
-                    background: isDark ? "#111827" : "#f4f7fb",
-                    border: isDark ? "1px solid #334155" : "1px solid #e2e8f0",
-                    borderRadius: 16,
-                    boxShadow: isDark
-                        ? "0 8px 30px rgba(0, 0, 0, 0.4)"
-                        : "0 8px 30px rgba(99, 102, 241, 0.1)",
-                    padding: "40px 32px",
-                    textAlign: "center"
-                }}
-            >
-                <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 12 }}>
-                    <Link
-                        href="/"
+            <div style={{ position: "relative", overflow: "hidden", width: "100%" }}>
+                <TermsBackground />
+
+                <div
+                    style={{
+                        position: "relative",
+                        zIndex: 1,
+                        maxWidth: 760,
+                        margin: "0 auto",
+                        width: "100%",
+                        padding: "80px 24px 72px",
+                        textAlign: "center"
+                    }}
+                >
+                    <h1
                         style={{
-                            color: isDark ? "#94a3b8" : "#64748b",
-                            textDecoration: "none",
-                            fontSize: "0.9rem",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 4
+                            fontSize: "clamp(2rem, 4.5vw, 3rem)",
+                            fontWeight: 800,
+                            margin: "0 0 16px",
+                            lineHeight: 1.15
                         }}
                     >
-                        {t.back}
-                    </Link>
-                </div>
+                        {error ? t.failedPrefix : t.titlePrefix}
+                        <span style={{ color: error ? themeColors.high : themeColors.accent }}>
+                            {error ? t.failedAccent : t.titleAccent}
+                        </span>
+                    </h1>
 
-                <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
-                    <Image src="/privacy-check-logo-transparent.png" alt="PrivacyCheck logo" width={70} height={70} priority />
-                </div>
-
-                {!error ? (
-                    <>
-                        <div
+                    {!error && (
+                        <p
                             style={{
-                                width: 48,
-                                height: 48,
-                                margin: "0 auto 20px",
-                                border: isDark ? "4px solid #334155" : "4px solid #e2e8f0",
-                                borderTopColor: "#6366f1",
-                                borderRadius: "50%",
-                                animation: "spin 0.9s linear infinite"
+                                fontSize: "1.05rem",
+                                color: colors.body,
+                                margin: "0 auto 32px",
+                                maxWidth: 520,
+                                lineHeight: 1.6
                             }}
-                        />
-                        <h1 style={{ margin: "0 0 8px", fontSize: "1.4rem", color: isDark ? "#f1f1f1" : "#1e293b", fontWeight: 700 }}>
-                            {t.analyzing}
-                        </h1>
-                        <p style={{ margin: "0 0 16px", color: isDark ? "#94a3b8" : "#64748b", fontSize: "0.95rem" }}>
+                        >
                             {t.wait}
                         </p>
-                    </>
-                ) : (
-                    <h1 style={{ margin: "0 0 16px", fontSize: "1.4rem", color: isDark ? "#f87171" : "#991b1b", fontWeight: 700 }}>
-                        {t.failed}
-                    </h1>
-                )}
+                    )}
 
-                {url && (
-                    <p
-                        dir="ltr"
+                    {/* Card — same style as the homepage input card */}
+                    <div
                         style={{
-                            wordBreak: "break-all",
-                            background: isDark ? "#1e293b" : "#eef2f8",
-                            border: isDark ? "1px solid #334155" : "1px solid #e2e8f0",
-                            borderRadius: 10,
-                            padding: "10px 14px",
-                            color: isDark ? "#cbd5e1" : "#334155",
-                            fontSize: "0.85rem",
-                            marginBottom: error ? 20 : 0
+                            maxWidth: 580,
+                            margin: error ? "24px auto 0" : "0 auto",
+                            padding: 24,
+                            borderRadius: 20,
+                            background: themeColors.card,
+                            border: `1px solid ${themeColors.border}`,
+                            boxShadow: isDark
+                                ? "0 10px 30px rgba(0,0,0,0.35)"
+                                : "0 10px 30px rgba(15,23,42,0.08)"
                         }}
                     >
-                        {url}
-                    </p>
-                )}
+                        {!error ? (
+                            <div role="status" aria-live="polite">
+                                <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+                                    <Spinner track={themeColors.accentSoft} ring={themeColors.accent} />
+                                </div>
+                                <p style={{ margin: "0 0 18px", fontWeight: 700, color: colors.heading }}>
+                                    {t.analyzing}
+                                </p>
+                                {url && (
+                                    <div
+                                        dir="ltr"
+                                        style={{
+                                            padding: "14px 16px",
+                                            borderRadius: 12,
+                                            border: `1px solid ${themeColors.border}`,
+                                            background: themeColors.input,
+                                            color: themeColors.heading,
+                                            fontSize: "0.9rem",
+                                            wordBreak: "break-all",
+                                            textAlign: "left"
+                                        }}
+                                    >
+                                        {url}
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div role="alert">
+                                <div
+                                    style={{
+                                        borderRadius: 12,
+                                        border: `1px solid ${themeColors.high}`,
+                                        padding: "14px 16px",
+                                        color: themeColors.high,
+                                        fontSize: "0.92rem",
+                                        lineHeight: 1.7,
+                                        textAlign: isAr ? "right" : "left",
+                                        marginBottom: 22
+                                    }}
+                                >
+                                    {error}
+                                </div>
+                                <Link href="/" style={accentButton}>
+                                    {t.tryAnother}
+                                </Link>
+                            </div>
+                        )}
+                    </div>
 
-                {error && (
-                    <p
-                        style={{
-                            color: isDark ? "#fca5a5" : "#dc2626",
-                            background: isDark ? "#450a0a" : "#fee2e2",
-                            borderRadius: 10,
-                            padding: "10px 14px",
-                            fontSize: "0.9rem"
-                        }}
-                    >
-                        {error}
-                    </p>
-                )}
+                    {/* Chips — same as homepage trust chips */}
+                    {!error && (
+                        <div
+                            style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                justifyContent: "center",
+                                gap: 10,
+                                marginTop: 22
+                            }}
+                        >
+                            {t.chips.map((chip) => (
+                                <span
+                                    key={chip}
+                                    style={{
+                                        padding: "6px 14px",
+                                        borderRadius: 999,
+                                        fontSize: "0.8rem",
+                                        fontWeight: 600,
+                                        background: themeColors.accentSoft,
+                                        color: themeColors.accentText
+                                    }}
+                                >
+                                    ✓ {chip}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+
+                    <div style={{ marginTop: 28 }}>
+                        <Link
+                            href="/"
+                            style={{
+                                color: themeColors.accentText,
+                                fontWeight: 700,
+                                fontSize: "0.9rem",
+                                textDecoration: "none"
+                            }}
+                        >
+                            {t.back}
+                        </Link>
+                    </div>
+                </div>
             </div>
-
-            <style>{`
-                @keyframes spin {
-                    to { transform: rotate(360deg); }
-                }
-            `}</style>
         </div>
     );
 }

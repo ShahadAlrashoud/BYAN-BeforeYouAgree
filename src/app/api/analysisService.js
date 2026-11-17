@@ -1,6 +1,9 @@
 import { detectRiskClauses } from "../../../nlp/extractClauses";
 import { scoreRisk } from "../../../nlp/riskScorer";
 import { createAnalysis, saveResult } from "@/database/db";
+import { validateFindings, scoreFromFindings } from "../../../nlp/evidenceValidator";
+
+const MAX_AI_CHARS = 12000;
 
 function isValidHttpUrl(value) {
     try {
@@ -179,50 +182,64 @@ function detectLanguage(text) {
 async function assessWithAI(policyText, lang) {
     const languageInstruction =
         lang === "ar"
-            ? `Write the "summaryEn" field and all "category"/"text" fields in Arabic (Modern Standard Arabic), even though the field is named "summaryEn".`
-            : `Write all fields in English.`;
+            ? `Write "summary", "category", "plainExplanation", "riskReason" and "suggestedAction" in Modern Standard Arabic. "evidenceQuote" must stay EXACTLY as written in the policy.`
+            : `Write "summary", "category", "plainExplanation", "riskReason" and "suggestedAction" in English. "evidenceQuote" must stay EXACTLY as written in the policy.`;
 
-    const response = await fetch(
-        "https://api.groq.com/openai/v1/chat/completions",
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: "openai/gpt-oss-120b",
-                messages: [
-                    {
-                        role: "system",
-                        content: `You are a privacy policy risk analyzer.
+    const systemPrompt = `You are a privacy-policy risk analyst. You ONLY report risks that are explicitly stated in the policy text provided by the user.
 
 ${languageInstruction}
 
-Return ONLY valid JSON in this exact format:
+STRICT EVIDENCE RULES:
+1. Every finding MUST include "evidenceQuote": an exact, verbatim, contiguous copy of 1-3 sentences from the policy (max 400 characters), in the policy's original language. Do NOT paraphrase, translate, shorten with "...", merge separate sentences, or fix typos.
+2. If you cannot point to an exact sentence that supports a risk, DO NOT include that risk.
+3. Do NOT infer, assume or speculate. Do not report risks based on what the policy does NOT mention, on general industry practice, or on what the company "might" do. Missing information is not a finding.
+4. "clauseRef" must be a section number or heading exactly as visible in the policy, or null. Never invent one.
+5. Report each distinct practice only once.
+6. The summary must only describe the findings you listed.
+7. If no risks are supported by the text, return an empty "findings" array.
 
+SEVERITY GUIDE:
+- high: selling personal data; sharing with third parties for advertising/profiling; cross-site tracking; indefinite retention; collecting or sharing sensitive data (health, biometrics, precise location, children's data); waiving user rights; changing terms without notice.
+- medium: sharing with partners/affiliates; analytics/advertising cookies; vague or long retention; transfers to other countries; limited user control over data.
+- low: minor or common practices that still deserve the user's attention.
+
+FIELD GUIDANCE:
+- plainExplanation: 1-2 short sentences in simple everyday language explaining what the clause means for the user.
+- riskReason: why THIS wording is a risk, referring to specific words in the quote.
+- suggestedAction: one concrete action or question for the user (e.g. "Turn off ad personalization in account settings" or "Ask the company: which third parties receive my location data?").
+
+Return ONLY valid JSON in this exact format:
 {
-  "riskScore": number,
-  "riskLevel": "Safe" | "Moderate Risk" | "High Risk",
-  "summaryEn": string,
-  "clauses": [
+  "summary": string,
+  "findings": [
     {
       "category": string,
-      "text": string,
-      "riskWeight": number
+      "clauseRef": string | null,
+      "evidenceQuote": string,
+      "plainExplanation": string,
+      "riskReason": string,
+      "suggestedAction": string,
+      "severity": "low" | "medium" | "high"
     }
   ]
-}`
-                    },
-                    {
-                        role: "user",
-                        content: policyText.slice(0, 12000)
-                    }
-                ],
-                response_format: { type: "json_object" }
-            })
-        }
-    );
+}`;
+
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
+        },
+        body: JSON.stringify({
+            model: "openai/gpt-oss-120b",
+            temperature: 0,
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: policyText.slice(0, MAX_AI_CHARS) }
+            ],
+            response_format: { type: "json_object" }
+        })
+    });
 
     if (!response.ok) {
         const errorText = await response.text();
@@ -230,29 +247,50 @@ Return ONLY valid JSON in this exact format:
     }
 
     const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) throw new Error("AI returned an unexpected response.");
 
-    if (!data.choices?.[0]?.message?.content) {
-        throw new Error("AI returned an unexpected response.");
-    }
-
-    return JSON.parse(data.choices[0].message.content);
+    return JSON.parse(content);
 }
 
 // Shared by URL and text analysis: scores, builds the record, and saves it
 async function buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang, userId }) {
-    const lang = detectLanguage(policyText); // result always follows the actual document's language
+    const lang = detectLanguage(policyText);
 
-    const keywordClauses = detectRiskClauses(policyText);
-    const keywordScoring = scoreRisk(keywordClauses);
-
-    let aiScoring;
-
+    let ai = null;
     try {
-        aiScoring = await assessWithAI(policyText, lang);
+        ai = await assessWithAI(policyText, lang);
     } catch (error) {
         console.error("AI ANALYSIS ERROR:", error);
-        aiScoring = null;
     }
+
+    let analysisSource = "ai";
+    let rawFindings = Array.isArray(ai?.findings) ? ai.findings : null;
+    let summary = typeof ai?.summary === "string" ? ai.summary.trim() : "";
+
+    // Fallback: keyword detection, which goes through the same evidence check
+    if (!rawFindings) {
+        analysisSource = "keyword";
+        const keywordClauses = detectRiskClauses(policyText);
+        rawFindings = keywordClauses.map((c) => ({
+            category: c.category,
+            evidenceQuote: c.text,
+            riskWeight: c.riskWeight,
+            plainExplanation: "",
+            riskReason: "",
+            suggestedAction: ""
+        }));
+        summary = scoreRisk(keywordClauses).summaryEn || "";
+    }
+
+    const { verified, rejected } = validateFindings(policyText, rawFindings);
+    const { riskScore, riskLevel } = scoreFromFindings(verified);
+
+    // "clauses" keeps its old shape (category/text/riskWeight) so the comparison and translation still work
+    const clauses = verified.map((f) => ({
+        ...f,
+        text: f.plainExplanation || f.evidence
+    }));
 
     const record = {
         id: crypto.randomUUID(),
@@ -261,17 +299,21 @@ async function buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang,
         resolvedUrl,
         lang,
         preferredLang,
-        riskScore: Math.round(aiScoring?.riskScore ?? keywordScoring.riskScore),
-        riskLevel: aiScoring?.riskLevel ?? keywordScoring.riskLevel,
-        summaryEn: aiScoring?.summaryEn ?? keywordScoring.summaryEn,
-        clauses: aiScoring?.clauses?.length ? aiScoring.clauses : keywordClauses,
+        riskScore,
+        riskLevel,
+        summaryEn: summary,
+        clauses,                      // verified only, counted in the score
+        rejectedFindings: rejected,   // no textual evidence, NOT counted
+        analysisSource,
+        coverage: {
+            analyzedChars: Math.min(policyText.length, MAX_AI_CHARS),
+            totalChars: policyText.length
+        },
         createdAt: new Date().toISOString()
     };
 
-    // Always save the full record so /api/result/[id] can retrieve it
     await saveResult(record);
 
-    // Only add to the user's saved-analyses list if they're logged in
     if (userId) {
         await createAnalysis({
             id: record.id,
