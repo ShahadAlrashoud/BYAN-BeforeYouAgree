@@ -18,6 +18,12 @@ type WebsiteResult = {
   }[];
 };
 
+type SampleSite = {
+  name: string;
+  score: number;
+  clauses: { category: string; text: string; level: "high" | "medium" | "low" }[];
+};
+
 const translations = {
   en: {
     title: "Compare Websites",
@@ -25,9 +31,9 @@ const translations = {
       "Compare the Terms of Service and Privacy Policies of two websites.",
     first: "First website",
     second: "Second website",
-    placeholder1: "https://example.com",
-    placeholder2: "https://example.org",
-    submit: "Compare websites",
+    placeholder1: "e.g. example-shop.com",
+    placeholder2: "e.g. sample-app.com",
+    submit: "Compare these two sites",
     loading: "Analyzing both websites...",
     score: "Risk score",
     summary: "Summary",
@@ -44,18 +50,55 @@ const translations = {
     different: "Please enter two different website URLs.",
     failed: "Unable to compare the websites. Please try again.",
     resultLabel: "Website",
-    intro: "See how two websites compare before you agree.",
     secureNote: "BYAN provides informational analysis, not legal advice.",
-    back: "Analyze a website",
+
+    howTitle: "How to compare",
+    howSteps: [
+      "Enter the address of the first website.",
+      "Enter the address of a second website.",
+      "Press “Compare these two sites” to see scores and flagged clauses side by side.",
+    ],
+    useSample: "Fill in the sample pair",
+
+    sampleLabel: "Sample",
+    sampleTitle: "Sample comparison",
+    sampleNote:
+      "Illustrative example with fictional services. These are not findings about real websites.",
+    sampleSites: [
+      {
+        name: "example-shop.com",
+        score: 28,
+        clauses: [
+          { category: "Data sharing", text: "Shares data only with payment and delivery providers.", level: "low" },
+          { category: "Renewal", text: "No automatic renewal.", level: "low" },
+          { category: "Disputes", text: "Disputes handled in local courts.", level: "medium" },
+        ],
+      },
+      {
+        name: "sample-app.com",
+        score: 74,
+        clauses: [
+          { category: "Data sharing", text: "May share data with advertising partners.", level: "high" },
+          { category: "Renewal", text: "Subscription renews automatically each period.", level: "medium" },
+          { category: "Disputes", text: "Mandatory private arbitration.", level: "high" },
+        ],
+      },
+    ] as SampleSite[],
+    sampleDiffTitle: "Key differences in this sample",
+    sampleDiffs: [
+      "Data sharing: the second service shares more widely.",
+      "Disputes: the first uses local courts, the second uses arbitration.",
+      "Renewal: only the second renews automatically.",
+    ],
   },
   ar: {
     title: "مقارنة المواقع",
     subtitle: "قارن بين شروط الخدمة وسياسات الخصوصية لموقعين.",
     first: "الموقع الأول",
     second: "الموقع الثاني",
-    placeholder1: "https://example.com",
-    placeholder2: "https://example.org",
-    submit: "قارن بين الموقعين",
+    placeholder1: "مثال: example-shop.com",
+    placeholder2: "مثال: sample-app.com",
+    submit: "قارن بين هذين الموقعين",
     loading: "جارٍ تحليل الموقعين...",
     score: "درجة المخاطر",
     summary: "الملخص",
@@ -72,11 +115,50 @@ const translations = {
     different: "يرجى إدخال رابطين مختلفين.",
     failed: "تعذرت مقارنة الموقعين. حاول مرة أخرى.",
     resultLabel: "الموقع",
-    intro: "قارن بين الموقعين قبل الموافقة على شروطهما.",
     secureNote: "يقدم بيان تحليلاً معلوماتياً ولا يُعد استشارة قانونية.",
-    back: "تحليل موقع",
+
+    howTitle: "كيف تقارن",
+    howSteps: [
+      "أدخل عنوان الموقع الأول.",
+      "أدخل عنوان موقع ثانٍ.",
+      "اضغط «قارن بين هذين الموقعين» لعرض الدرجات والبنود المهمة جنبًا إلى جنب.",
+    ],
+    useSample: "املأ الحقلين بالمثال",
+
+    sampleLabel: "نموذج",
+    sampleTitle: "مقارنة نموذجية",
+    sampleNote:
+      "مثال توضيحي لخدمات وهمية، وليست نتائج عن مواقع حقيقية.",
+    sampleSites: [
+      {
+        name: "example-shop.com",
+        score: 28,
+        clauses: [
+          { category: "مشاركة البيانات", text: "تُشارك البيانات فقط مع مزوّدي الدفع والتوصيل.", level: "low" },
+          { category: "التجديد", text: "لا يوجد تجديد تلقائي.", level: "low" },
+          { category: "النزاعات", text: "تُنظر النزاعات أمام المحاكم المحلية.", level: "medium" },
+        ],
+      },
+      {
+        name: "sample-app.com",
+        score: 74,
+        clauses: [
+          { category: "مشاركة البيانات", text: "قد تُشارك البيانات مع شركاء إعلانيين.", level: "high" },
+          { category: "التجديد", text: "يتجدد الاشتراك تلقائيًا كل فترة.", level: "medium" },
+          { category: "النزاعات", text: "تحكيم خاص إلزامي.", level: "high" },
+        ],
+      },
+    ] as SampleSite[],
+    sampleDiffTitle: "أبرز الفروق في هذا النموذج",
+    sampleDiffs: [
+      "مشاركة البيانات: الخدمة الثانية تشارك بيانات أكثر.",
+      "النزاعات: الأولى تعتمد المحاكم المحلية، والثانية تعتمد التحكيم.",
+      "التجديد: الثانية فقط تتجدد تلقائيًا.",
+    ],
   },
 };
+
+type T = (typeof translations)["en"];
 
 function normalizeUrl(value: string): string | null {
   let input = value.trim();
@@ -125,16 +207,27 @@ function getScore(result: WebsiteResult): number | null {
   return Number.isFinite(score) && score >= 0 && score <= 100 ? score : null;
 }
 
-function getRiskLevel(score: number, t: (typeof translations)["en"]) {
+// Light-mode amber is darkened for readable contrast; dark mode keeps the brighter tones.
+function levelColors(isDark: boolean) {
+  return {
+    high: isDark ? "#f08a8a" : "#b83a3a",
+    medium: isDark ? "#e0b44a" : "#8a5f0a",
+    low: isDark ? "#5ccf94" : "#1a6e45",
+  };
+}
+
+function getRiskLevel(score: number, t: T, isDark: boolean) {
+  const c = levelColors(isDark);
+
   if (score >= 70) {
-    return { label: t.high, color: "#dc5252", background: "#feecec" };
+    return { key: "high" as const, label: t.high, color: c.high, background: "#feecec", symbol: "▲" };
   }
 
   if (score >= 40) {
-    return { label: t.medium, color: "#a87916", background: "#fff5d9" };
+    return { key: "medium" as const, label: t.medium, color: c.medium, background: "#fff5d9", symbol: "●" };
   }
 
-  return { label: t.low, color: "#218653", background: "#e6f7ee" };
+  return { key: "low" as const, label: t.low, color: c.low, background: "#e6f7ee", symbol: "✓" };
 }
 
 function getClauseScore(value: unknown): number | null {
@@ -155,6 +248,7 @@ export default function ComparePage() {
   const isDark = theme === "dark";
   const isAr = lang === "ar";
   const t = translations[isAr ? "ar" : "en"];
+  const lvl = levelColors(isDark);
 
   // Page-specific neutral tokens (accents come from themeColors)
   const colors = {
@@ -162,7 +256,7 @@ export default function ComparePage() {
     card: isDark ? "#111827" : "#ffffff",
     heading: isDark ? "#f1f5f9" : "#1e293b",
     text: isDark ? "#cbd5e1" : "#475569",
-    muted: isDark ? "#94a3b8" : "#64748b",
+    muted: isDark ? "#94a3b8" : "#5b6b80",
     border: isDark ? "#334155" : "#e2e8f0",
     input: isDark ? "#0f172a" : "#ffffff",
   };
@@ -294,7 +388,7 @@ export default function ComparePage() {
 
   function renderResult(result: WebsiteResult, index: number) {
     const score = getScore(result);
-    const level = score !== null ? getRiskLevel(score, t) : null;
+    const level = score !== null ? getRiskLevel(score, t, isDark) : null;
     const clauses = result.clauses ?? [];
 
     return (
@@ -307,7 +401,7 @@ export default function ComparePage() {
             marginBottom: 8,
           }}
         >
-          {t.resultLabel} {index + 1}
+          {t.resultLabel} {isAr ? (index + 1).toLocaleString("ar-SA") : index + 1}
         </div>
 
         <h2
@@ -360,6 +454,7 @@ export default function ComparePage() {
                 fontSize: 13,
               }}
             >
+              <span aria-hidden="true">{level.symbol} </span>
               {level.label}
             </span>
           )}
@@ -405,10 +500,10 @@ export default function ComparePage() {
                 clauseScore === null || !Number.isFinite(clauseScore)
                   ? null
                   : clauseScore >= 15
-                  ? { color: "#dc5252", label: t.high }
+                  ? { color: lvl.high, label: t.high, symbol: "▲" }
                   : clauseScore >= 8
-                  ? { color: "#a87916", label: t.medium }
-                  : { color: "#218653", label: t.low };
+                  ? { color: lvl.medium, label: t.medium, symbol: "●" }
+                  : { color: lvl.low, label: t.low, symbol: "✓" };
 
               return (
                 <div
@@ -441,6 +536,7 @@ export default function ComparePage() {
                           color: clauseRisk.color,
                         }}
                       >
+                        <span aria-hidden="true">{clauseRisk.symbol} </span>
                         {t.risk}: {clauseRisk.label}
                       </span>
                     )}
@@ -458,17 +554,18 @@ export default function ComparePage() {
     );
   }
 
+  const levelLabel = { high: t.high, medium: t.medium, low: t.low };
+  const levelSymbol = { high: "▲", medium: "●", low: "✓" };
+
   return (
-    <main style={page}>
+    <div style={page}>
       <div style={container}>
         <header style={{ textAlign: "center", marginBottom: 36 }}>
-  
-
           <h1
             style={{
               fontSize: "clamp(28px, 5vw, 40px)",
               fontWeight: 850,
-              letterSpacing: "-0.7px",
+              letterSpacing: isAr ? 0 : "-0.7px",
               lineHeight: 1.25,
               margin: "0 0 14px",
               color: colors.heading,
@@ -489,6 +586,43 @@ export default function ComparePage() {
             {t.subtitle}
           </p>
         </header>
+
+        {/* How to compare */}
+        <section
+          aria-labelledby="how-to-compare"
+          style={{ ...card, marginBottom: 24, padding: 22 }}
+        >
+          <h2
+            id="how-to-compare"
+            style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800, color: colors.heading }}
+          >
+            {t.howTitle}
+          </h2>
+          <ol style={{ margin: "0 0 14px", paddingInlineStart: 22, fontSize: 14, lineHeight: 1.9 }}>
+            {t.howSteps.map((s) => (
+              <li key={s}>{s}</li>
+            ))}
+          </ol>
+          <button
+            type="button"
+            onClick={() => {
+              setUrl1(t.sampleSites[0].name);
+              setUrl2(t.sampleSites[1].name);
+            }}
+            style={{
+              border: "none",
+              background: "transparent",
+              padding: "4px 0",
+              color: themeColors.accentText,
+              fontWeight: 700,
+              fontSize: 14,
+              textDecoration: "underline",
+              cursor: "pointer",
+            }}
+          >
+            {t.useSample}
+          </button>
+        </section>
 
         <form onSubmit={handleCompare} style={{ ...card, marginBottom: 30 }}>
           <div
@@ -597,7 +731,7 @@ export default function ComparePage() {
           </p>
         )}
 
-        {result1 && result2 && (
+        {result1 && result2 ? (
           <section aria-label={t.differences}>
             <div
               style={{
@@ -612,6 +746,128 @@ export default function ComparePage() {
               {renderResult(result2, 1)}
             </div>
           </section>
+        ) : (
+          !loading && (
+            /* Static sample comparison (shown until a real comparison runs) */
+            <section aria-labelledby="sample-compare">
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  flexWrap: "wrap",
+                  marginBottom: 6,
+                }}
+              >
+                <h2
+                  id="sample-compare"
+                  style={{ margin: 0, fontSize: 18, fontWeight: 800, color: colors.heading }}
+                >
+                  {t.sampleTitle}
+                </h2>
+                <span
+                  style={{
+                    padding: "3px 10px",
+                    borderRadius: 999,
+                    fontSize: 12,
+                    fontWeight: 800,
+                    background: themeColors.accentSoft,
+                    color: themeColors.accentText,
+                    border: `1px solid ${themeColors.accent}`,
+                  }}
+                >
+                  {t.sampleLabel}
+                </span>
+              </div>
+              <p style={{ margin: "0 0 16px", fontSize: 13, color: colors.muted }}>
+                {t.sampleNote}
+              </p>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
+                  gap: 22,
+                  alignItems: "start",
+                  marginBottom: 18,
+                }}
+              >
+                {t.sampleSites.map((site, i) => {
+                  const lv = getRiskLevel(site.score, t, isDark);
+                  return (
+                    <article key={site.name} style={{ ...card, borderStyle: "dashed" }}>
+                      <h3
+                        dir="ltr"
+                        style={{
+                          margin: "0 0 12px",
+                          fontSize: 18,
+                          fontWeight: 800,
+                          color: colors.heading,
+                          textAlign: isAr ? "right" : "left",
+                        }}
+                      >
+                        {site.name}
+                      </h3>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+                        <div style={{ fontSize: 34, fontWeight: 850, color: lv.color, lineHeight: 1.1 }}>
+                          {isAr ? site.score.toLocaleString("ar-SA") : site.score}
+                          <span style={{ fontSize: 14, color: colors.muted }}>
+                            {" "}/{isAr ? (100).toLocaleString("ar-SA") : 100}
+                          </span>
+                        </div>
+                        <span
+                          style={{
+                            padding: "5px 12px",
+                            borderRadius: 99,
+                            border: `1px solid ${lv.color}`,
+                            color: lv.color,
+                            fontWeight: 700,
+                            fontSize: 13,
+                          }}
+                        >
+                          <span aria-hidden="true">{lv.symbol} </span>
+                          {lv.label}
+                        </span>
+                      </div>
+                      <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 10 }}>
+                        {site.clauses.map((c) => (
+                          <li
+                            key={c.category}
+                            style={{
+                              border: `1px solid ${colors.border}`,
+                              borderRadius: 12,
+                              padding: "10px 14px",
+                            }}
+                          >
+                            <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
+                              <strong style={{ fontSize: 13, color: colors.heading }}>{c.category}</strong>
+                              <span style={{ fontSize: 12, fontWeight: 700, color: lvl[c.level] }}>
+                                <span aria-hidden="true">{levelSymbol[c.level]} </span>
+                                {t.risk}: {levelLabel[c.level]}
+                              </span>
+                            </div>
+                            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7 }}>{c.text}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    </article>
+                  );
+                })}
+              </div>
+
+              <div style={{ ...card, padding: 20 }}>
+                <h3 style={{ margin: "0 0 8px", fontSize: 15, fontWeight: 800, color: colors.heading }}>
+                  {t.sampleDiffTitle}
+                </h3>
+                <ul style={{ margin: 0, paddingInlineStart: 20, fontSize: 14, lineHeight: 1.9 }}>
+                  {t.sampleDiffs.map((d) => (
+                    <li key={d}>{d}</li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+          )
         )}
 
         <p
@@ -627,6 +883,6 @@ export default function ComparePage() {
           {t.secureNote}
         </p>
       </div>
-    </main>
+    </div>
   );
 }

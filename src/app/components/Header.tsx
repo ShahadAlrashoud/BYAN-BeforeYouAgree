@@ -100,7 +100,8 @@ const content = {
         openMenu: "Open menu",
         closeMenu: "Close menu",
         mainNav: "Main navigation",
-        help: "How to use",
+        help: "Help",
+        helpTitle: "How to use BYAN",
     },
     ar: {
         home: "الرئيسية",
@@ -111,7 +112,8 @@ const content = {
         openMenu: "فتح القائمة",
         closeMenu: "إغلاق القائمة",
         mainNav: "التنقل الرئيسي",
-        help: "كيف يعمل؟",
+        help: "مساعدة",
+        helpTitle: "كيفية استخدام بيان",
     },
 };
 
@@ -270,7 +272,7 @@ export default function Header() {
         borderBottom: `1px solid ${c.border}`,
     });
 
-    /* Compact language switch */
+    /* Compact language switch, with readable text labels */
     const langToggle = (
         <div
             role="group"
@@ -286,31 +288,36 @@ export default function Header() {
                     : "rgba(248, 250, 252, 0.9)",
             }}
         >
-            {(["en", "ar"] as const).map((l) => {
-                const active = lang === l;
+            {(
+                [
+                    { code: "en", label: "English" },
+                    { code: "ar", label: "العربية" },
+                ] as const
+            ).map(({ code, label }) => {
+                const active = lang === code;
 
                 return (
                     <button
-                        key={l}
+                        key={code}
                         type="button"
-                        onClick={() => setLang(l)}
+                        lang={code}
+                        onClick={() => setLang(code)}
                         aria-pressed={active}
-                        aria-label={l === "en" ? "English" : "العربية"}
                         style={{
                             border: "none",
                             background: active ? c.accent : "transparent",
                             color: active ? c.onAccent : c.langText,
                             borderRadius: 999,
-                            padding: "4px 9px",
-                            minWidth: 34,
-                            fontSize: "0.72rem",
+                            padding: "4px 10px",
+                            fontSize: "0.78rem",
                             fontWeight: active ? 700 : 600,
                             cursor: "pointer",
-                            lineHeight: 1.2,
+                            lineHeight: 1.3,
+                            textDecoration: active ? "none" : "underline",
                             transition: "background-color 0.2s ease, color 0.2s ease",
                         }}
                     >
-                        {l.toUpperCase()}
+                        {label}
                     </button>
                 );
             })}
@@ -332,6 +339,7 @@ export default function Header() {
                 padding: 4,
             }}
             aria-label={t.toggleTheme}
+            title={t.toggleTheme}
         >
             {isDark ? (
                 <SunIcon color={c.accent} />
@@ -341,26 +349,46 @@ export default function Header() {
         </button>
     );
 
-    /* Help button (reopens the tutorial) */
+    /* Help button (reopens the tutorial), with a visible text label */
     const helpButton = (
         <button
             type="button"
             onClick={() => setTutorialOpen(true)}
-            aria-label={t.help}
+            aria-haspopup="dialog"
+            title={t.helpTitle}
             style={{
-                width: 28,
-                height: 28,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                height: 30,
+                padding: "0 12px 0 6px",
                 borderRadius: 999,
                 border: `1.5px solid ${c.accent}`,
                 background: "transparent",
-                color: c.accent,
+                color: c.accentText,
                 fontWeight: 700,
-                fontSize: "0.85rem",
+                fontSize: "0.8rem",
                 cursor: "pointer",
                 lineHeight: 1,
             }}
         >
-            ?
+            <span
+                aria-hidden="true"
+                style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: "50%",
+                    background: c.accent,
+                    color: c.onAccent,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "0.75rem",
+                }}
+            >
+                ?
+            </span>
+            {t.help}
         </button>
     );
 
@@ -507,6 +535,8 @@ export default function Header() {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "space-between",
+                            flexWrap: "wrap",
+                            gap: 10,
                             padding: "14px 4px",
                         }}
                     >

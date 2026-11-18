@@ -55,13 +55,20 @@ export default function Providers({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>("en");
 
   useEffect(() => {
-    const savedTheme = (localStorage.getItem("theme") as Theme) || "light";
+    const storedTheme = localStorage.getItem("theme");
+    const savedTheme: Theme = storedTheme === "dark" ? "dark" : "light";
     setTheme(savedTheme);
     document.documentElement.classList.toggle("dark", savedTheme === "dark");
 
-    const savedLang = (localStorage.getItem("lang") as Lang) || "en";
-    setLang(savedLang);
+    const storedLang = localStorage.getItem("lang");
+    setLang(storedLang === "ar" ? "ar" : "en");
   }, []);
+
+  // Keep <html lang> and <html dir> in sync with the chosen language
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  }, [lang]);
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";

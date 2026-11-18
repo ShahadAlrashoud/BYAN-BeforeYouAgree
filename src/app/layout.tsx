@@ -20,9 +20,36 @@ const display = Noto_Naskh_Arabic({
   display: "swap",
 });
 
+// TODO: set NEXT_PUBLIC_SITE_URL to your real domain (e.g. https://yourdomain.com)
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+const description =
+  "Analyze Terms of Service and Privacy Policy pages with an analysis of the risks involved.";
+
 export const metadata: Metadata = {
-  title: "BYAN - Before You Agree",
-  description: "Analyze Terms of Service and Privacy Policy pages with an analysis of the risks involved."
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "BYAN - Before You Agree",
+    template: "%s | BYAN",
+  },
+  description,
+  openGraph: {
+    type: "website",
+    siteName: "BYAN",
+    title: "BYAN - Before You Agree",
+    description,
+    url: "/",
+    locale: "en_US",
+    alternateLocale: ["ar_SA"],
+    // images: [{ url: "/og.png", width: 1200, height: 630, alt: "BYAN" }], // add once you have the file
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BYAN - Before You Agree",
+    description,
+    // images: ["/og.png"],
+  },
+  alternates: { canonical: "/" },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -31,7 +58,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <Providers>
           <Header />
-          <main>{children}</main>
+          <main id="main">{children}</main>
           <Footer />
         </Providers>
       </body>

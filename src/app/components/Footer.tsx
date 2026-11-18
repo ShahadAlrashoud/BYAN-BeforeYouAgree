@@ -7,8 +7,6 @@ import BYANLogo from "./BYANLogo";
 
 const content = {
     en: {
-        tagline: "Before You Agree",
-        subtitle: "Understand what you're agreeing to.",
         description: "Plain-language analysis of Terms of Service and Privacy Policies, grounded in Saudi Arabia's PDPL.",
         product: "Product",
         company: "Company",
@@ -16,6 +14,7 @@ const content = {
         analyze: "Analyze",
         compare: "Compare",
         howItWorks: "How It Works",
+        report: "Report an incorrect result",
         about: "About",
         contact: "Contact",
         faq: "FAQ",
@@ -23,11 +22,10 @@ const content = {
         terms: "Terms of Use",
         disclaimerLink: "Disclaimer",
         disclaimer: "BYAN provides automated, informational analysis and does not constitute legal advice. Always review the original documents for important decisions.",
-        rights: "All rights reserved."
+        rights: "All rights reserved.",
+        language: "Language",
     },
     ar: {
-        tagline: "قبل أن توافق",
-        subtitle: "افهم ما توافق عليه.",
         description: "تحليل مبسّط لشروط الخدمة وسياسات الخصوصية، مستند إلى نظام حماية البيانات الشخصية السعودي (PDPL).",
         product: "المنتج",
         company: "الشركة",
@@ -35,6 +33,7 @@ const content = {
         analyze: "تحليل",
         compare: "مقارنة",
         howItWorks: "كيف يعمل",
+        report: "الإبلاغ عن نتيجة غير صحيحة",
         about: "من نحن",
         contact: "تواصل معنا",
         faq: "الأسئلة الشائعة",
@@ -42,8 +41,9 @@ const content = {
         terms: "شروط الاستخدام",
         disclaimerLink: "إخلاء المسؤولية",
         disclaimer: "يقدّم بيان تحليلًا آليًا لأغراض معلوماتية فقط، ولا يُعد استشارة قانونية. يُرجى مراجعة المستندات الأصلية عند اتخاذ القرارات المهمة.",
-        rights: "جميع الحقوق محفوظة."
-    }
+        rights: "جميع الحقوق محفوظة.",
+        language: "اللغة",
+    },
 };
 
 type FooterKey = keyof typeof content.en;
@@ -54,33 +54,34 @@ const sections: { title: FooterKey; links: { key: FooterKey; href: string }[] }[
         links: [
             { key: "analyze", href: "/" },
             { key: "compare", href: "/compare" },
-            { key: "howItWorks", href: "/how-it-works" }
-        ]
+            { key: "howItWorks", href: "/how-it-works" },
+            { key: "report", href: "/contact?topic=incorrect-result" },
+        ],
     },
     {
         title: "company",
         links: [
             { key: "about", href: "/about" },
             { key: "contact", href: "/contact" },
-            { key: "faq", href: "/faq" }
-        ]
+            { key: "faq", href: "/faq" },
+        ],
     },
     {
         title: "legal",
         links: [
             { key: "privacy", href: "/privacy" },
             { key: "terms", href: "/terms" },
-            { key: "disclaimerLink", href: "/disclaimer" }
-        ]
-    }
+            { key: "disclaimerLink", href: "/disclaimer" },
+        ],
+    },
 ];
 
 export default function Footer() {
-    const { theme, lang, colors } = useTheme();
+    const { theme, lang, setLang, colors } = useTheme();
     const pathname = usePathname();
     const isDark = theme === "dark";
     const isAr = lang === "ar";
-    const t = content[lang];
+    const t = content[isAr ? "ar" : "en"];
 
     const muted = isDark ? "#94a3b8" : "#64748b";
     const heading = isDark ? "#f1f1f1" : "#1e293b";
@@ -89,7 +90,7 @@ export default function Footer() {
     const linkStyle = {
         color: muted,
         textDecoration: "none",
-        fontSize: "0.88rem"
+        fontSize: "0.88rem",
     };
 
     const colTitle = {
@@ -98,7 +99,7 @@ export default function Footer() {
         fontWeight: 700,
         color: colors.accentText,
         letterSpacing: isAr ? 0 : "0.1em",
-        textTransform: "uppercase" as const
+        textTransform: "uppercase" as const,
     };
 
     const colList = {
@@ -107,7 +108,7 @@ export default function Footer() {
         padding: 0,
         display: "flex",
         flexDirection: "column" as const,
-        gap: 10
+        gap: 10,
     };
 
     // Already on the homepage: scroll to top and focus the input (if it has id="analyze-input")
@@ -127,7 +128,7 @@ export default function Footer() {
                 padding: "48px 24px 24px",
                 marginTop: 48,
                 background: isDark ? "#0a0e1a" : "#ffffff",
-                color: muted
+                color: muted,
             }}
         >
             <div
@@ -137,19 +138,58 @@ export default function Footer() {
                     display: "flex",
                     flexWrap: "wrap",
                     justifyContent: "space-between",
-                    gap: 40
+                    gap: 40,
                 }}
             >
                 {/* Brand */}
                 <div style={{ flex: "1 1 280px", maxWidth: 380 }}>
                     <BYANLogo isDark={isDark} />
-                    <p style={{ margin: "14px 0 4px", color: heading, fontWeight: 600, fontSize: "0.95rem" }}>
-                        {t.tagline}
+                    <p style={{ margin: "14px 0 16px", fontSize: "0.85rem", lineHeight: 1.7 }}>
+                        {t.description}
                     </p>
-                    <p style={{ margin: "0 0 10px", color: heading, fontSize: "0.88rem", opacity: 0.85 }}>
-                        {t.subtitle}
-                    </p>
-                    <p style={{ margin: 0, fontSize: "0.85rem", lineHeight: 1.7 }}>{t.description}</p>
+
+                    {/* Language toggle */}
+                    <div
+                        role="group"
+                        aria-label={t.language}
+                        style={{
+                            display: "inline-flex",
+                            border: `1px solid ${line}`,
+                            borderRadius: 999,
+                            padding: 2,
+                        }}
+                    >
+                        {(
+                            [
+                                { code: "en", label: "English" },
+                                { code: "ar", label: "العربية" },
+                            ] as const
+                        ).map(({ code, label }) => {
+                            const active = lang === code;
+                            return (
+                                <button
+                                    key={code}
+                                    type="button"
+                                    lang={code}
+                                    onClick={() => setLang(code)}
+                                    aria-pressed={active}
+                                    style={{
+                                        border: "none",
+                                        borderRadius: 999,
+                                        padding: "5px 14px",
+                                        fontSize: "0.8rem",
+                                        fontWeight: active ? 700 : 600,
+                                        cursor: "pointer",
+                                        background: active ? colors.accent : "transparent",
+                                        color: active ? colors.onAccent : muted,
+                                        textDecoration: active ? "none" : "underline",
+                                    }}
+                                >
+                                    {label}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
 
                 {/* Links */}
@@ -187,7 +227,7 @@ export default function Footer() {
                     justifyContent: "space-between",
                     alignItems: "center",
                     gap: 12,
-                    fontSize: "0.8rem"
+                    fontSize: "0.8rem",
                 }}
             >
                 <p style={{ margin: 0, maxWidth: 640, lineHeight: 1.6 }}>{t.disclaimer}</p>

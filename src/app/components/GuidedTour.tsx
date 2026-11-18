@@ -5,11 +5,11 @@ import { createPortal } from "react-dom";
 import { useTheme } from "../providers";
 
 const STEPS = [
-    {
-        target: "tabs",
-        en: { title: "Choose how to analyze", body: "Paste a website link, or switch to Upload Files if you have files of the policy." },
-        ar: { title: "اختر طريقة التحليل", body: "الصق رابط موقع، أو انتقل إلى الملفات إذا كانت لديك لقطات للسياسة." },
-    },
+ {
+    target: "tabs",
+    en: { title: "Choose how to analyze", body: "Paste a website link, or switch to Upload Files if you have images of the policy." },
+    ar: { title: "اختر طريقة التحليل", body: "الصق رابط موقع، أو انتقل إلى رفع ملفات إذا كانت لديك ملفات للسياسة." },
+},
     {
         target: "form",
         en: { title: "Paste the link and analyze", body: "Enter a website address, then press Analyze. We find its Terms and Privacy Policy and read them for you." },
