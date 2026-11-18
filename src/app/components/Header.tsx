@@ -95,6 +95,7 @@ const content = {
     en: {
         home: "Home",
         howItWorks: "How It Works",
+        compare: "Compare",
         glossary: "Glossary", // NEW
         about: "About",
         toggleTheme: "Toggle theme",
@@ -108,7 +109,8 @@ const content = {
     ar: {
         home: "الرئيسية",
         howItWorks: "كيف يعمل",
-        glossary: "المصطلحات", // NEW
+        compare: "مقارنة",
+        glossary: "المصطلحات", 
         about: "من نحن",
         toggleTheme: "تبديل المظهر",
         language: "اللغة",
@@ -121,12 +123,13 @@ const content = {
 };
 
 /* ---------- Navigation ---------- */
+const navItems = [  
+    { href: "/", key: "home" },  
 
-const navItems = [
-    { href: "/", key: "home" },
-    { href: "/how-it-works", key: "howItWorks" },
-    { href: "/glossary", key: "glossary" }, // NEW
-    { href: "/about", key: "about" },
+    { href: "/how-it-works", key: "howItWorks" },  
+        { href: "/compare", key: "compare" },  
+    { href: "/glossary", key: "glossary" },  
+    { href: "/about", key: "about" },  
 ] as const;
 
 /* ---------- Hooks ---------- */
