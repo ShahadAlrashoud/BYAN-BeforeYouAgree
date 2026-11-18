@@ -25,7 +25,7 @@ export default function TermClient({ id }) {
 
       {term.pdpl && (
         <p style={{ display: "inline-block", padding: "2px 10px", border: "1px solid currentColor", borderRadius: 999, fontSize: "0.85rem" }}>
-          <span aria-hidden="true">§ </span>{t.pdpl}
+          <span aria-hidden="true"> </span>{t.pdpl}
         </p>
       )}
 

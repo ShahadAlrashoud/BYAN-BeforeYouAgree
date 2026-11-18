@@ -46,7 +46,7 @@ export default function GlossaryClient() {
               <Link href={`/glossary/${x.id}`} style={{ color: "inherit" }}>{x.term}</Link>
               {x.pdpl && (
                 <span style={{ marginInlineStart: 8, padding: "1px 8px", border: "1px solid currentColor", borderRadius: 999, fontSize: "0.75rem" }}>
-                  <span aria-hidden="true">§ </span>{t.pdpl}
+                  <span aria-hidden="true"> </span>{t.pdpl}
                 </span>
               )}
             </dt>
