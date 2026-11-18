@@ -20,9 +20,7 @@ const display = Noto_Naskh_Arabic({
   display: "swap",
 });
 
-// TODO: set NEXT_PUBLIC_SITE_URL to your real domain (e.g. https://yourdomain.com)
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL = "https://www.byan.website";
 const description =
   "Analyze Terms of Service and Privacy Policy pages with an analysis of the risks involved.";
 

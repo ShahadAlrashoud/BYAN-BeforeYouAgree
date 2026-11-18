@@ -1,6 +1,6 @@
 import ResultsClient from "./ResultsClient";
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://www.byan.website";
 
 async function loadResult(id) {
     try {
@@ -41,13 +41,25 @@ export async function generateMetadata({ searchParams }) {
     const title = `${site || "Result"}: risk ${r.riskScore}/100 (${r.riskLevel}) | BYAN`;
     const description = `${count} risky clause${count === 1 ? "" : "s"} found. ${r.summaryEn || ""
         }`.trim().slice(0, 200);
+    const image = {
+        url: `${SITE}/api/og/${encodeURIComponent(id)}`,
+        width: 1200,
+        height: 630,
+        alt: title
+    };
 
     return {
         title,
         description,
-        alternates: { canonical: `/results?id=${id}` },
-        openGraph: { title, description, type: "website", url: `${SITE}/results?id=${id}` },
-        twitter: { card: "summary", title, description }
+        alternates: { canonical: `${SITE}/results?id=${id}` },
+        openGraph: {
+            title,
+            description,
+            type: "website",
+            url: `${SITE}/results?id=${id}`,
+            images: [image]
+        },
+        twitter: { card: "summary_large_image", title, description, images: [image.url] }
     };
 }
 
