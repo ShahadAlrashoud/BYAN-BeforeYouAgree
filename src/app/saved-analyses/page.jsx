@@ -204,20 +204,22 @@ export default function SavedAnalysesPage() {
     }
   }
 
-  async function handleShare(item) {
-    const url = `${window.location.origin}/results?id=${item.id}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: item.title, url });
-        setShareMsg(t.shared);
-      } else {
-        await navigator.clipboard.writeText(url);
-        setShareMsg(t.copied);
-      }
-    } catch (e) {
-      if (e?.name !== "AbortError") setShareMsg(t.shareFailed);
+async function handleShare(item) {
+  const url = `${window.location.origin}/results?id=${item.id}`;
+  const isTouch = window.matchMedia?.("(pointer: coarse)").matches;
+  try {
+    if (isTouch && navigator.share) {
+      await navigator.share({ title: item.title, url });
+      setShareMsg(t.shared);
+    } else {
+      await navigator.clipboard.writeText(url);
+      setShareMsg(t.copied);
     }
+  } catch (e) {
+    if (e?.name !== "AbortError") setShareMsg(t.shareFailed);
   }
+  setTimeout(() => setShareMsg(""), 3500);
+}
 
   async function handleToggleDetails(id) {
     if (expandedId === id) {
@@ -272,9 +274,27 @@ export default function SavedAnalysesPage() {
     >
       <h1 style={{ color: heading }}>{t.title}</h1>
 
-      <p role="status" style={srOnly}>
-        {shareMsg}
-      </p>
+ <p
+  role="status"
+  style={
+    shareMsg
+      ? {
+          position: "fixed",
+          bottom: 24,
+          insetInlineStart: "50%",
+          transform: "translateX(-50%)",
+          background: isDark ? "#f1f5f9" : "#1e293b",
+          color: isDark ? "#0f172a" : "#ffffff",
+          padding: "10px 18px",
+          borderRadius: 10,
+          fontSize: 14,
+          zIndex: 50,
+        }
+      : srOnly
+  }
+>
+  {shareMsg}
+</p>
 
       <label htmlFor="saved-search" style={srOnly}>
         {t.searchLabel}
