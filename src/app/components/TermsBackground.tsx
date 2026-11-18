@@ -44,8 +44,8 @@ const sentences = {
 const agreeLabel = { en: "I Agree", ar: "أوافق" };
 
 const captionText = {
-    en: "Background text: illustrative example clauses (§01–§16), not findings about real services.",
-    ar: "نص الخلفية: بنود توضيحية (§01–§16) وليست نتائج عن خدمات حقيقية.",
+    en: "Background text: illustrative example clauses (01–16), not findings about real services.",
+    ar: "نص الخلفية: بنود توضيحية (01–16) وليست نتائج عن خدمات حقيقية.",
 };
 
 // Slow-drifting checkboxes: vertical position, speed, start offset
@@ -143,7 +143,7 @@ export default function TermsBackground() {
                                                 marginInlineEnd: 10,
                                             }}
                                         >
-                                            § {String(n).padStart(2, "0")}
+                                         
                                         </span>
 
                                         {s.split(/\[(.+?)\]/).map((part, k) =>

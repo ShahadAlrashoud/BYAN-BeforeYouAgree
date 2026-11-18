@@ -9,6 +9,7 @@ const content = {
   en: {
     title: "Saved Analysis Results",
     search: "Search your analyses...",
+    searchLabel: "Search your analyses",
     noResults: "No analyses found.",
     noAnalyses: "You haven't saved any analyses yet.",
     loading: "Loading...",
@@ -21,15 +22,23 @@ const content = {
     sortOldest: "Oldest first",
     delete: "Delete",
     deleting: "Deleting...",
+    deleteFor: "Delete analysis:",
     viewDetails: "View clauses",
     hideDetails: "Hide clauses",
+    toggleFor: "Show or hide clauses for",
     loadingDetails: "Loading details...",
     noClauses: "No risky clauses detected.",
     weight: "weight",
+    severity: "severity",
+    riskScore: "Risk score",
+    notAvailable: "not available",
+    tiers: { safe: "Safe", moderate: "Moderate", high: "High", unknown: "Unknown" },
+    severities: { high: "High", medium: "Medium", low: "Low" },
   },
   ar: {
     title: "نتائج التحليل المحفوظة",
     search: "ابحث في تحليلاتك...",
+    searchLabel: "ابحث في تحليلاتك",
     noResults: "لم يتم العثور على نتائج.",
     noAnalyses: "لم تقم بحفظ أي تحليلات بعد.",
     loading: "جارٍ التحميل...",
@@ -42,11 +51,18 @@ const content = {
     sortOldest: "الأقدم أولاً",
     delete: "حذف",
     deleting: "جارٍ الحذف...",
+    deleteFor: "حذف التحليل:",
     viewDetails: "عرض البنود",
     hideDetails: "إخفاء البنود",
+    toggleFor: "إظهار أو إخفاء البنود الخاصة بـ",
     loadingDetails: "جارٍ تحميل التفاصيل...",
     noClauses: "لم يتم اكتشاف بنود خطرة.",
     weight: "الوزن",
+    severity: "الخطورة",
+    riskScore: "درجة الخطورة",
+    notAvailable: "غير متاحة",
+    tiers: { safe: "آمن", moderate: "متوسط", high: "عالٍ", unknown: "غير معروف" },
+    severities: { high: "عالية", medium: "متوسطة", low: "منخفضة" },
   },
 };
 
@@ -58,36 +74,66 @@ function getRiskTier(riskLevel) {
   return "moderate";
 }
 
-const TIER_COLORS = {
-  safe: { bg: "#eafcf1", text: "#4a8f68", ring: "#86d9a4" },
-  moderate: { bg: "#fdf6e3", text: "#a17f2d", ring: "#f2c96b" },
-  high: { bg: "#fdecec", text: "#c06a6a", ring: "#f19a9a" },
-  unknown: { bg: "#f1f5f9", text: "#64748b", ring: "#cbd5e1" },
+// Text colors are dark enough for 4.5:1 contrast on their backgrounds
+const TIER_COLORS_LIGHT = {
+  safe: { bg: "#eafcf1", text: "#2b6b49", ring: "#86d9a4" },
+  moderate: { bg: "#fdf6e3", text: "#7a5c12", ring: "#f2c96b" },
+  high: { bg: "#fdecec", text: "#a03636", ring: "#f19a9a" },
+  unknown: { bg: "#f1f5f9", text: "#475569", ring: "#cbd5e1" },
 };
 
-function RiskBadge({ score, tier }) {
-  const colors = TIER_COLORS[tier];
+const TIER_COLORS_DARK = {
+  safe: { bg: "rgba(134,217,164,0.12)", text: "#86d9a4", ring: "#86d9a4" },
+  moderate: { bg: "rgba(242,201,107,0.12)", text: "#f2c96b", ring: "#f2c96b" },
+  high: { bg: "rgba(241,154,154,0.12)", text: "#f19a9a", ring: "#f19a9a" },
+  unknown: { bg: "rgba(148,163,184,0.12)", text: "#cbd5e1", ring: "#64748b" },
+};
+
+// Symbols so risk is never shown by color alone
+const TIER_SYMBOL = { safe: "✓", moderate: "!", high: "▲", unknown: "?" };
+
+const srOnly = {
+  position: "absolute",
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: "hidden",
+  clip: "rect(0, 0, 0, 0)",
+  whiteSpace: "nowrap",
+  border: 0,
+};
+
+function RiskBadge({ score, tier, isDark, t }) {
+  const colors = (isDark ? TIER_COLORS_DARK : TIER_COLORS_LIGHT)[tier];
+  const scoreText = score ?? t.notAvailable;
   return (
     <div
+      role="img"
+      aria-label={`${t.riskScore}: ${scoreText}, ${t.tiers[tier]}`}
       style={{
         position: "absolute",
         top: 12,
         insetInlineEnd: 12,
-        minWidth: 42,
-        height: 42,
+        minWidth: 46,
+        height: 46,
         borderRadius: "50%",
         background: colors.bg,
         border: `2px solid ${colors.ring}`,
         color: colors.text,
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         fontWeight: 700,
         fontSize: 13,
+        lineHeight: 1.1,
       }}
-      title={`Risk score: ${score ?? "N/A"}`}
     >
-      {score ?? "–"}
+      <span aria-hidden="true" style={{ fontSize: 10 }}>
+        {TIER_SYMBOL[tier]}
+      </span>
+      <span aria-hidden="true">{score ?? "–"}</span>
     </div>
   );
 }
@@ -97,7 +143,14 @@ export default function SavedAnalysesPage() {
   const { theme, lang } = useTheme();
   const isDark = theme === "dark";
   const isAr = lang === "ar";
-  const t = content[lang];
+  const t = content[lang] || content.en;
+
+  const heading = isDark ? "#f1f5f9" : "#111827";
+  const body = isDark ? "#cbd5e1" : "#334155";
+  const muted = isDark ? "#94a3b8" : "#64748b"; // 4.5:1+ on card backgrounds
+  const border = isDark ? "#334155" : "#e2e8f0";
+  const surface = isDark ? "#1e293b" : "#ffffff";
+  const danger = isDark ? "#f19a9a" : "#a03636";
 
   const [query, setQuery] = useState("");
   const [items, setItems] = useState([]);
@@ -169,7 +222,13 @@ export default function SavedAnalysesPage() {
     return new Date(b.createdAt) - new Date(a.createdAt); // newest
   });
 
-  if (status === "loading") return <div style={{ padding: 20 }}>{t.loading}</div>;
+  if (status === "loading") {
+    return (
+      <div role="status" style={{ padding: 20 }}>
+        {t.loading}
+      </div>
+    );
+  }
 
   if (!session?.user) {
     return (
@@ -184,10 +243,14 @@ export default function SavedAnalysesPage() {
       dir={isAr ? "rtl" : "ltr"}
       style={{ maxWidth: 800, margin: "20px auto", padding: "0 16px" }}
     >
-      <h1 style={{ color: isDark ? "#f1f5f9" : "#111827" }}>{t.title}</h1>
+      <h1 style={{ color: heading }}>{t.title}</h1>
 
+      <label htmlFor="saved-search" style={srOnly}>
+        {t.searchLabel}
+      </label>
       <input
-        type="text"
+        id="saved-search"
+        type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={t.search}
@@ -195,27 +258,28 @@ export default function SavedAnalysesPage() {
           width: "100%",
           padding: "10px 14px",
           borderRadius: 10,
-          border: isDark ? "1px solid #334155" : "1px solid #e2e8f0",
-          background: isDark ? "#1e293b" : "#fff",
-          color: isDark ? "#f1f5f9" : "#111827",
+          border: `1px solid ${border}`,
+          background: surface,
+          color: heading,
           marginBottom: 12,
           fontSize: 14,
         }}
       />
 
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
-        <label style={{ fontSize: 13, color: isDark ? "#94a3b8" : "#64748b" }}>
+        <label htmlFor="saved-sort" style={{ fontSize: 13, color: muted }}>
           {t.sortLabel}
         </label>
         <select
+          id="saved-sort"
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
           style={{
             padding: "6px 10px",
             borderRadius: 8,
-            border: isDark ? "1px solid #334155" : "1px solid #e2e8f0",
-            background: isDark ? "#1e293b" : "#fff",
-            color: isDark ? "#f1f5f9" : "#111827",
+            border: `1px solid ${border}`,
+            background: surface,
+            color: heading,
             fontSize: 13,
           }}
         >
@@ -227,64 +291,81 @@ export default function SavedAnalysesPage() {
       </div>
 
       {loading ? (
-        <p>{t.loading}</p>
-      ) : sortedItems.length === 0 ? (
-        <p style={{ color: isDark ? "#94a3b8" : "#64748b" }}>
-          {query ? t.noResults : t.noAnalyses}
+        <p role="status" style={{ color: muted }}>
+          {t.loading}
         </p>
+      ) : sortedItems.length === 0 ? (
+        <p style={{ color: muted }}>{query ? t.noResults : t.noAnalyses}</p>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <ul style={{ display: "flex", flexDirection: "column", gap: 12, listStyle: "none", margin: 0, padding: 0 }}>
           {sortedItems.map((item) => {
             const tier = getRiskTier(item.riskLevel);
             const isExpanded = expandedId === item.id;
             const details = detailsCache[item.id];
+            const panelId = `clauses-${item.id}`;
 
             return (
-              <div
+              <li
                 key={item.id}
                 style={{
                   position: "relative",
-                  border: isDark ? "1px solid #334155" : "1px solid #e2e8f0",
+                  border: `1px solid ${border}`,
                   borderRadius: 12,
-                  padding: "16px 56px 16px 16px",
-                  background: isDark ? "#1e293b" : "#fff",
+                  padding: "16px 64px 16px 16px",
+                  background: surface,
                 }}
               >
-                <RiskBadge score={item.riskScore} tier={tier} />
+                <RiskBadge score={item.riskScore} tier={tier} isDark={isDark} t={t} />
 
-                <div
+                <button
+                  type="button"
                   onClick={() => handleToggleDetails(item.id)}
+                  aria-expanded={isExpanded}
+                  aria-controls={panelId}
+                  aria-label={`${t.toggleFor} ${item.title}`}
                   style={{
+                    display: "block",
+                    maxWidth: "100%",
+                    padding: 0,
+                    margin: 0,
+                    border: "none",
+                    background: "transparent",
+                    font: "inherit",
                     fontWeight: 700,
-                    color: isDark ? "#f1f5f9" : "#111827",
+                    color: heading,
                     cursor: "pointer",
                     textDecoration: "underline",
+                    textAlign: "start",
+                    overflowWrap: "anywhere",
                   }}
                 >
                   {item.title}
-                </div>
+                </button>
                 {item.query && (
-                  <div style={{ fontSize: 13, color: isDark ? "#94a3b8" : "#64748b", marginTop: 4 }}>
+                  <div style={{ fontSize: 13, color: muted, marginTop: 4, overflowWrap: "anywhere" }}>
                     {item.query}
                   </div>
                 )}
-                <div style={{ fontSize: 12, color: isDark ? "#64748b" : "#94a3b8", marginTop: 8 }}>
+                <div style={{ fontSize: 12, color: muted, marginTop: 8 }}>
                   {new Date(item.createdAt).toLocaleString(isAr ? "ar" : "en-US")}
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => handleDelete(item.id)}
                   disabled={deletingId === item.id}
+                  aria-label={`${t.deleteFor} ${item.title}`}
                   style={{
                     marginTop: 12,
                     padding: "6px 14px",
                     borderRadius: 8,
-                    border: "1px solid #c06a6a",
+                    border: `1px solid ${danger}`,
                     background: "transparent",
-                    color: "#c06a6a",
+                    color: danger,
                     fontSize: 12,
                     fontWeight: 600,
-                    cursor: "pointer",
+                    cursor: deletingId === item.id ? "default" : "pointer",
+                    opacity: deletingId === item.id ? 0.7 : 1,
                   }}
                 >
                   {deletingId === item.id ? t.deleting : t.delete}
@@ -292,14 +373,15 @@ export default function SavedAnalysesPage() {
 
                 {isExpanded && (
                   <div
+                    id={panelId}
                     style={{
                       marginTop: 14,
                       paddingTop: 14,
-                      borderTop: isDark ? "1px solid #334155" : "1px solid #e2e8f0",
+                      borderTop: `1px solid ${border}`,
                     }}
                   >
                     {detailsLoading === item.id ? (
-                      <p style={{ fontSize: 13, color: isDark ? "#94a3b8" : "#64748b" }}>
+                      <p role="status" style={{ fontSize: 13, color: muted, margin: 0 }}>
                         {t.loadingDetails}
                       </p>
                     ) : details?.clauses?.length ? (
@@ -311,27 +393,29 @@ export default function SavedAnalysesPage() {
                               marginBottom: 10,
                               fontSize: 13,
                               lineHeight: 1.5,
-                              color: isDark ? "#e2e8f0" : "#334155",
+                              color: body,
                             }}
                           >
                             <strong>{c.category}:</strong> {c.text}{" "}
-                            <span style={{ color: "#94a3b8", fontSize: 12 }}>
-                              ({t.weight}: {c.riskWeight})
-                            </span>
+                            {(c.severity || c.riskWeight != null) && (
+                              <span style={{ color: muted, fontSize: 12 }}>
+                                {c.severity
+                                  ? `(${t.severity}: ${t.severities[c.severity] || c.severity})`
+                                  : `(${t.weight}: ${c.riskWeight})`}
+                              </span>
+                            )}
                           </li>
                         ))}
                       </ul>
                     ) : (
-                      <p style={{ fontSize: 13, color: isDark ? "#94a3b8" : "#64748b" }}>
-                        {t.noClauses}
-                      </p>
+                      <p style={{ fontSize: 13, color: muted, margin: 0 }}>{t.noClauses}</p>
                     )}
                   </div>
                 )}
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
     </div>
   );
