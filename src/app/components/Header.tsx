@@ -13,6 +13,7 @@ import { useTheme } from "../providers";
 import BYANLogo from "./BYANLogo";
 import UserMenu from "./UserMenu";
 import TutorialModal from "./TutorialModal";
+import FontSizeControl from "./FontSizeControl"; // NEW
 
 /* ---------- Icons ---------- */
 
@@ -94,6 +95,7 @@ const content = {
     en: {
         home: "Home",
         howItWorks: "How It Works",
+        glossary: "Glossary", // NEW
         about: "About",
         toggleTheme: "Toggle theme",
         language: "Language",
@@ -106,6 +108,7 @@ const content = {
     ar: {
         home: "الرئيسية",
         howItWorks: "كيف يعمل",
+        glossary: "المصطلحات", // NEW
         about: "من نحن",
         toggleTheme: "تبديل المظهر",
         language: "اللغة",
@@ -122,6 +125,7 @@ const content = {
 const navItems = [
     { href: "/", key: "home" },
     { href: "/how-it-works", key: "howItWorks" },
+    { href: "/glossary", key: "glossary" }, // NEW
     { href: "/about", key: "about" },
 ] as const;
 
@@ -349,6 +353,13 @@ export default function Header() {
         </button>
     );
 
+    /* NEW: text-size controls, colored to match the header */
+    const fontControl = (
+        <div style={{ color: c.link }}>
+            <FontSizeControl />
+        </div>
+    );
+
     /* Help button (reopens the tutorial), with a visible text label */
     const helpButton = (
         <button
@@ -471,6 +482,7 @@ export default function Header() {
                     {!isMobile && (
                         <>
                             {langToggle}
+                            {fontControl}
                             {themeToggle}
                             {helpButton}
                         </>
@@ -541,6 +553,7 @@ export default function Header() {
                         }}
                     >
                         {langToggle}
+                        {fontControl}
                         {themeToggle}
                         {helpButton}
                     </div>

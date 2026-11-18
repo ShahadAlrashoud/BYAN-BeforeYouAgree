@@ -14,6 +14,7 @@ const content = {
         analyze: "Analyze",
         compare: "Compare",
         howItWorks: "How It Works",
+        glossary: "Glossary", // NEW
         report: "Report an incorrect result",
         about: "About",
         contact: "Contact",
@@ -33,6 +34,7 @@ const content = {
         analyze: "تحليل",
         compare: "مقارنة",
         howItWorks: "كيف يعمل",
+        glossary: "المصطلحات", // NEW
         report: "الإبلاغ عن نتيجة غير صحيحة",
         about: "من نحن",
         contact: "تواصل معنا",
@@ -55,6 +57,7 @@ const sections: { title: FooterKey; links: { key: FooterKey; href: string }[] }[
             { key: "analyze", href: "/" },
             { key: "compare", href: "/compare" },
             { key: "howItWorks", href: "/how-it-works" },
+            { key: "glossary", href: "/glossary" }, // NEW
             { key: "report", href: "/contact?topic=incorrect-result" },
         ],
     },

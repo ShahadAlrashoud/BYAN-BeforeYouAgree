@@ -52,7 +52,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${body.variable} ${display.variable}`}>
+    // NEW: suppressHydrationWarning, because the script below changes the html style before React loads
+    <html
+      lang="en"
+      className={`${body.variable} ${display.variable}`}
+      suppressHydrationWarning
+    >
+      {/* NEW: applies the saved text size before first paint (no flash) */}
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var s=localStorage.getItem("byan-font-size");if(s)document.documentElement.style.fontSize=s+"%"}catch(e){}`,
+          }}
+        />
+      </head>
       <body>
         <Providers>
           <Header />
