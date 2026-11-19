@@ -142,7 +142,7 @@ const content: Record<"en" | "ar", Content> = {
 
         legendTitle: "Know the risk at a glance",
         legendText: "Every policy is summarized in a single risk score from 0 to 100, classified into one of three levels.",
-        legend: ["Safe", "Medium Risk", "High Risk"],
+        legend: ["Safe", "Moderate Risk", "High Risk"],
 
         disclaimerTitle: "Disclaimer",
         disclaimerText:

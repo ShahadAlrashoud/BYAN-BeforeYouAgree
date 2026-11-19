@@ -42,7 +42,7 @@ const translations = {
     noClauses: "No clause details were returned.",
     risk: "Risk",
     low: "Low risk",
-    medium: "Medium risk",
+    medium: "Moderate Risk",
     high: "High risk",
     enterBoth: "Please enter both website URLs.",
     invalid1: "Please enter a valid URL for the first website.",

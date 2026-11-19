@@ -27,7 +27,7 @@ const STEPS = [
     },
     {
         target: "legend",
-        en: { title: "Read the risk levels", body: "Every policy lands in one of three levels: Safe, Medium Risk or High Risk." },
+        en: { title: "Read the risk levels", body: "Every policy lands in one of three levels: Safe, Moderate Risk or High Risk." },
         ar: { title: "افهم مستويات الخطر", body: "تُصنَّف كل سياسة ضمن ثلاثة مستويات: آمن أو خطر متوسط أو خطر مرتفع." },
     },
 ];
