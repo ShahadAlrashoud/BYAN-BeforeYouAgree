@@ -102,7 +102,7 @@ const content: Record<"en" | "ar", Content> = {
     en: {
         heroTitlePrefix: "Before you ",
         heroTitleAccent: "agree",
-        heroSubtitle: "Paste a website link. Get a 0–100 risk score and the clauses that matter, in plain language.",
+        heroSubtitle: "Paste a website link. Get a 0–100 risk score and the clauses that matter, in plain language. Analysis is based on Saudi Arabia's Personal Data Protection Law (PDPL).",
         placeholder: "Try: example.com",
         button: "Analyze Website →",
         errorMsg: "Please enter a URL.",
@@ -155,7 +155,7 @@ const content: Record<"en" | "ar", Content> = {
     ar: {
         heroTitlePrefix: "قبل أن ",
         heroTitleAccent: "توافق",
-        heroSubtitle: "الصق رابط موقع، واحصل على درجة مخاطر من 0 إلى 100 وأهم البنود بلغة بسيطة.",
+        heroSubtitle: "الصق رابط موقع، واحصل على درجة مخاطر من 0 إلى 100 وأهم البنود بلغة بسيطة، ويستند التحليل إلى نظام حماية البيانات الشخصية السعودي (PDPL).",
         placeholder: "جرّب: example.com",
         button: "← تحليل الموقع",
         errorMsg: "الرجاء إدخال رابط.",
