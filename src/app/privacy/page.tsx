@@ -10,10 +10,10 @@ const content = {
             {
                 title: "Information we collect",
                 body: [
-                    `Account information: when you sign in, we receive basic profile details such as your name, email address and profile picture from your sign-in provider [confirm provider and fields].`,
+                    `Account information: when you sign in, we receive basic profile details such as your name, email address and profile picture from your sign-in provider Google.`,
                     `Content you submit: the website URLs you enter for analysis.`,
-                    `Analysis data: the policy text retrieved from those websites and the results we generate, such as summaries and Risk Scores [confirm whether results are stored].`,
-                    `Technical data: basic information such as browser type, device and language preference, used to keep the service working [confirm any analytics tools].`
+                    `Analysis data: the policy text retrieved from those websites and the results we generate, such as summaries and Risk Scores. We store the analysis results (summaries and Risk Scores) linked to your account so you can view them again.`,
+                    `Technical data: basic information such as browser type, device and language preference, used to keep the service working. We do not use any third-party analytics tools.`
                 ]
             },
             {
@@ -34,14 +34,14 @@ const content = {
             {
                 title: "Sharing and third parties",
                 body: [
-                    `We may use service providers for hosting, authentication and language analysis [list providers, e.g. hosting, sign-in, AI/NLP services]. They only process data on our behalf and for these purposes.`,
+                    `We may use service providers for hosting, authentication and language analysis (Vercel for hosting, Google for sign-in and Groq for AI language analysis). They only process data on our behalf and for these purposes.`,
                     `We may disclose information when required by law or by a competent authority.`
                 ]
             },
             {
                 title: "Data retention",
                 body: [
-                    `We keep personal data only as long as needed for the purposes above or as required by law [state retention period]. You can ask us to delete your data at any time.`
+                    `We keep personal data only as long as needed for the purposes above or as required by law (We keep your account data until you delete your account, and stored results are kept until you delete them). You can ask us to delete your data at any time.`
                 ]
             },
             {
@@ -67,7 +67,7 @@ const content = {
             },
             {
                 title: "Contact us",
-                body: [`For privacy questions or requests, email [contact email].`]
+                body: [`For privacy questions or requests, email contact@byan.website.`]
             }
         ]
     },
@@ -80,10 +80,10 @@ const content = {
             {
                 title: "المعلومات التي نجمعها",
                 body: [
-                    `معلومات الحساب: عند تسجيل الدخول، نستلم بيانات أساسية من مزوّد تسجيل الدخول مثل الاسم والبريد الإلكتروني وصورة الملف الشخصي [أكد المزوّد والبيانات].`,
+                    `معلومات الحساب: عند تسجيل الدخول، نستلم بيانات أساسية من مزوّد تسجيل الدخول مثل الاسم والبريد الإلكتروني وصورة الملف الشخصي عبر Google.`,
                     `المحتوى الذي تقدمه: روابط المواقع التي تدخلها للتحليل.`,
-                    `بيانات التحليل: نص السياسات المستخرج من تلك المواقع والنتائج التي ننتجها مثل الملخصات ودرجات المخاطر [أكد هل يتم حفظ النتائج].`,
-                    `البيانات التقنية: معلومات أساسية مثل نوع المتصفح والجهاز وتفضيل اللغة، لضمان عمل الخدمة [أكد أي أدوات تحليلات مستخدمة].`
+                    `بيانات التحليل: نص السياسات المستخرج من تلك المواقع والنتائج التي ننتجها مثل الملخصات ودرجات المخاطر ونحفظ النتائج في حسابك حتى تتمكن من الرجوع إليها .`,
+                    `البيانات التقنية: معلومات أساسية مثل نوع المتصفح والجهاز وتفضيل اللغة، لضمان عمل الخدمة ولا نستخدم أي أدوات تحليلات من أطراف ثالثة.`
                 ]
             },
             {
@@ -102,13 +102,13 @@ const content = {
             {
                 title: "المشاركة والأطراف الثالثة",
                 body: [
-                    `قد نستعين بمزوّدي خدمات للاستضافة والمصادقة وتحليل اللغة [اذكر المزوّدين، مثل الاستضافة وتسجيل الدخول وخدمات الذكاء الاصطناعي]. ويعالجون البيانات نيابةً عنا ولهذه الأغراض فقط.`,
+                    `قد نستعين بمزوّدي خدمات للاستضافة والمصادقة وتحليل اللغة مثل Vercel للاستضافة وGoogle لتسجيل الدخول وGroqلتحليل اللغة بالذكاء الاصطناعي. ويعالجون البيانات نيابةً عنا ولهذه الأغراض فقط.`,
                     `قد نفصح عن المعلومات عندما يقتضي النظام ذلك أو تطلبه جهة مختصة.`
                 ]
             },
             {
                 title: "الاحتفاظ بالبيانات",
-                body: [`نحتفظ بالبيانات الشخصية للمدة اللازمة للأغراض المذكورة أو وفق ما يقتضيه النظام [حدد مدة الاحتفاظ]. ويمكنك طلب حذف بياناتك في أي وقت.`]
+                body: [`نحتفظ بالبيانات الشخصية للمدة اللازمة للأغراض المذكورة أو وفق ما يقتضيه النظام ونحتفظ ببيانات حسابك حتى تحذف حسابك وبالنتائج المحفوظة حتى تحذفها. ويمكنك طلب حذف بياناتك في أي وقت.`]
             },
             {
                 title: "أمن البيانات",
@@ -131,7 +131,7 @@ const content = {
             },
             {
                 title: "تواصل معنا",
-                body: [`للاستفسارات أو الطلبات المتعلقة بالخصوصية، راسلنا على [البريد الإلكتروني].`]
+                body: [`للاستفسارات أو الطلبات المتعلقة بالخصوصية، راسلنا على contact@byan.website.`]
             }
         ]
     }
