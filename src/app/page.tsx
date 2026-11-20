@@ -121,8 +121,8 @@ const content: Record<"en" | "ar", Content> = {
         sampleLevel: "High Risk",
         sampleClauses: [
             { level: "High", title: "Mandatory arbitration", text: "Disputes go to private arbitration instead of court." },
-            { level: "Medium", title: "Data shared with partners", text: "Your data may be passed to third-party advertisers." },
-            { level: "Medium", title: "Automatic renewal", text: "The plan renews each period unless you cancel." },
+            { level: "Moderate", title: "Data shared with partners", text: "Your data may be passed to third-party advertisers." },
+            { level: "Moderate", title: "Automatic renewal", text: "The plan renews each period unless you cancel." },
         ],
 
         howTitle: "How It Works",
