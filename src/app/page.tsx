@@ -141,7 +141,7 @@ const content: Record<"en" | "ar", Content> = {
         ],
 
         legendTitle: "Know the risk at a glance",
-        legendText: "Every policy is summarized in a single risk score from 0 to 100, classified into one of three levels.",
+        legendText: "Every policy is summarized in a single risk score from 0 to 100, classified into one of three levels: 0–29 Safe, 30–59 Moderate Risk, 60–100 High Risk. A higher score means higher risk.",
         legend: ["Safe", "Moderate Risk", "High Risk"],
 
         disclaimerTitle: "Disclaimer",
@@ -195,7 +195,7 @@ const content: Record<"en" | "ar", Content> = {
 
         legendTitle: "اعرف مستوى الخطر بنظرة واحدة",
         legendText:
-            "يتم تلخيص كل سياسة في درجة مخاطر واحدة من 0 إلى 100، وتُصنَّف ضمن واحد من ثلاثة مستويات.",
+            "يتم تلخيص كل سياسة في درجة مخاطر واحدة من 0 إلى 100، وتُصنَّف ضمن واحد من ثلاثة مستويات: من 0 إلى 29 آمن، ومن 30 إلى 59 خطر متوسط، ومن 60 إلى 100 خطر مرتفع، وكلما زادت الدرجة زاد الخطر.",
         legend: ["آمن", "خطر متوسط", "خطر مرتفع"],
 
         disclaimerTitle: "تنبيه",
