@@ -1380,7 +1380,7 @@ function ResultsContent() {
                                             ? "كل نتيجة مرتبطة بنص حرفي من السياسة. فقط النتائج المؤكدة بدليل نصي تُحتسب في درجة المخاطر."
                                             : "Each finding is linked to a word-for-word quote from the policy. Only findings verified against the text count toward the risk score."}
                                     </p>
-
+{(result.resolvedUrl || result.url) && (<p style={{ margin: "0 0 16px", color: p.body }}>{isArabic ? "المصدر الذي تم تحليله: " : "Analyzed source: "}<a href={result.resolvedUrl || result.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline", wordBreak: "break-all" }}>{result.resolvedUrl || result.url}</a></p>)}
                                     {result.analysisSource === "keyword" && (
                                         <p
                                             style={{
