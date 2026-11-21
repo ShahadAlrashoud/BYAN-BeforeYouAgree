@@ -29,14 +29,14 @@ const content = {
         ],
         readTitle: "Reading your results",
         scoreTitle: "The Risk Score",
-        scoreText: "Every policy receives a single score from 0 to 100 and is placed in one of three categories:",
+        scoreText: "Every policy receives a single score from 0 to 100 and is placed in one of three categories. Scores of 0-29 are Safe, 30-59 Moderate Risk, and 60-100 High Risk. A higher score means higher risk, and a Safe result is not a legal guarantee.",
         tiers: ["Safe", "Moderate Risk", "High Risk"],
         clauseTitle: "Clause weights",
         clauseText: "Each detected clause is given a weight showing how much it contributes to the overall risk:",
         weights: [
-            { label: "High impact", range: "15+" },
-            { label: "Moderate impact", range: "8–14" },
-            { label: "Low impact", range: "0–7" }
+            { label: "High impact", range: "20" },
+            { label: "Moderate impact", range: "10" },
+            { label: "Low impact", range: "4" }
         ],
         moreTitle: "More you can do",
         more: [
@@ -74,14 +74,14 @@ const content = {
         ],
         readTitle: "قراءة النتائج",
         scoreTitle: "درجة المخاطر",
-        scoreText: "تحصل كل سياسة على درجة واحدة من 0 إلى 100، وتُصنَّف ضمن إحدى ثلاث فئات:",
+        scoreText: "تحصل كل سياسة على درجة واحدة من 0 إلى 100، وتُصنَّف ضمن إحدى ثلاث فئات، من 0 إلى 29 آمن، ومن 30 إلى 59 متوسط الخطورة، ومن 60 إلى 100 عالي الخطورة، وكلما زادت الدرجة زاد الخطر، ونتيجة آمن لا تعني ضماناً قانونياً.",
         tiers: ["آمن", "متوسط الخطورة", "عالي الخطورة"],
         clauseTitle: "أوزان البنود",
         clauseText: "يُمنح كل بند مكتشف وزنًا يوضح مدى مساهمته في مستوى الخطورة العام:",
         weights: [
-            { label: "تأثير مرتفع", range: "15+" },
-            { label: "تأثير متوسط", range: "8–14" },
-            { label: "تأثير منخفض", range: "0–7" }
+            { label: "تأثير مرتفع", range: "20" },
+            { label: "تأثير متوسط", range: "10" },
+            { label: "تأثير منخفض", range: "4" }
         ],
         moreTitle: "ميزات إضافية",
         more: [
