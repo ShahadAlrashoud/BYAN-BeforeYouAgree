@@ -3,8 +3,8 @@ export function scoreRisk(clauses) {
     const riskScore = Math.max(0, Math.min(100, total));
 
     let riskLevel = "Safe";
-    if (riskScore >= 67) riskLevel = "High Risk";
-    else if (riskScore >= 34) riskLevel = "Moderate Risk";
+    if (riskScore >= 60) riskLevel = "High Risk";
+    else if (riskScore >= 30) riskLevel = "Moderate Risk";
 
     const summaryEn =
         riskLevel === "Safe"
