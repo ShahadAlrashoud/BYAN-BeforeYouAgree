@@ -115,7 +115,7 @@ const content: Record<"en" | "ar", Content> = {
         tourLink: "Take a quick tour",
 
         sampleLabel: "Sample",
-        sampleNote: "Illustrative example, not a real service.",
+        sampleNote: "Illustrative example, not a real service. A Safe result is not a legal guarantee.",
         sampleTitle: "Sample report",
         sampleScoreLabel: "Risk score",
         sampleLevel: "High Risk",
@@ -168,7 +168,7 @@ const content: Record<"en" | "ar", Content> = {
         tourLink: "خذ جولة سريعة",
 
         sampleLabel: "نموذج",
-        sampleNote: "مثال توضيحي وليس خدمة حقيقية.",
+        sampleNote: "مثال توضيحي وليس خدمة حقيقية، ونتيجة آمن لا تعني ضماناً قانونياً.",
         sampleTitle: "تقرير نموذجي",
         sampleScoreLabel: "درجة المخاطر",
         sampleLevel: "خطر مرتفع",
