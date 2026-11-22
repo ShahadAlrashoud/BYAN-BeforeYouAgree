@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/LocalizedLink";
 import { useTheme } from "../providers";
 
 export type LegalContent = {

@@ -41,13 +41,13 @@ export default function FontSizeControl() {
 
   return (
     <div role="group" aria-label={t.group} style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
-      <button type="button" style={btn} onClick={() => apply(idx - 1)} disabled={idx === 0} aria-label={t.smaller}>
+      <button type="button" className="byan-fontsize-btn" style={btn} onClick={() => apply(idx - 1)} disabled={idx === 0} aria-label={t.smaller}>
         <span aria-hidden="true">A−</span>
       </button>
-      <button type="button" style={btn} onClick={() => apply(0)} disabled={idx === 0} aria-label={t.reset}>
+      <button type="button" className="byan-fontsize-btn" style={btn} onClick={() => apply(0)} disabled={idx === 0} aria-label={t.reset}>
         <span aria-hidden="true">A</span>
       </button>
-      <button type="button" style={btn} onClick={() => apply(idx + 1)} disabled={idx === STEPS.length - 1} aria-label={t.larger}>
+      <button type="button" className="byan-fontsize-btn" style={btn} onClick={() => apply(idx + 1)} disabled={idx === STEPS.length - 1} aria-label={t.larger}>
         <span aria-hidden="true">A+</span>
       </button>
       <span role="status" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>

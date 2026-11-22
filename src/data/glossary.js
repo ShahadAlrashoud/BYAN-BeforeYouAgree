@@ -1,4 +1,11 @@
 // "pdpl: true" terms get a PDPL badge. Have a legal reviewer confirm the pdplNote wording.
+//
+// "arPending: true" means the Arabic text has NOT been approved by a native speaker yet.
+// Such entries keep ar: { term: "", def: "" } here on purpose: this file is bundled into the
+// browser, so unreviewed Arabic must not live in it. The Arabic view shows the English text
+// with an "[AR review pending]" tag instead (see localized() below). The Arabic drafts are in
+// docs/glossary-ar-pending.md. When approved: paste the Arabic into ar, delete arPending,
+// and add the Arabic phrases to match.ar.
 export const GLOSSARY = [
     {
         id: "arbitration",
@@ -81,7 +88,7 @@ export const GLOSSARY = [
     {
         id: "third-party-sharing",
         related: ["personal-data", "opt-out"],
-        match: { en: ["third parties", "third-party", "data brokers"], ar: ["أطراف ثالثة", "طرف ثالث"] },
+        match: { en: ["third parties", "third-party"], ar: ["أطراف ثالثة", "طرف ثالث"] },
         en: { term: "Third-party sharing", def: "When a company gives or sells your data to other companies, such as advertisers or partners.", example: "“We may share your data with third parties for advertising purposes.”" },
         ar: { term: "المشاركة مع أطراف ثالثة", def: "عندما تمنح الشركة بياناتك أو تبيعها لشركات أخرى، مثل المعلنين أو الشركاء.", example: "«قد نشارك بياناتك مع أطراف ثالثة لأغراض إعلانية.»" },
     },
@@ -145,6 +152,40 @@ export const GLOSSARY = [
         en: { term: "Opt-out", def: "Your ability to say no to something that is on by default, such as marketing or data sharing.", example: "“You may opt out of marketing emails at any time.”" },
         ar: { term: "الانسحاب (Opt-out)", def: "قدرتك على رفض أمر مفعّل افتراضياً، مثل الرسائل التسويقية أو مشاركة البيانات.", example: "«يمكنك الانسحاب من الرسائل التسويقية في أي وقت.»" },
     },
+    {
+        id: "data-broker",
+        arPending: true,
+        related: ["third-party-sharing", "personal-data"],
+        match: { en: ["data broker", "data brokers"], ar: [] },
+        en: { term: "Data broker", def: "A company that collects personal information from many sources and sells it to other companies." },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "telemetry",
+        arPending: true,
+        related: ["personal-data", "cookies"],
+        match: { en: ["telemetry"], ar: [] },
+        en: { term: "Telemetry", def: "Automatic data a service collects about how you use its software or device." },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "negative-option",
+        arPending: true,
+        related: ["automatic-renewal", "opt-out"],
+        match: { en: ["negative option"], ar: [] },
+        en: { term: "Negative option", def: "A clause that treats your silence or continued use as agreement, such as an automatic renewal." },
+        ar: { term: "", def: "" },
+    },
 ];
 
 export const bySlug = (id) => GLOSSARY.find((x) => x.id === id);
+
+// The text to SHOW for an entry in language l.
+// Entries whose Arabic is still awaiting review fall back to the English text in the Arabic
+// view and are flagged (pending: true) so the UI can add the "[AR review pending]" tag.
+export const AR_PENDING_TAG = "[AR review pending]";
+
+export const localized = (x, l) => {
+    if (l === "ar" && x.arPending) return { ...x.en, pending: true, lang: "en" };
+    return { ...x[l], pending: false, lang: l };
+};

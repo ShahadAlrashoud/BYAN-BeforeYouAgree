@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { getUserByEmail } from "@/database/db";
+import { getUserByEmail, getUserById } from "@/database/db";
 
 
 export const authOptions = {
@@ -43,6 +43,21 @@ export const authOptions = {
                 token.id = user.id;
                 token.username = user.username;
                 token.email = user.email;
+                return token;
+            }
+
+            // Sessions are stateless JWTs, so a deleted account would otherwise stay
+            // signed in on other devices until the token expires. Re-check the user
+            // exists: if not, throwing makes NextAuth clear the cookie and return no session.
+            if (token?.id) {
+                let exists = true;
+                try {
+                    exists = Boolean(await getUserById(token.id));
+                } catch (err) {
+                    // Database hiccup: keep the session rather than signing everyone out
+                    console.error("SESSION USER CHECK ERROR:", err);
+                }
+                if (!exists) throw new Error("ACCOUNT_DELETED");
             }
             return token;
         },

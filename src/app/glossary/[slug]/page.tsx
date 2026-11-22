@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import TermClient from "./TermClient";
-import { GLOSSARY, bySlug } from "@/data/glossary";
+import JsonLd from "../../components/JsonLd";
+import { GLOSSARY, bySlug, localized } from "@/data/glossary";
+import { buildMetadata, getRequestLang } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site";
 
 export function generateStaticParams() {
   return GLOSSARY.map((x) => ({ slug: x.id }));
@@ -11,31 +14,50 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const term = bySlug(slug);
   if (!term) return {};
-  const title = `${term.en.term} (${term.ar.term})`;
-  return {
+  const lang = await getRequestLang();
+
+  // Unreviewed Arabic is never published: a pending entry shows its English text in the
+  // Arabic view, so the Arabic URL of that entry is kept out of the index (noindex) and its
+  // canonical points at the English page. English <-> Arabic hreflang is only added for
+  // entries whose Arabic has been approved.
+  const arabicReady = !term.arPending;
+  const view = localized(term, lang);
+  const title = lang === "ar" && arabicReady ? `${term.ar.term} | بيان` : `${term.en.term} | BYAN`;
+
+  return buildMetadata({
     title,
-    description: term.en.def,
-    alternates: { canonical: `/glossary/${slug}` },
-    openGraph: { title: `${title} | BYAN`, description: term.en.def, url: `/glossary/${slug}` },
-  };
+    description: view.def,
+    path: `/glossary/${slug}`,
+    lang,
+    hasArabic: arabicReady,
+    noindex: lang === "ar" && !arabicReady,
+  });
 }
 
 export default async function TermPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const term = bySlug(slug);
   if (!term) notFound();
+  const lang = await getRequestLang();
+  const view = localized(term, lang);
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "DefinedTerm",
-    name: term.en.term,
-    description: term.en.def,
-    inDefinedTermSet: "https://www.byan.website/glossary",
+    name: view.term,
+    description: view.def,
+    inLanguage: view.lang,
+    url: lang === "ar" ? `${SITE_URL}/ar/glossary/${slug}` : `${SITE_URL}/glossary/${slug}`,
+    inDefinedTermSet: {
+      "@type": "DefinedTermSet",
+      name: lang === "ar" ? "مصطلحات بيان" : "BYAN Glossary",
+      url: lang === "ar" ? `${SITE_URL}/ar/glossary` : `${SITE_URL}/glossary`,
+    },
   };
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <JsonLd data={jsonLd} />
       <TermClient id={slug} />
     </>
   );

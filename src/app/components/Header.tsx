@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
-import Link from "next/link";
+import Link from "@/app/components/LocalizedLink";
 import { usePathname } from "next/navigation";
 import { useTheme } from "../providers";
 import BYANLogo from "./BYANLogo";
 import UserMenu from "./UserMenu";
-import FontSizeControl from "./FontSizeControl"; // NEW
+import { stripArPrefix } from "@/lib/lang";
 
 /* ---------- Icons ---------- */
 
@@ -197,10 +197,12 @@ export default function Header() {
     }, [menuOpen]);
 
     /* Active navigation item */
+    // Ignore the /ar prefix so the active item is right on Arabic URLs too
+    const currentPath = stripArPrefix(pathname || "/");
     const isActive = (href: string) =>
         href === "/"
-            ? pathname === "/"
-            : pathname === href || pathname?.startsWith(href + "/");
+            ? currentPath === "/"
+            : currentPath === href || currentPath.startsWith(href + "/");
 
     /* Desktop navigation link */
     const navLinkStyle = (href: string): CSSProperties => ({
@@ -302,13 +304,6 @@ export default function Header() {
         </button>
     );
 
-    /* NEW: text-size controls, colored to match the header */
-    const fontControl = (
-        <div style={{ color: c.link }}>
-            <FontSizeControl />
-        </div>
-    );
-
     /* Mobile menu toggle (shown on the start side of the bar) */
     const menuToggle = (
         <button
@@ -367,7 +362,6 @@ export default function Header() {
                     ) : (
                         <>
                             {langToggle}
-                            {fontControl}
                             {themeToggle}
                         </>
                     )}
@@ -470,7 +464,6 @@ export default function Header() {
                         }}
                     >
                         {langToggle}
-                        {fontControl}
                         {themeToggle}
                     </div>
                 </div>

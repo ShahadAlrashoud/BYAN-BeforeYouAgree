@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
+import Link from "@/app/components/LocalizedLink";
 import { useTheme } from "../providers";
-import { GLOSSARY } from "@/data/glossary";
+import { GLOSSARY, AR_PENDING_TAG, localized } from "@/data/glossary";
 
 const ui = {
   en: { title: "Glossary", intro: "Common terms you'll meet in Terms of Service and Privacy Policies, explained in plain language.", search: "Search terms...", searchLabel: "Search the glossary", count: (n) => `${n} term${n === 1 ? "" : "s"} shown`, none: "No matching terms.", pdpl: "PDPL", more: "Read more" },
@@ -23,7 +23,7 @@ export default function GlossaryClient() {
       // search both languages so either spelling finds the term
       return [x.en.term, x.en.def, x.ar.term, x.ar.def].some((s) => s.toLowerCase().includes(needle));
     })
-      .map((x) => ({ id: x.id, pdpl: x.pdpl, ...x[l] }))
+      .map((x) => ({ id: x.id, pdpl: x.pdpl, ...localized(x, l) }))
       .sort((a, b) => a.term.localeCompare(b.term, l));
   }, [q, l]);
 
@@ -43,14 +43,19 @@ export default function GlossaryClient() {
         {items.map((x) => (
           <div key={x.id} style={{ padding: ".9rem 0", borderTop: "1px solid rgba(128,128,128,.4)" }}>
             <dt style={{ fontWeight: 700 }}>
-              <Link href={`/glossary/${x.id}`} style={{ color: "inherit" }}>{x.term}</Link>
+              <Link href={`/glossary/${x.id}`} lang={x.lang} dir={x.lang === "ar" ? "rtl" : "ltr"} style={{ color: "inherit" }}>{x.term}</Link>
+              {x.pending && (
+                <span style={{ marginInlineStart: 8, padding: "1px 8px", border: "1px dashed currentColor", borderRadius: 999, fontSize: "0.75rem", fontWeight: 600 }}>
+                  {AR_PENDING_TAG}
+                </span>
+              )}
               {x.pdpl && (
                 <span style={{ marginInlineStart: 8, padding: "1px 8px", border: "1px solid currentColor", borderRadius: 999, fontSize: "0.75rem" }}>
                   <span aria-hidden="true"> </span>{t.pdpl}
                 </span>
               )}
             </dt>
-            <dd style={{ margin: ".25rem 0 0" }}>{x.def}</dd>
+            <dd lang={x.lang} dir={x.lang === "ar" ? "rtl" : "ltr"} style={{ margin: ".25rem 0 0" }}>{x.def}</dd>
           </div>
         ))}
       </dl>

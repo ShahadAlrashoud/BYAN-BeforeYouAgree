@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/LocalizedLink";
 import { useTheme } from "../../providers";
-import { bySlug } from "@/data/glossary";
+import { bySlug, AR_PENDING_TAG, localized } from "@/data/glossary";
 
 const ui = {
   en: { back: "← All terms", example: "Example from a policy", seeAlso: "See also", pdpl: "PDPL", other: "In Arabic", note: "Informational only, not legal advice." },
@@ -16,12 +16,21 @@ export default function TermClient({ id }) {
   const t = ui[l];
   const term = bySlug(id);
   if (!term) return null;
-  const c = term[l];
+  const c = localized(term, l);
+  const cDir = c.lang === "ar" ? "rtl" : "ltr";
+  const tag = (
+    <span style={{ marginInlineStart: 8, padding: "1px 8px", border: "1px dashed currentColor", borderRadius: 999, fontSize: "0.8rem", fontWeight: 600 }}>
+      {AR_PENDING_TAG}
+    </span>
+  );
 
   return (
     <article dir={l === "ar" ? "rtl" : "ltr"} style={{ maxWidth: 760, margin: "0 auto", padding: "2rem 1rem" }}>
       <p><Link href="/glossary">{t.back}</Link></p>
-      <h1>{c.term}</h1>
+      <h1 lang={c.lang} dir={cDir}>
+        {c.term}
+        {c.pending && tag}
+      </h1>
 
       {term.pdpl && (
         <p style={{ display: "inline-block", padding: "2px 10px", border: "1px solid currentColor", borderRadius: 999, fontSize: "0.85rem" }}>
@@ -29,7 +38,7 @@ export default function TermClient({ id }) {
         </p>
       )}
 
-      <p style={{ fontSize: "1.1rem", lineHeight: 1.8 }}>{c.def}</p>
+      <p lang={c.lang} dir={cDir} style={{ fontSize: "1.1rem", lineHeight: 1.8 }}>{c.def}</p>
       {term.pdplNote && <p>{term.pdplNote[l]}</p>}
 
       {c.example && (
@@ -41,9 +50,14 @@ export default function TermClient({ id }) {
 
       {/* both languages visible together */}
       <h2 style={{ fontSize: "1.1rem" }}>{t.other}</h2>
-      <p lang={o} dir={o === "ar" ? "rtl" : "ltr"}>
-        <strong>{term[o].term}</strong>: {term[o].def}
-      </p>
+      {term.arPending && o === "ar" ? (
+        // The Arabic is unreviewed, so it is not shown here
+        <p>{AR_PENDING_TAG}</p>
+      ) : (
+        <p lang={o} dir={o === "ar" ? "rtl" : "ltr"}>
+          <strong>{term[o].term}</strong>: {term[o].def}
+        </p>
+      )}
 
       {term.related?.length > 0 && (
         <>
@@ -52,7 +66,7 @@ export default function TermClient({ id }) {
             {term.related.map((rid) => {
               const r = bySlug(rid);
               return r && (
-                <li key={rid}><Link href={`/glossary/${rid}`}>{r[l].term}</Link></li>
+                <li key={rid}><Link href={`/glossary/${rid}`}>{localized(r, l).term}</Link></li>
               );
             })}
           </ul>

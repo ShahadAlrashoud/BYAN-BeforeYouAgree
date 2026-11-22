@@ -1,4 +1,5 @@
 import LegalLayout from "../components/LegalLayout";
+import { pageMetadata } from "@/lib/seo";
 
 const content = {
     en: {
@@ -150,6 +151,10 @@ const content = {
         ]
     }
 };
+
+export async function generateMetadata() {
+    return pageMetadata("terms");
+}
 
 export default function TermsPage() {
     return <LegalLayout content={content} />;

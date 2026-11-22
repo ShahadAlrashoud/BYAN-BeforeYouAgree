@@ -1,9 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/LocalizedLink";
 import { usePathname } from "next/navigation";
 import { useTheme } from "../providers";
 import BYANLogo from "./BYANLogo";
+import FontSizeControl from "./FontSizeControl";
+import { stripArPrefix } from "@/lib/lang";
 
 const content = {
     en: {
@@ -116,7 +118,7 @@ export default function Footer() {
 
     // Already on the homepage: scroll to top and focus the input (if it has id="analyze-input")
     function handleLinkClick(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
-        if (href === "/" && pathname === "/") {
+        if (href === "/" && stripArPrefix(pathname || "/") === "/") {
             e.preventDefault();
             window.scrollTo({ top: 0, behavior: "smooth" });
             setTimeout(() => document.getElementById("analyze-input")?.focus(), 400);
@@ -192,6 +194,11 @@ export default function Footer() {
                                 </button>
                             );
                         })}
+                    </div>
+
+                    {/* Text size control (A−, A, A+), moved here from the header */}
+                    <div style={{ marginTop: 14, color: muted }}>
+                        <FontSizeControl />
                     </div>
                 </div>
 

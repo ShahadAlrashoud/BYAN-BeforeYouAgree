@@ -1,7 +1,9 @@
 "use client";
 
 import { SessionProvider } from "next-auth/react";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { hasArPrefix, isLocalizable, toArabicPath, toEnglishPath } from "@/lib/lang";
 
 type Theme = "light" | "dark";
 type Lang = "en" | "ar";
@@ -50,19 +52,60 @@ const ThemeContext = createContext<{
 
 export const useTheme = () => useContext(ThemeContext);
 
-export default function Providers({ children }: { children: ReactNode }) {
+// initialLang comes from the server (the /ar URL prefix), so the first HTML is already in the right language
+export default function Providers({ children, initialLang = "en" }: { children: ReactNode; initialLang?: Lang }) {
   const [theme, setTheme] = useState<Theme>("light");
-  const [lang, setLang] = useState<Lang>("en");
+  const [lang, setLang] = useState<Lang>(initialLang);
+  const router = useRouter();
+  const pathname = usePathname();
+  const prevPath = useRef<string | null>(null);
 
   useEffect(() => {
     const storedTheme = localStorage.getItem("theme");
     const savedTheme: Theme = storedTheme === "dark" ? "dark" : "light";
     setTheme(savedTheme);
     document.documentElement.classList.toggle("dark", savedTheme === "dark");
-
-    const storedLang = localStorage.getItem("lang");
-    setLang(storedLang === "ar" ? "ar" : "en");
   }, []);
+
+  // The URL decides the language on pages that have an Arabic version (/about vs /ar/about).
+  // On every other page (results, login...) the saved preference decides, as before.
+  useEffect(() => {
+    // The address-bar path (with any /ar prefix), not the rewritten internal path
+    const path = window.location.pathname;
+    const prev = prevPath.current;
+    prevPath.current = path;
+
+    let stored: Lang = "en";
+    try {
+      stored = localStorage.getItem("lang") === "ar" ? "ar" : "en";
+    } catch {}
+    const remember = (l: Lang) => {
+      try {
+        localStorage.setItem("lang", l);
+      } catch {}
+    };
+
+    if (hasArPrefix(path)) {
+      setLang("ar");
+      remember("ar");
+      return;
+    }
+    if (!isLocalizable(path)) {
+      setLang(stored);
+      return;
+    }
+
+    // English URL of a page that has an Arabic version. A visitor who prefers Arabic is
+    // sent to the Arabic URL, unless they just came from an Arabic page (the back button).
+    const cameFromArabic = prev !== null && hasArPrefix(prev);
+    if (stored === "ar" && !cameFromArabic) {
+      setLang("ar");
+      router.replace(toArabicPath(path) + window.location.search + window.location.hash);
+      return;
+    }
+    setLang("en");
+    remember("en");
+  }, [pathname, router]);
 
   // Keep <html lang> and <html dir> in sync with the chosen language
   useEffect(() => {
@@ -80,6 +123,15 @@ export default function Providers({ children }: { children: ReactNode }) {
   const handleSetLang = (newLang: Lang) => {
     setLang(newLang);
     localStorage.setItem("lang", newLang);
+
+    // On pages with an Arabic version, switching language moves to the matching URL
+    const path = window.location.pathname;
+    if (isLocalizable(path)) {
+      const target = newLang === "ar" ? toArabicPath(path) : toEnglishPath(path);
+      if (target !== path) {
+        router.push(target + window.location.search + window.location.hash, { scroll: false });
+      }
+    }
   };
 
   return (

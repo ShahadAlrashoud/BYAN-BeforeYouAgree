@@ -6,6 +6,8 @@ import Providers from "./providers";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import HelpButton from "./components/HelpButton";
+import { getRequestLang } from "@/lib/seo";
+import { OG_IMAGE } from "@/lib/site";
 
 const body = IBM_Plex_Sans_Arabic({
   subsets: ["arabic", "latin"],
@@ -40,22 +42,28 @@ export const metadata: Metadata = {
     url: "/",
     locale: "en_US",
     alternateLocale: ["ar_SA"],
-    // images: [{ url: "/og.png", width: 1200, height: 630, alt: "BYAN" }], // add once you have the file
+    // Default share image: the BYAN logo (pages with their own metadata set the same)
+    images: [OG_IMAGE],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "BYAN - Before You Agree",
     description,
-    // images: ["/og.png"],
+    images: [OG_IMAGE.url],
   },
-  alternates: { canonical: "/" },
+  // No site-wide canonical here: each page sets its own. A canonical of "/" in the layout
+  // would tell search engines that every page without its own is a copy of the homepage.
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  // "ar" on /ar/* URLs (set by src/proxy.ts), otherwise "en"
+  const lang = await getRequestLang();
+
   return (
     // NEW: suppressHydrationWarning, because the script below changes the html style before React loads
     <html
-      lang="en"
+      lang={lang}
+      dir={lang === "ar" ? "rtl" : "ltr"}
       className={`${body.variable} ${display.variable}`}
       suppressHydrationWarning
     >
@@ -68,7 +76,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body>
-        <Providers>
+        <Providers initialLang={lang}>
           <Header />
           <main id="main">{children}</main>
           <Footer />

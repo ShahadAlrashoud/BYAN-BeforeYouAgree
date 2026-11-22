@@ -76,6 +76,31 @@ export async function deleteAnalysis(id, userId) {
     return rows.length > 0;
 }
 
+// Permanently deletes a user and everything tied to them, in ONE transaction
+// (all-or-nothing). Children are removed first, the users row last.
+// Returns true if a user row was deleted.
+export async function deleteUserAccount(userId) {
+    const id = String(userId);
+
+    const results = await sql.transaction([
+        // Result records (also used by share links): those saved by this user,
+        // plus those created while this user was signed in
+        sql`
+        DELETE FROM analysis_results
+        WHERE id::text IN (SELECT id::text FROM analyses WHERE user_id::text = ${id})
+           OR record->>'userId' = ${id}`,
+        // The user's saved analyses
+        sql`DELETE FROM analyses WHERE user_id::text = ${id}`,
+        // Pending password-reset tokens
+        sql`DELETE FROM password_reset_tokens WHERE user_id::text = ${id}`,
+        // Profile + sign-in details (username, email, password hash)
+        sql`DELETE FROM users WHERE id::text = ${id} RETURNING id`,
+    ]);
+
+    const deletedUsers = results[results.length - 1];
+    return Array.isArray(deletedUsers) && deletedUsers.length > 0;
+}
+
 export async function listAnalysesByUser(userId, search = "") {
     const q = `%${search.trim().toLowerCase()}%`;
     const rows = await sql`

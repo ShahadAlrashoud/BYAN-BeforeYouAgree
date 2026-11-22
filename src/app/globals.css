@@ -59,7 +59,9 @@ html.dark .byan-help-fab {
 }
 
 .byan-help-fab:focus-visible,
-.byan-tour-btn:focus-visible {
+.byan-tour-btn:focus-visible,
+.byan-fontsize-btn:focus-visible,
+.byan-danger-btn:focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 3px;
 }
