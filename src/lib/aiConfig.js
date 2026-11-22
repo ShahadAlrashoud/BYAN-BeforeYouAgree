@@ -43,8 +43,20 @@ export function aiFlags() {
         translateLimits: isOn("FLAG_TRANSLATE_LIMITS"),
         // Item 5: per-IP limits on analyses
         analysisRateLimits: isOn("FLAG_ANALYSIS_RATE_LIMITS"),
+        // Phase 2: the /popular page, its footer link and its dynamic sitemap entry. Needs FLAG_RESULT_CACHE
+        // (that is what fills analysis_cache and analysis_events).
+        popularPage: isOn("POPULAR_PAGE"),
+        // Phase 2: a result served from the cache shows its date, the "policies can change" notice and a
+        // "Re-run analysis" button, and the re-run request is honoured. Needs FLAG_RESULT_CACHE.
+        reuseCached: isOn("REUSE_CACHED"),
     };
 }
+
+// The /popular page rule (fixed, not configurable): an entry needs at least POPULAR_MIN_EVENTS rows in
+// analysis_events within the last POPULAR_WINDOW_DAYS days (cache hits included); the list shows the top POPULAR_LIMIT.
+export const POPULAR_MIN_EVENTS = 5;
+export const POPULAR_WINDOW_DAYS = 30;
+export const POPULAR_LIMIT = 20;
 
 export function aiLimits() {
     const budget = intEnv("DAILY_TOKEN_BUDGET", DEFAULT_DAILY_TOKEN_BUDGET);

@@ -2,6 +2,10 @@ import type { MetadataRoute } from "next";
 import { GLOSSARY } from "@/data/glossary";
 import { SITE_URL } from "@/lib/site";
 import { toArabicPath } from "@/lib/lang";
+import { aiFlags } from "@/lib/aiConfig";
+
+// Recomputed on each request, so /popular appears or disappears as the counts change
+export const dynamic = "force-dynamic";
 
 // Every public page. Results, login, signup, profile and other private or per-user pages are left out.
 const PAGES = [
@@ -17,7 +21,7 @@ const PAGES = [
   "/disclaimer",
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
 
   const add = (path: string, arabic: boolean, priority: number, changeFrequency: "weekly" | "monthly") => {
@@ -37,6 +41,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // listed (that page is noindex until the Arabic is approved).
   for (const term of GLOSSARY) {
     add(`/glossary/${term.id}`, !term.arPending, 0.6, "monthly");
+  }
+
+  // /popular is listed only while POPULAR_PAGE is on AND the list has at least one entry.
+  // It is a dynamic check, not a fixed entry. If the database cannot be read, the page is left out.
+  if (aiFlags().popularPage) {
+    try {
+      // Loaded here, not at the top, so nothing touches the database module while the flag is off
+      const { getPopularEntries } = await import("@/database/popularDb");
+      if ((await getPopularEntries()).length > 0) add("/popular", true, 0.4, "weekly");
+    } catch {
+      console.error("SITEMAP POPULAR CHECK FAILED");
+    }
   }
 
   return entries;

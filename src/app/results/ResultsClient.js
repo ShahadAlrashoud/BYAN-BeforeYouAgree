@@ -789,6 +789,12 @@ function ResultsContent() {
     const [tourStep, setTourStep] = useState(-1); // -1 = not running
     const [liveStatus, setLiveStatus] = useState("");
 
+    // Phase 2 (REUSE_CACHED): re-run a result that was served from the cache
+    const [rerunning, setRerunning] = useState(false);
+    const [rerunError, setRerunError] = useState("");
+    // Phase 2 (POPULAR_PAGE): the visitor arrived from the /popular list
+    const fromPopular = searchParams.get("from") === "popular";
+
     const fetchedIdRef = useRef(null);
 
     useEffect(() => {
@@ -985,6 +991,36 @@ function ResultsContent() {
             setCompareError(message.replace(/^BLOCKED:\s*/, ""));
         } finally {
             setComparing(false);
+        }
+    }
+
+    // Runs a fresh analysis of the URL the visitor typed. The server applies the same per-IP limits and daily
+    // token budget as any new analysis, and only replaces the cache entry if the new analysis succeeds.
+    async function handleRerun() {
+        if (!result?.url || rerunning) return;
+        setRerunning(true);
+        setRerunError("");
+        try {
+            const res = await fetch("/api/analyze", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url: result.url, lang: displayLang === "ar" ? "ar" : "en", rerun: true })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.id) {
+                const message = String(data.error || "Analysis failed.").replace(/^BLOCKED:\s*/, "");
+                setRerunError(message);
+                return;
+            }
+            // Load the new result: reset what belongs to the old one, then change the id in the URL
+            setTranslatedData(null);
+            setResult(null);
+            setLoading(true);
+            router.replace(`/results?id=${data.id}`);
+        } catch {
+            setRerunError(displayLang === "ar" ? "تعذر الاتصال بالخادم." : "Could not connect to the server.");
+        } finally {
+            setRerunning(false);
         }
     }
 
@@ -1225,6 +1261,64 @@ function ResultsContent() {
                                     : t("New analysis", "تحليل جديد") /* [AR review pending] */}
                             </p>
                         )}
+
+                        {/* Phase 2, REUSE_CACHED: a result reused from the cache. The URL shown above is the one the visitor typed. */}
+                        {result && result.reusedCached && (
+                            <div
+                                role="status"
+                                style={{
+                                    margin: "0 auto 16px",
+                                    maxWidth: 560,
+                                    padding: "10px 12px",
+                                    background: p.risk.moderate.bg,
+                                    color: p.risk.moderate.text,
+                                    borderRadius: 10,
+                                    fontSize: "0.85rem"
+                                }}
+                            >
+                                <p style={{ margin: "0 0 10px" }}>
+                                    {t(
+                                        `This result is from ${checkedDate}. Policies can change. Re-run the analysis for the latest version.`,
+                                        `هذه النتيجة بتاريخ ${checkedDate}. قد تتغير السياسات. أعد تشغيل التحليل للحصول على أحدث نسخة.` // [AR review pending]
+                                    )}
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={handleRerun}
+                                    disabled={rerunning}
+                                    style={{ ...pillButton, cursor: rerunning ? "wait" : "pointer" }}
+                                >
+                                    {rerunning
+                                        ? t("Re-running...", "جارٍ إعادة التحليل...") /* [AR review pending] */
+                                        : t("Re-run analysis", "إعادة التحليل") /* [AR review pending] */}
+                                </button>
+                                {rerunError && (
+                                    <p role="alert" style={{ margin: "10px 0 0" }}>{rerunError}</p>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Phase 2, POPULAR_PAGE: shown when the visitor opened this result from the /popular list */}
+                        {result && fromPopular && !result.reusedCached && (
+                            <p
+                                role="note"
+                                style={{
+                                    margin: "0 auto 16px",
+                                    maxWidth: 560,
+                                    padding: "10px 12px",
+                                    background: p.risk.moderate.bg,
+                                    color: p.risk.moderate.text,
+                                    borderRadius: 10,
+                                    fontSize: "0.85rem"
+                                }}
+                            >
+                                {t(
+                                    "Results may not reflect the current policy. Re-run the analysis for the latest version.",
+                                    "قد لا تعكس النتائج السياسة الحالية. أعد تشغيل التحليل للحصول على أحدث نسخة." // [AR review pending]
+                                )}
+                            </p>
+                        )}
+
 
                         {result && (
                             <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>

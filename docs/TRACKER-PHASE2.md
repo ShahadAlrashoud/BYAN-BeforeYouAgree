@@ -16,16 +16,29 @@ Nothing here has been run against any database. The development branch (CLINE_DA
 
 | # | Item | Status | Flag (default off) | Notes |
 |---|------|--------|--------------------|-------|
-| 1 | Counting rule: all analysis_events rows in 30 days per url_key + analysis_version (cache hits included); eligible at 5 or more; count per URL key, show domain only | TODO | POPULAR_PAGE | Waiting for plan approval. Open question: one entry per domain or per URL key |
-| 2 | /popular page: top 20, domain, latest score and level, date, "analyzed N times", neutral wording, disclaimer on the linked result, no user ID / IP / search term / full URL, test of rendered page and SQL | TODO | POPULAR_PAGE | No schema change needed |
-| 3 | Footer link only when POPULAR_PAGE is on; /popular added to the sitemap dynamically only when it has an entry; empty-state message (EN + AR) | TODO | POPULAR_PAGE | Footer is a client component: the flag is read in layout.tsx (server) and passed down, so it stays a call-time flag |
-| 4 | Reuse of a cached result on paste: date, notice, "Re-run analysis" button, no model call, cache event recorded | TODO | REUSE_CACHED | Needs FLAG_RESULT_CACHE on as well |
-| 5 | Re-run path: bypasses cache read, goes through rate limits and budget, writes the cache only on success, failed re-run leaves the entry unchanged | TODO | REUSE_CACHED | |
-| 6 | Privacy and retention: report exact columns used, no new user or IP column, retention notes, no cleanup job without approval | TODO | n/a | A cleanup job is needed (see the plan summary); not added |
-| 7 | Tests on the dev branch with flags on (scripts/test-phase2.mjs) | TODO | n/a | Needs approval to run a dev server and node |
-| 8 | Measurement: report Phase 1 token figures, do not change DAILY_TOKEN_BUDGET | TODO | n/a | No real token figure has been measured by the assistant |
-| 9 | Final report | TODO | n/a | |
+Code is written. NOT verified by the assistant: the tsc output could not be captured, lint and build were not run, and no test has run.
+
+| # | Item | Status | Flag (default off) | Notes |
+|---|------|--------|--------------------|-------|
+| 1 | Counting rule: all analysis_events rows in 30 days per url_key + analysis_version (cache hits included); eligible at 5 or more; count per URL key, show domain only | HIDDEN | POPULAR_PAGE | src/database/popularDb.js. Current ANALYSIS_VERSION only. One row per domain (the URL key with the highest count). Unverified. |
+| 2 | /popular page: top 20, domain, latest score and level, date, "analyzed N times", neutral wording, disclaimer, no user ID / IP / search term / full URL | HIDDEN | POPULAR_PAGE | src/app/popular/*. 404 when the flag is off. Disclaimer is on the page itself and on the result page when opened from /popular. Unverified. |
+| 3 | Footer link only when POPULAR_PAGE is on; /popular in the sitemap only when it has an entry; empty-state message (EN + AR) | HIDDEN | POPULAR_PAGE | Footer flag is read in layout.tsx (server) and passed down. sitemap.ts is now async and dynamic. Unverified. |
+| 4 | Reuse of a cached result on paste: date, notice, "Re-run analysis" button, no model call, cache event recorded | HIDDEN | REUSE_CACHED | DIFFERENT FROM THE PLAN: no preview route and no change to /analyze. The existing cache path in /api/analyze serves the record and logs the cache event; the results page shows the notice and button for records marked reusedCached. Unverified. |
+| 5 | Re-run path: bypasses cache read, goes through rate limits and budget, writes the cache only on success, failed re-run leaves the entry unchanged | HIDDEN | REUSE_CACHED | /api/analyze accepts rerun:true (ignored when the flag is off). Unverified. |
+| 6 | Privacy and retention: report exact columns used, no new user or IP column, retention notes, no cleanup job without approval | DONE (report) | n/a | No new column. A cleanup job is NEEDED and was NOT added: see the final report. |
+| 7 | Tests on the dev branch with flags on (scripts/test-phase2.mjs) | BLOCKED | n/a | Script written. Not run: needs approval for a dev server, node, and test-row writes on the dev branch (CONFIRM_DEV_WRITES=yes). |
+| 8 | Measurement: report Phase 1 token figures, do not change DAILY_TOKEN_BUDGET | DONE (report) | n/a | No figure was measured by the assistant. DAILY_TOKEN_BUDGET unchanged (unset). |
+| 9 | Final report | DONE | n/a | See the chat report. |
 
 ## Arabic strings awaiting review
 
-None yet. Every new Arabic string will be marked [AR review pending] and listed here with file and line.
+All are [AR review pending], marked in code comments only (not shown to users). Lines as of the last edit.
+
+| File | Line | English |
+|------|------|---------|
+| src/app/popular/strings.ts | 21 to 36 (whole `ar` block) | page title, intro, disclaimer, empty state, "analyzed N times", labels |
+| src/app/components/Footer.tsx | 42 | Analyzed websites (footer link) |
+| src/app/results/ResultsClient.js | about 1282 | This result is from [date]. Policies can change. Re-run the analysis for the latest version. |
+| src/app/results/ResultsClient.js | about 1292 | Re-running... |
+| src/app/results/ResultsClient.js | about 1293 | Re-run analysis |
+| src/app/results/ResultsClient.js | about 1317 | Results may not reflect the current policy. Re-run the analysis for the latest version. |

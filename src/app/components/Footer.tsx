@@ -18,6 +18,7 @@ const content = {
         compare: "Compare",
         howItWorks: "How It Works",
         glossary: "Glossary", // NEW
+        analyzedSites: "Analyzed websites", // shown only when POPULAR_PAGE is on
         report: "Report an incorrect result",
         about: "About",
         contact: "Contact",
@@ -38,6 +39,7 @@ const content = {
         compare: "مقارنة",
         howItWorks: "كيف يعمل",
         glossary: "المصطلحات", // NEW
+        analyzedSites: "المواقع المحللة", // [AR review pending] shown only when POPULAR_PAGE is on
         report: "الإبلاغ عن نتيجة غير صحيحة",
         about: "من نحن",
         contact: "تواصل معنا",
@@ -82,7 +84,8 @@ const sections: { title: FooterKey; links: { key: FooterKey; href: string }[] }[
     },
 ];
 
-export default function Footer() {
+// showPopular comes from the server layout (POPULAR_PAGE flag, read per request). Default: no link.
+export default function Footer({ showPopular = false }: { showPopular?: boolean }) {
     const { theme, lang, setLang, colors } = useTheme();
     const pathname = usePathname();
     const isDark = theme === "dark";
@@ -211,7 +214,10 @@ export default function Footer() {
                         <nav key={section.title} aria-label={t[section.title]}>
                             <h2 style={colTitle}>{t[section.title]}</h2>
                             <ul style={colList}>
-                                {section.links.map((link) => (
+                                {(showPopular && section.title === "product"
+                                    ? [...section.links, { key: "analyzedSites" as FooterKey, href: "/popular" }]
+                                    : section.links
+                                ).map((link) => (
                                     <li key={link.key}>
                                         <Link
                                             href={link.href}

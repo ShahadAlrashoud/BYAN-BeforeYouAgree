@@ -8,6 +8,7 @@ import Footer from "./components/Footer";
 import HelpButton from "./components/HelpButton";
 import { getRequestLang } from "@/lib/seo";
 import { OG_IMAGE } from "@/lib/site";
+import { aiFlags } from "@/lib/aiConfig";
 
 const body = IBM_Plex_Sans_Arabic({
   subsets: ["arabic", "latin"],
@@ -79,7 +80,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <Providers initialLang={lang}>
           <Header />
           <main id="main">{children}</main>
-          <Footer />
+          {/* The /popular link exists only while POPULAR_PAGE is on (read per request) */}
+          <Footer showPopular={aiFlags().popularPage} />
           <HelpButton />
         </Providers>
       </body>

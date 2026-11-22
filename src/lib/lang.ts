@@ -11,6 +11,7 @@ const LOCALIZABLE = [
     "/how-it-works",
     "/compare",
     "/glossary",
+    "/popular", // only exists while the POPULAR_PAGE flag is on (otherwise a 404)
     "/about",
     "/faq",
     "/contact",

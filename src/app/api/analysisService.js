@@ -446,7 +446,12 @@ export async function lookupCachedAnalysis(rawUrl, preferredLang = "en", userId 
     try {
         const cached = await findCachedRecord(cacheKey, ANALYSIS_VERSION, aiLimits().cacheTtlDays);
         if (!cached) return { url, cacheKey, record: null };
-        const record = await serveCachedRecord(cached, { url, preferredLang, userId });
+        const record = await serveCachedRecord(cached, {
+            url,
+            preferredLang,
+            userId,
+            reused: aiFlags().reuseCached,
+        });
         await logAnalysisEvent(cacheKey, ANALYSIS_VERSION, "cache");
         return { url, cacheKey, record };
     } catch {

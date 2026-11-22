@@ -26,7 +26,9 @@ export async function findCachedRecord(urlKey, version, ttlDays) {
 // Stores a user-less copy of a successful result as the cache entry for this key + version.
 // The copy has userId null, so deleting someone's account can never delete a shared cached result.
 export async function storeCachedRecord({ urlKey, version, record }) {
-    const copy = { ...record, id: crypto.randomUUID(), userId: null, fromCache: false };
+    // `url` is replaced by the normalized key (no query string): this shared copy can be opened from /popular,
+    // and the URL a visitor typed may carry a query string. People served from the cache get their own typed URL.
+    const copy = { ...record, id: crypto.randomUUID(), userId: null, fromCache: false, url: urlKey };
     const previous = await sql`
     SELECT result_id FROM analysis_cache WHERE url_key = ${urlKey} AND analysis_version = ${version} LIMIT 1`;
 
@@ -59,7 +61,8 @@ export async function storeCachedRecord({ urlKey, version, record }) {
 
 // A cache hit gets its own record, so the results link, the saved list and account deletion work as usual.
 // The URL the user typed is kept as `url`; the analysis date stays the original one.
-export async function serveCachedRecord(cached, { url, preferredLang, userId }) {
+// reused (REUSE_CACHED on): the results page shows the "policies can change" notice and the Re-run button.
+export async function serveCachedRecord(cached, { url, preferredLang, userId, reused = false }) {
     const served = {
         ...cached,
         id: crypto.randomUUID(),
@@ -67,6 +70,7 @@ export async function serveCachedRecord(cached, { url, preferredLang, userId }) 
         url,
         preferredLang,
         fromCache: true,
+        reusedCached: reused,
         analyzedAt: cached.analyzedAt || cached.createdAt,
         createdAt: new Date().toISOString(),
     };

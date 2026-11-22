@@ -46,7 +46,12 @@ export async function POST(request) {
 
         // 1) Cache check FIRST: before any rate limit, fetch or model call. Cached results always load,
         //    even when the daily budget is used up. Screenshots (text) are never cached.
-        if (!text) {
+        // Re-run (REUSE_CACHED on): skips the cache READ only. It still goes through the per-IP limit, the daily
+        // budget and the AI call below, and the cache entry is replaced only after a successful AI result
+        // (buildAndSaveRecord), so a failed re-run leaves the existing entry unchanged. Flag off: ignored.
+        const rerun = body?.rerun === true && aiFlags().reuseCached;
+
+        if (!text && !rerun) {
             const cached = await lookupCachedAnalysis(url, preferredLang, userId);
             if (cached.record) {
                 // Counted under a separate kind, so cache hits never count toward the AI limits
