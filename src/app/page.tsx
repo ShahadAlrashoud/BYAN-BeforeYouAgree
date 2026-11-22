@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "./providers";
 import ImageAnalyzer from "./components/ImageAnalyzer";
@@ -366,6 +366,9 @@ export default function HomePage() {
         );
     }
 
+    // Stable reference so GuidedTour's effects don't restart the tour on re-renders
+    const closeTour = useCallback(() => setTourOpen(false), []);
+
     function startTour() {
         setMode("url"); // the form step needs the URL tab visible
         window.scrollTo({ top: 0 });
@@ -676,28 +679,31 @@ export default function HomePage() {
                             ))}
                         </div>
 
-                        {/* Tour: secondary text link, not a second primary button */}
-                        <div style={{ marginTop: 14 }}>
+                        {/* Tour: secondary (outlined) button, clearly visible but not a second primary action */}
+                        <div style={{ marginTop: 18 }}>
                             <button
                                 type="button"
+                                className="byan-tour-btn"
                                 onClick={startTour}
                                 style={{
                                     display: "inline-flex",
                                     alignItems: "center",
-                                    gap: 6,
-                                    padding: "6px 8px",
-                                    border: "none",
-                                    background: "transparent",
+                                    justifyContent: "center",
+                                    gap: 8,
+                                    minHeight: 44,
+                                    padding: "10px 22px",
+                                    borderRadius: 12,
+                                    border: `2px solid ${themeColors.accentText}`,
+                                    background: isDark ? "rgba(165,180,252,0.10)" : "#ffffff",
                                     color: themeColors.accentText,
                                     fontWeight: 700,
-                                    fontSize: "0.88rem",
-                                    textDecoration: "underline",
+                                    fontSize: "0.95rem",
                                     cursor: "pointer",
                                 }}
                             >
                                 <svg
-                                    width="16"
-                                    height="16"
+                                    width="20"
+                                    height="20"
                                     viewBox="0 0 24 24"
                                     fill="none"
                                     stroke="currentColor"
@@ -705,6 +711,7 @@ export default function HomePage() {
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     aria-hidden="true"
+                                    style={{ flexShrink: 0 }}
                                 >
                                     <circle cx="12" cy="12" r="10" />
                                     <polygon points="10 8 16 12 10 16 10 8" />
@@ -1022,7 +1029,7 @@ export default function HomePage() {
                 </h2>
             </section>
 
-            <GuidedTour open={tourOpen} onClose={() => setTourOpen(false)} />
+            <GuidedTour open={tourOpen} onClose={closeTour} />
         </div>
     );
 }

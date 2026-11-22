@@ -766,6 +766,7 @@ function ResultsContent() {
     const [loading, setLoading] = useState(true);
     const { data: session } = useSession();
     const [saveStatus, setSaveStatus] = useState("");
+    const [showAuthPrompt, setShowAuthPrompt] = useState(false);
     const p = usePalette();
     const reducedMotion = usePrefersReducedMotion();
 
@@ -878,6 +879,15 @@ function ResultsContent() {
         setTourStep(0);
     }
 
+    // The floating "?" button (HelpButton in the layout) toggles this page's help panel
+    useEffect(() => {
+        function onToggle() {
+            setHelpOpen((v) => !v);
+        }
+        window.addEventListener("byan:toggle-results-help", onToggle);
+        return () => window.removeEventListener("byan:toggle-results-help", onToggle);
+    }, []);
+
     // Esc closes help and the tour
     useEffect(() => {
         function onKey(e) {
@@ -906,6 +916,13 @@ function ResultsContent() {
 
     async function handleSave() {
         if (!result?.id) return;
+
+        // Signed-out visitors: this is the only place Log in / Sign up are offered
+        if (!session?.user) {
+            setShowAuthPrompt(true);
+            return;
+        }
+
         setSaveStatus("saving");
         try {
             const res = await fetch("/api/save", {
@@ -1207,16 +1224,6 @@ function ResultsContent() {
                                             ? "View in English"
                                             : "عرض بالعربية"}
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setHelpOpen((v) => !v)}
-                                    aria-expanded={helpOpen}
-                                    aria-controls="byan-help-panel"
-                                    style={pillButton}
-                                >
-                                    <span aria-hidden="true">? </span>
-                                    {t("Help", "مساعدة")}
-                                </button>
                             </div>
                         )}
 
@@ -1308,10 +1315,11 @@ function ResultsContent() {
                                         </span>
                                     </div>
 
-                                    {session?.user && (
+                                    {
                                         <button
                                             type="button"
                                             onClick={handleSave}
+                                            aria-expanded={!session?.user ? showAuthPrompt : undefined}
                                             disabled={saveStatus === "saving" || saveStatus === "saved"}
                                             style={{
                                                 marginTop: 16,
@@ -1333,6 +1341,50 @@ function ResultsContent() {
                                                         ? isArabic ? "فشل الحفظ، أعد المحاولة" : "Save failed, try again"
                                                         : isArabic ? "حفظ النتيجة" : "Save Result"}
                                         </button>
+                                    }
+
+                                    {/* Signed-out visitors: Log in / Sign up appear only after they try to save */}
+                                    {!session?.user && showAuthPrompt && (
+                                        <div
+                                            role="region"
+                                            aria-label={isArabic ? "سجّل الدخول لحفظ النتيجة" : "Log in to save this result"}
+                                            style={{
+                                                marginTop: 12,
+                                                padding: "14px 16px",
+                                                maxWidth: 380,
+                                                background: p.altBg,
+                                                ...borders(p.border),
+                                                borderRadius: 12,
+                                                textAlign: "center"
+                                            }}
+                                        >
+                                            <p style={{ margin: "0 0 10px", color: p.text, fontSize: "0.88rem", lineHeight: 1.6 }}>
+                                                {isArabic
+                                                    ? "سجّل الدخول أو أنشئ حسابًا لحفظ هذه النتيجة والعودة إليها لاحقًا."
+                                                    : "Log in or create an account to save this result and come back to it later."}
+                                            </p>
+                                            <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
+                                                <Link
+                                                    href={`/login?callbackUrl=${encodeURIComponent(`/results?id=${id}`)}`}
+                                                    style={{ ...pillButton, background: p.accent, color: p.onAccent, textDecoration: "none" }}
+                                                >
+                                                    {isArabic ? "تسجيل الدخول" : "Log in"}
+                                                </Link>
+                                                <Link
+                                                    href={`/signup?callbackUrl=${encodeURIComponent(`/results?id=${id}`)}`}
+                                                    style={{ ...pillButton, textDecoration: "none" }}
+                                                >
+                                                    {isArabic ? "إنشاء حساب" : "Sign up"}
+                                                </Link>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowAuthPrompt(false)}
+                                                    style={{ ...pillButton, background: "transparent", ...borders(p.border) }}
+                                                >
+                                                    {isArabic ? "إغلاق" : "Close"}
+                                                </button>
+                                            </div>
+                                        </div>
                                     )}
 
                                     <ShareBar

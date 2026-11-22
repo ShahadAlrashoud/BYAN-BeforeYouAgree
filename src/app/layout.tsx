@@ -5,6 +5,7 @@ import { IBM_Plex_Sans_Arabic, Noto_Naskh_Arabic } from "next/font/google";
 import Providers from "./providers";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import HelpButton from "./components/HelpButton";
 
 const body = IBM_Plex_Sans_Arabic({
   subsets: ["arabic", "latin"],
@@ -71,6 +72,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <Header />
           <main id="main">{children}</main>
           <Footer />
+          <HelpButton />
         </Providers>
       </body>
     </html>

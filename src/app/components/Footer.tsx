@@ -128,7 +128,7 @@ export default function Footer() {
             dir={isAr ? "rtl" : "ltr"}
             style={{
                 borderTop: `1px solid ${line}`,
-                padding: "48px 24px 24px",
+                padding: "48px 24px 72px", // extra bottom space so the floating Help button never covers footer text
                 marginTop: 48,
                 background: isDark ? "#0a0e1a" : "#ffffff",
                 color: muted,

@@ -1,18 +1,11 @@
 "use client";
 
-import {
-    useEffect,
-    useRef,
-    useState,
-    type CSSProperties,
-    type MouseEvent,
-} from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "../providers";
 import BYANLogo from "./BYANLogo";
 import UserMenu from "./UserMenu";
-import TutorialModal from "./TutorialModal";
 import FontSizeControl from "./FontSizeControl"; // NEW
 
 /* ---------- Icons ---------- */
@@ -103,8 +96,6 @@ const content = {
         openMenu: "Open menu",
         closeMenu: "Close menu",
         mainNav: "Main navigation",
-        help: "Help",
-        helpTitle: "How to use BYAN",
     },
     ar: {
         home: "الرئيسية",
@@ -117,8 +108,6 @@ const content = {
         openMenu: "فتح القائمة",
         closeMenu: "إغلاق القائمة",
         mainNav: "التنقل الرئيسي",
-        help: "مساعدة",
-        helpTitle: "كيفية استخدام بيان",
     },
 };
 
@@ -156,16 +145,12 @@ export default function Header() {
     const { theme, toggleTheme, lang, setLang, colors: themeColors } = useTheme();
     const pathname = usePathname();
 
-    const isMobile = useIsMobile();
+    // 900px: the centered logo needs room beside the language / text-size / theme controls
+    const isMobile = useIsMobile(900);
     const [menuOpen, setMenuOpen] = useState(false);
 
-    // Logo state
+    // Logo state (keyboard focus opens the badge phrase)
     const [logoFocused, setLogoFocused] = useState(false);
-    const [logoTapped, setLogoTapped] = useState(false);
-    const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    // Tutorial state
-    const [tutorialOpen, setTutorialOpen] = useState(false);
 
     const isDark = theme === "dark";
     const isAr = lang === "ar";
@@ -182,45 +167,6 @@ export default function Header() {
         link: isDark ? "#dbe4f0" : "#334155",
         langBorder: isDark ? "#334155" : "#e2e8f0",
         langText: isDark ? "#94a3b8" : "#64748b",
-    };
-
-    /* Mobile: first tap opens the badge, second tap (within 2.5s) navigates home */
-    const handleLogoClick = (e: MouseEvent) => {
-        if (!isMobile || logoTapped) return;
-
-        e.preventDefault();
-        setLogoTapped(true);
-
-        if (tapTimer.current) clearTimeout(tapTimer.current);
-        tapTimer.current = setTimeout(() => setLogoTapped(false), 2500);
-    };
-
-    /* Clean up the tap timer on unmount */
-    useEffect(() => {
-        return () => {
-            if (tapTimer.current) clearTimeout(tapTimer.current);
-        };
-    }, []);
-
-    /* Collapse the logo badge after navigating */
-    useEffect(() => {
-        setLogoTapped(false);
-    }, [pathname]);
-
-    /* Auto-open the tutorial once for first-time visitors */
-    useEffect(() => {
-        try {
-            if (!localStorage.getItem("byan-tutorial-seen")) {
-                setTutorialOpen(true);
-            }
-        } catch {}
-    }, []);
-
-    const closeTutorial = () => {
-        setTutorialOpen(false);
-        try {
-            localStorage.setItem("byan-tutorial-seen", "1");
-        } catch {}
     };
 
     /* Close mobile menu on navigation */
@@ -260,7 +206,7 @@ export default function Header() {
     const navLinkStyle = (href: string): CSSProperties => ({
         color: isActive(href) ? c.accentText : c.link,
         textDecoration: "none",
-        fontSize: "0.9rem",
+        fontSize: "0.88rem", // same as the footer links
         fontWeight: isActive(href) ? 700 : 500,
         paddingBottom: 4,
         borderBottom: isActive(href)
@@ -273,7 +219,7 @@ export default function Header() {
     const mobileLinkStyle = (href: string): CSSProperties => ({
         color: isActive(href) ? c.accentText : c.link,
         textDecoration: "none",
-        fontSize: "1rem",
+        fontSize: "0.88rem", // same as the footer links
         fontWeight: isActive(href) ? 700 : 500,
         padding: "12px 4px",
         borderBottom: `1px solid ${c.border}`,
@@ -363,46 +309,25 @@ export default function Header() {
         </div>
     );
 
-    /* Help button (reopens the tutorial), with a visible text label */
-    const helpButton = (
+    /* Mobile menu toggle (shown on the start side of the bar) */
+    const menuToggle = (
         <button
             type="button"
-            onClick={() => setTutorialOpen(true)}
-            aria-haspopup="dialog"
-            title={t.helpTitle}
+            onClick={() => setMenuOpen((o) => !o)}
             style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                height: 30,
-                padding: "0 12px 0 6px",
-                borderRadius: 999,
-                border: `1.5px solid ${c.accent}`,
+                border: "none",
                 background: "transparent",
-                color: c.accentText,
-                fontWeight: 700,
-                fontSize: "0.8rem",
                 cursor: "pointer",
                 lineHeight: 1,
+                display: "flex",
+                alignItems: "center",
+                padding: 4,
             }}
+            aria-label={menuOpen ? t.closeMenu : t.openMenu}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
         >
-            <span
-                aria-hidden="true"
-                style={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: "50%",
-                    background: c.accent,
-                    color: c.onAccent,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "0.75rem",
-                }}
-            >
-                ?
-            </span>
-            {t.help}
+            <MenuIcon color={c.accent} open={menuOpen} />
         </button>
     );
 
@@ -423,17 +348,36 @@ export default function Header() {
             <div
                 style={{
                     display: "grid",
-                    gridTemplateColumns: isMobile ? "1fr auto" : "1fr auto 1fr",
+                    gridTemplateColumns: "1fr auto 1fr",
                     alignItems: "center",
-                    padding: isMobile ? "12px 16px" : "14px 24px",
+                    padding: isMobile ? "12px 16px" : "12px 24px 8px",
                 }}
             >
-                {/* Logo */}
-                <div dir="ltr" style={{ justifySelf: "start" }}>
+                {/* Start side: menu toggle (mobile) or site controls (desktop) */}
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        justifySelf: "start",
+                    }}
+                >
+                    {isMobile ? (
+                        menuToggle
+                    ) : (
+                        <>
+                            {langToggle}
+                            {fontControl}
+                            {themeToggle}
+                        </>
+                    )}
+                </div>
+
+                {/* Logo: always centered, links to the main page */}
+                <div dir="ltr" style={{ justifySelf: "center" }}>
                     <Link
                         href="/"
                         aria-label="BYAN — Before You Agree"
-                        onClick={handleLogoClick}
                         onFocus={() => setLogoFocused(true)}
                         onBlur={() => setLogoFocused(false)}
                         style={{
@@ -444,77 +388,47 @@ export default function Header() {
                         <BYANLogo
                             isDark={isDark}
                             size="sm"
-                            focused={logoFocused || logoTapped}
+                            focused={logoFocused}
                         />
                     </Link>
                 </div>
 
-                {/* Desktop navigation */}
-                {!isMobile && (
-                    <nav
-                        aria-label={t.mainNav}
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 30,
-                            justifySelf: "center",
-                        }}
-                    >
-                        {navItems.map(({ href, key }) => (
-                            <Link
-                                key={href}
-                                href={href}
-                                style={navLinkStyle(href)}
-                                aria-current={isActive(href) ? "page" : undefined}
-                            >
-                                {t[key]}
-                            </Link>
-                        ))}
-                    </nav>
-                )}
-
-                {/* Right cluster */}
+                {/* End side: account menu (renders only for signed-in users) */}
                 <div
                     style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: isMobile ? 10 : 12,
                         justifySelf: "end",
                     }}
                 >
-                    {!isMobile && (
-                        <>
-                            {langToggle}
-                            {fontControl}
-                            {themeToggle}
-                            {helpButton}
-                        </>
-                    )}
-
                     <UserMenu />
-
-                    {isMobile && (
-                        <button
-                            type="button"
-                            onClick={() => setMenuOpen((o) => !o)}
-                            style={{
-                                border: "none",
-                                background: "transparent",
-                                cursor: "pointer",
-                                lineHeight: 1,
-                                display: "flex",
-                                alignItems: "center",
-                                padding: 4,
-                            }}
-                            aria-label={menuOpen ? t.closeMenu : t.openMenu}
-                            aria-expanded={menuOpen}
-                            aria-controls="mobile-menu"
-                        >
-                            <MenuIcon color={c.accent} open={menuOpen} />
-                        </button>
-                    )}
                 </div>
             </div>
+
+            {/* Desktop navigation: its own row under the centered logo */}
+            {!isMobile && (
+                <nav
+                    aria-label={t.mainNav}
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 30,
+                        padding: "0 24px 10px",
+                    }}
+                >
+                    {navItems.map(({ href, key }) => (
+                        <Link
+                            key={href}
+                            href={href}
+                            style={navLinkStyle(href)}
+                            aria-current={isActive(href) ? "page" : undefined}
+                        >
+                            {t[key]}
+                        </Link>
+                    ))}
+                </nav>
+            )}
 
             {/* Mobile menu */}
             {isMobile && menuOpen && (
@@ -558,13 +472,9 @@ export default function Header() {
                         {langToggle}
                         {fontControl}
                         {themeToggle}
-                        {helpButton}
                     </div>
                 </div>
             )}
-
-            {/* Tutorial popup */}
-            <TutorialModal open={tutorialOpen} onClose={closeTutorial} />
         </header>
     );
 }

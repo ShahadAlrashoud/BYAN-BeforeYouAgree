@@ -51,6 +51,18 @@ const content = {
     }
 };
 
+// Only allow same-site relative paths (blocks open redirects like //evil.com)
+function getSafeCallback(): string {
+    if (typeof window === "undefined") return "";
+    const cb = new URLSearchParams(window.location.search).get("callbackUrl") || "";
+    return cb.startsWith("/") && !cb.startsWith("//") ? cb : "";
+}
+
+function loginHref(): string {
+    const cb = getSafeCallback();
+    return cb ? `/login?callbackUrl=${encodeURIComponent(cb)}` : "/login";
+}
+
 export default function SignupPage() {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
@@ -89,7 +101,7 @@ export default function SignupPage() {
                 setError(data.error || t.genericError);
                 return;
             }
-            router.push("/login");
+            router.push(loginHref());
         } catch {
             setError(t.connectError);
         } finally {
@@ -179,7 +191,7 @@ export default function SignupPage() {
 
                 <p style={{ textAlign: "center", marginTop: 16, fontSize: "0.9rem", color: muted(isDark) }}>
                     {t.haveAccount}{" "}
-                    <Link href="/login" style={linkStyle}>{t.login}</Link>
+                    <Link href={loginHref()} style={linkStyle}>{t.login}</Link>
                 </p>
             </div>
         </div>

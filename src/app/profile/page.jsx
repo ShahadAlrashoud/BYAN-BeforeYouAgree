@@ -12,8 +12,8 @@ const content = {
     userId: "User ID",
     notSet: "N/A",
     loading: "Loading...",
-    pleaseLogin: "Please",
-    logIn: "log in",
+    needAccount: "Your profile is available after you save an analysis.",
+    backHome: "Back to Homepage",
   },
   ar: {
     title: "الملف الشخصي",
@@ -22,8 +22,8 @@ const content = {
     userId: "رقم المستخدم",
     notSet: "غير متوفر",
     loading: "جارٍ التحميل...",
-    pleaseLogin: "يرجى",
-    logIn: "تسجيل الدخول",
+    needAccount: "يظهر ملفك الشخصي بعد أن تحفظ تحليلًا.",
+    backHome: "العودة إلى الصفحة الرئيسية",
   },
 };
 
@@ -38,7 +38,7 @@ export default function ProfilePage() {
   if (!session?.user) {
     return (
       <div dir={isAr ? "rtl" : "ltr"} style={{ padding: 20 }}>
-        {t.pleaseLogin} <Link href="/login">{t.logIn}</Link>.
+        {t.needAccount} <Link href="/">{t.backHome}</Link>
       </div>
     );
   }

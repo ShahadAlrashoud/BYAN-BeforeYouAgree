@@ -7,16 +7,12 @@ import { useTheme } from "../providers";
 
 const content = {
   en: {
-    login: "Log in",
-    signup: "Sign up",
     profile: "Account / Profile",
     saved: "Saved Analysis Results",
     settings: "Settings",
     signout: "Sign out",
   },
   ar: {
-    login: "تسجيل الدخول",
-    signup: "إنشاء حساب",
     profile: "الحساب / الملف الشخصي",
     saved: "نتائج التحليل المحفوظة",
     settings: "الإعدادات",
@@ -33,7 +29,6 @@ export default function UserMenu() {
   const t = content[lang];
 
   const [open, setOpen] = useState(false);
-  const [signupHover, setSignupHover] = useState(false);
   const ref = useRef(null);
 
   useEffect(() => {
@@ -52,60 +47,9 @@ export default function UserMenu() {
 
   if (status === "loading") return null;
 
-  // LOGGED OUT
-  if (!session?.user) {
-    return (
-      <div
-        dir={isAr ? "rtl" : "ltr"}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
-        <Link
-          href="/login"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: 36,
-            padding: "0 12px",
-            borderRadius: 8,
-            color: isDark ? "#e5e7eb" : "#374151",
-            textDecoration: "none",
-            fontSize: 14,
-            fontWeight: 600,
-          }}
-        >
-          {t.login}
-        </Link>
-
-        <Link
-          href="/signup"
-          onMouseEnter={() => setSignupHover(true)}
-          onMouseLeave={() => setSignupHover(false)}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: 36,
-            padding: "0 14px",
-            borderRadius: 8,
-            background: signupHover ? colors.accentHover : colors.accent,
-            color: colors.onAccent,
-            textDecoration: "none",
-            fontSize: 14,
-            fontWeight: 600,
-            boxShadow: "0 1px 2px rgba(0, 0, 0, 0.08)",
-            transition: "background-color 0.2s ease",
-          }}
-        >
-          {t.signup}
-        </Link>
-      </div>
-    );
-  }
+  // LOGGED OUT: no Log in / Sign up links in the header for now.
+  // They only appear when the visitor uses "Save Result" on the results page.
+  if (!session?.user) return null;
 
   // LOGGED IN
   const name = session.user.username || session.user.email || "User";
@@ -234,7 +178,7 @@ export default function UserMenu() {
 
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => signOut({ callbackUrl: "/" })}
             style={{
               ...itemStyle(colors.high),
               width: "100%",

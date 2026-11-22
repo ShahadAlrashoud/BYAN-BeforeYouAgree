@@ -87,6 +87,18 @@ function htmlToText(html) {
         .trim();
 }
 
+// Decodes common HTML entities found in attribute values (e.g. &amp; -> &)
+function decodeHtmlEntities(str) {
+    return str
+        .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+        .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
+        .replace(/&quot;/gi, '"')
+        .replace(/&apos;/gi, "'")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .replace(/&amp;/gi, "&");
+}
+
 // Scans the homepage HTML for a link that looks like a ToS / Privacy Policy page
 function findPolicyLink(html, baseUrl) {
     const anchorRegex = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
@@ -94,7 +106,7 @@ function findPolicyLink(html, baseUrl) {
     const candidates = [];
 
     while ((match = anchorRegex.exec(html)) !== null) {
-        const href = match[1];
+        const href = decodeHtmlEntities(match[1]);
         const text = match[2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
         const hrefLower = href.toLowerCase();
 

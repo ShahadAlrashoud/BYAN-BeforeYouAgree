@@ -38,6 +38,13 @@ const content = {
     }
 };
 
+// Only allow same-site relative paths (blocks open redirects like //evil.com)
+function getSafeCallback(): string {
+    if (typeof window === "undefined") return "";
+    const cb = new URLSearchParams(window.location.search).get("callbackUrl") || "";
+    return cb.startsWith("/") && !cb.startsWith("//") ? cb : "";
+}
+
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -71,7 +78,7 @@ export default function LoginPage() {
                 setError(result.error === "CredentialsSignin" ? t.invalid : t.serverError);
                 return;
             }
-            router.push(result.url || "/");
+            router.push(getSafeCallback() || result.url || "/");
         } catch {
             setError(t.serverError);
         } finally {
@@ -134,7 +141,9 @@ export default function LoginPage() {
 
                 <p style={{ textAlign: "center", marginTop: 16, fontSize: "0.9rem", color: muted(isDark) }}>
                     {t.noAccount}{" "}
-                    <Link href="/signup" style={{ color: colors.accentText, fontWeight: 600 }}>
+                    <Link
+                        href={getSafeCallback() ? `/signup?callbackUrl=${encodeURIComponent(getSafeCallback())}` : "/signup"}
+                        style={{ color: colors.accentText, fontWeight: 600 }}>
                         {t.signup}
                     </Link>
                 </p>

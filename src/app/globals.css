@@ -28,3 +28,61 @@ h1, h2, h3 {
 
 :root { --accent: #1e3a5f; }
 html.dark { --accent: #6366f1; }
+
+/* Floating Help "?" button: bottom-right on every page (also in RTL) */
+.byan-help-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 40;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s ease;
+}
+
+html.dark .byan-help-fab {
+  border-color: #0a1429;
+}
+
+.byan-help-fab:hover {
+  transform: scale(1.06);
+}
+
+.byan-help-fab:focus-visible,
+.byan-tour-btn:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Smaller and tucked into the corner on phones so it stays clear of content */
+@media (max-width: 768px) {
+  .byan-help-fab {
+    right: 12px;
+    bottom: 12px;
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .byan-help-fab {
+    transition: none;
+  }
+}
+
+@media print {
+  .byan-help-fab {
+    display: none;
+  }
+}

@@ -13,8 +13,8 @@ const content = {
     noResults: "No analyses found.",
     noAnalyses: "You haven't saved any analyses yet.",
     loading: "Loading...",
-    pleaseLogin: "Please",
-    logIn: "log in",
+    needAccount: "Saved results are available after you save an analysis.",
+    backHome: "Back to Homepage",
     sortLabel: "Sort by:",
     sortWorst: "Risk: Worst first",
     sortBest: "Risk: Best first",
@@ -47,8 +47,8 @@ const content = {
     noResults: "لم يتم العثور على نتائج.",
     noAnalyses: "لم تقم بحفظ أي تحليلات بعد.",
     loading: "جارٍ التحميل...",
-    pleaseLogin: "يرجى",
-    logIn: "تسجيل الدخول",
+    needAccount: "تظهر النتائج المحفوظة بعد أن تحفظ تحليلًا.",
+    backHome: "العودة إلى الصفحة الرئيسية",
     sortLabel: "ترتيب حسب:",
     sortWorst: "الخطورة: الأسوأ أولاً",
     sortBest: "الخطورة: الأفضل أولاً",
@@ -262,7 +262,7 @@ async function handleShare(item) {
   if (!session?.user) {
     return (
       <div dir={isAr ? "rtl" : "ltr"} style={{ padding: 20 }}>
-        {t.pleaseLogin} <Link href="/login">{t.logIn}</Link>.
+        {t.needAccount} <Link href="/">{t.backHome}</Link>
       </div>
     );
   }
