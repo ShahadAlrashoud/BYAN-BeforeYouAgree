@@ -32,9 +32,16 @@ export default async function PopularPage() {
         // Loaded here so the database module is never touched while the flag is off
         const { getPopularEntries } = await import("@/database/popularDb");
         entries = await getPopularEntries();
-    } catch {
-        // No details are logged: the error could contain query text
+    } catch (err) {
+        // No details are logged in production: the error could contain query text
         console.error("POPULAR PAGE QUERY FAILED");
+        // Development only: print just err.code and err.name, and only if each is a plain identifier.
+        // Never the message, cause, detail, stack or any query text.
+        if (process.env.NODE_ENV !== "production") {
+            const e = err as { code?: unknown; name?: unknown } | null;
+            const safe = (v: unknown) => (typeof v === "string" && /^[A-Za-z0-9_]{1,40}$/.test(v) ? v : "none");
+            console.error("POPULAR PAGE QUERY FAILED (dev) code:", safe(e?.code), "name:", safe(e?.name));
+        }
         unavailable = true;
     }
 
