@@ -2,8 +2,56 @@ import { detectRiskClauses } from "../../../nlp/extractClauses";
 import { scoreRisk } from "../../../nlp/riskScorer";
 import { createAnalysis, saveResult } from "@/database/db";
 import { validateFindings, scoreFromFindings } from "../../../nlp/evidenceValidator";
+import { ANALYSIS_VERSION, aiFlags, aiLimits } from "@/lib/aiConfig";
+import { AiError, callGroqChat } from "@/lib/aiClient";
+import { urlCacheKey, urlHash } from "@/lib/urlKey";
+import {
+    findCachedRecord,
+    storeCachedRecord,
+    serveCachedRecord,
+    logAnalysisEvent,
+    recordUsage,
+    getTodayUsage,
+} from "@/database/aiDb";
 
 const MAX_AI_CHARS = 12000;
+
+function secondsUntilUtcMidnight() {
+    const now = new Date();
+    const next = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+    return Math.max(60, Math.ceil((next - now.getTime()) / 1000));
+}
+
+// Before each model call: stops when today's analysis tokens reached DAILY_TOKEN_BUDGET.
+// Only active when FLAG_TOKEN_BUDGET is on and a budget is set. If the usage table cannot be read,
+// it lets the request through (and logs that it failed) instead of taking the whole site down.
+// Note: requests that run at the same moment can overshoot the budget slightly; that is why the budget
+// must leave headroom under Groq's daily limit.
+async function assertWithinBudget(flags) {
+    if (!flags.tokenBudget) return;
+    const { dailyTokenBudget } = aiLimits();
+    if (!dailyTokenBudget) return;
+    let used;
+    try {
+        used = (await getTodayUsage("analysis")).tokens;
+    } catch {
+        console.error("AI BUDGET CHECK FAILED");
+        return;
+    }
+    if (used >= dailyTokenBudget) {
+        throw new AiError("budget", "Daily token budget reached.", { retryAfterSeconds: secondsUntilUtcMidnight() });
+    }
+}
+
+// Records the tokens of one model response (FLAG_TOKEN_BUDGET). Never stores text or the full URL.
+async function logUsage(flags, { usage, method, hash }) {
+    if (!flags.tokenBudget || !usage) return;
+    try {
+        await recordUsage({ kind: "analysis", method, urlHash: hash, usage });
+    } catch {
+        console.error("AI USAGE LOG FAILED");
+    }
+}
 
 function isValidHttpUrl(value) {
     try {
@@ -236,49 +284,78 @@ Return ONLY valid JSON in this exact format:
   ]
 }`;
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
-        },
-        body: JSON.stringify({
-            model: "openai/gpt-oss-120b",
-            temperature: 0,
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: policyText.slice(0, MAX_AI_CHARS) }
-            ],
-            response_format: { type: "json_object" }
-        })
+    // Same request as before; callGroqChat adds the 429 retry when FLAG_AI_RELIABILITY is on
+    const data = await callGroqChat({
+        model: "openai/gpt-oss-120b",
+        temperature: 0,
+        messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: policyText.slice(0, MAX_AI_CHARS) }
+        ],
+        response_format: { type: "json_object" }
     });
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`AI API error (${response.status}): ${errorText}`);
+    const usage = data?.usage || null;
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) {
+        const err = new AiError("invalid_response", "AI returned an unexpected response.");
+        err.usage = usage; // the tokens were spent even though the answer is unusable
+        throw err;
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-    if (!content) throw new Error("AI returned an unexpected response.");
-
-    return JSON.parse(content);
+    try {
+        return { parsed: JSON.parse(content), usage };
+    } catch {
+        const err = new AiError("invalid_response", "AI returned invalid JSON.");
+        err.usage = usage;
+        throw err;
+    }
 }
 
 // Shared by URL and text analysis: scores, builds the record, and saves it
-async function buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang, userId }) {
+// cacheKey is set only for URL analyses (never for screenshots) and is used to store the result in the cache.
+async function buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang, userId, cacheKey = null }) {
     const lang = detectLanguage(policyText);
+    const flags = aiFlags();
+    const hash = urlHash(cacheKey);
+
+    // Daily token budget: when it is reached this throws and NO model call is made
+    await assertWithinBudget(flags);
 
     let ai = null;
+    let usage = null;
+    let aiFailure = null;
     try {
-        ai = await assessWithAI(policyText, lang);
+        const out = await assessWithAI(policyText, lang);
+        ai = out.parsed;
+        usage = out.usage;
     } catch (error) {
-        console.error("AI ANALYSIS ERROR:", error);
+        aiFailure = error;
+        usage = error?.usage || null;
+        // Only the kind and status are logged: never the provider's error body or any analysis text
+        console.error("AI ANALYSIS ERROR:", error?.kind || "unknown", error?.status || "");
     }
 
     let analysisSource = "ai";
+    let analysisReason = "ai";
     let rawFindings = Array.isArray(ai?.findings) ? ai.findings : null;
     let summary = typeof ai?.summary === "string" ? ai.summary.trim() : "";
+
+    // FLAG_AI_RELIABILITY on: a 429 that survived the retries returns the busy response, and any other
+    // AI error returns "unavailable" unless ALLOW_KEYWORD_FALLBACK is on. No keyword result otherwise.
+    const mustFail = !rawFindings && flags.aiReliability && (aiFailure?.kind === "rate_limited" || !flags.allowKeywordFallback);
+    if (!rawFindings) {
+        analysisReason = !aiFailure
+            ? "fallback_used"
+            : aiFailure.kind === "rate_limited" ? "rate_limited" : "provider_error";
+    }
+
+    // Tokens are recorded even when the answer was unusable, because Groq counted them
+    await logUsage(flags, { usage, method: rawFindings || mustFail ? "ai" : "keyword", hash });
+
+    if (mustFail) {
+        throw aiFailure instanceof AiError ? aiFailure : new AiError("provider_error", "AI analysis failed.");
+    }
 
     // Fallback: keyword detection, which goes through the same evidence check
     if (!rawFindings) {
@@ -317,6 +394,10 @@ async function buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang,
         clauses,                      // verified only, counted in the score
         rejectedFindings: rejected,   // no textual evidence, NOT counted
         analysisSource,
+        // FLAG_SHOW_METHOD: which method made this result and why
+        ...(flags.showMethod ? { analysisMethod: analysisSource, analysisReason } : {}),
+        // FLAG_RESULT_CACHE: the date of the analysis, and whether it was served from the cache
+        ...(flags.resultCache ? { analyzedAt: new Date().toISOString(), fromCache: false, analysisVersion: ANALYSIS_VERSION } : {}),
         coverage: {
             analyzedChars: Math.min(policyText.length, MAX_AI_CHARS),
             totalChars: policyText.length
@@ -325,6 +406,17 @@ async function buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang,
     };
 
     await saveResult(record);
+
+    // Cache only a good AI result: not a keyword (degraded) result, not an empty one, never a screenshot
+    const isEmptyResult = policyText.length < 50 || (clauses.length === 0 && !summary);
+    if (flags.resultCache && cacheKey && analysisSource === "ai" && !isEmptyResult) {
+        try {
+            await storeCachedRecord({ urlKey: cacheKey, version: ANALYSIS_VERSION, record });
+            await logAnalysisEvent(cacheKey, ANALYSIS_VERSION, "model");
+        } catch {
+            console.error("RESULT CACHE STORE FAILED");
+        }
+    }
 
     if (userId) {
         await createAnalysis({
@@ -341,6 +433,28 @@ async function buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang,
     return record;
 }
 
+// The cache check. The analyze route calls this FIRST, before any fetch, model call or AI rate limit.
+// Returns { url, cacheKey, record }: record is the new result served from the cache, or null.
+// Any cache error is treated as a miss, so a cache problem never blocks an analysis.
+export async function lookupCachedAnalysis(rawUrl, preferredLang = "en", userId = null) {
+    const url = normalizeUrl(rawUrl);
+    if (!isValidHttpUrl(url)) return { url, cacheKey: null, record: null };
+
+    const cacheKey = urlCacheKey(url);
+    if (!cacheKey || !aiFlags().resultCache) return { url, cacheKey, record: null };
+
+    try {
+        const cached = await findCachedRecord(cacheKey, ANALYSIS_VERSION, aiLimits().cacheTtlDays);
+        if (!cached) return { url, cacheKey, record: null };
+        const record = await serveCachedRecord(cached, { url, preferredLang, userId });
+        await logAnalysisEvent(cacheKey, ANALYSIS_VERSION, "cache");
+        return { url, cacheKey, record };
+    } catch {
+        console.error("RESULT CACHE LOOKUP FAILED");
+        return { url, cacheKey, record: null };
+    }
+}
+
 export async function runAnalysisForUrl(rawUrl, preferredLang = "en", userId = null) {
     const url = normalizeUrl(rawUrl);
 
@@ -348,9 +462,11 @@ export async function runAnalysisForUrl(rawUrl, preferredLang = "en", userId = n
         throw new Error("Invalid URL");
     }
 
+    const cacheKey = aiFlags().resultCache ? urlCacheKey(url) : null;
+
     const { text: policyText, resolvedUrl } = await fetchPolicyText(url);
 
-    return buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang, userId });
+    return buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang, userId, cacheKey });
 }
 
 export async function runAnalysisForText(text, preferredLang = "en", userId = null) {

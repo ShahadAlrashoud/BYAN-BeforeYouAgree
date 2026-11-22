@@ -1208,10 +1208,21 @@ function ResultsContent() {
                             </p>
                         )}
 
-                        {result && checkedDate && (
+                        {result && checkedDate && !result.analyzedAt && (
                             <p style={{ margin: "0 auto 16px", color: p.body, fontSize: "0.85rem" }}>
                                 {t("Last checked", "آخر فحص")}:{" "}
                                 <time dateTime={checkedIso}>{checkedDate}</time>
+                            </p>
+                        )}
+                        {/* Result cache (record has analyzedAt only when the cache flag was on): date + where it came from */}
+                        {result && checkedDate && result.analyzedAt && (
+                            <p style={{ margin: "0 auto 16px", color: p.body, fontSize: "0.85rem" }}>
+                                {t("Analyzed on", "تم التحليل في")}{" "} {/* [AR review pending] */}
+                                <time dateTime={checkedIso}>{checkedDate}</time>
+                                {" · "}
+                                {result.fromCache
+                                    ? t("Served from the cache", "نتيجة محفوظة مسبقًا") /* [AR review pending] */
+                                    : t("New analysis", "تحليل جديد") /* [AR review pending] */}
                             </p>
                         )}
 
@@ -1439,7 +1450,31 @@ function ResultsContent() {
                                             : "Each finding is linked to a word-for-word quote from the policy. Only findings verified against the text count toward the risk score."}
                                     </p>
 {(result.resolvedUrl || result.url) && (<p style={{ margin: "0 0 16px", color: p.body }}>{isArabic ? "المصدر الذي تم تحليله: " : "Analyzed source: "}<a href={result.resolvedUrl || result.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline", wordBreak: "break-all" }}>{result.resolvedUrl || result.url}</a></p>)}
-                                    {result.analysisSource === "keyword" && (
+                                    {/* Visible method (record has analysisMethod only when the show-method flag was on) */}
+                                    {result.analysisMethod === "keyword" && (
+                                        <p
+                                            role="status"
+                                            style={{
+                                                margin: "0 0 16px",
+                                                padding: "10px 12px",
+                                                background: p.risk.moderate.bg,
+                                                color: p.risk.moderate.text,
+                                                borderRadius: 10,
+                                                fontSize: "0.82rem"
+                                            }}
+                                        >
+                                            {result.analysisReason === "rate_limited"
+                                                ? t(
+                                                    "This result used a basic check because the AI service was busy.",
+                                                    "استخدمت هذه النتيجة فحصًا أساسيًا لأن خدمة الذكاء الاصطناعي كانت مشغولة." // [AR review pending]
+                                                )
+                                                : t(
+                                                    "This result used a basic check because the AI service was unavailable.",
+                                                    "استخدمت هذه النتيجة فحصًا أساسيًا لأن خدمة الذكاء الاصطناعي لم تكن متاحة." // [AR review pending]
+                                                )}
+                                        </p>
+                                    )}
+                                    {result.analysisSource === "keyword" && !result.analysisMethod && (
                                         <p
                                             style={{
                                                 margin: "0 0 16px",

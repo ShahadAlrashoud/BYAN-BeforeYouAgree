@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server";
+import { aiFlags, aiLimits } from "@/lib/aiConfig";
+import { aiMessage } from "@/lib/aiMessages";
+import { getClientIp } from "@/lib/clientIp";
+import { hashKey, takeToken } from "@/database/accountDb";
+import { getTodayUsage, recordUsage } from "@/database/aiDb";
 
 // Only these fields are sent to the AI. Evidence / original policy text is NEVER translated.
 const TRANSLATABLE_FIELDS = ["category", "text", "plainExplanation", "riskReason", "suggestedAction"];
@@ -44,6 +49,38 @@ function pickTranslatable(clause) {
     return out;
 }
 
+// Translate has its OWN caps (FLAG_TRANSLATE_LIMITS), separate from the analysis token budget:
+//   - a per-IP limit per minute (rate_events, hashed key, kind "translate_ip")
+//   - a daily limit on requests (ai_usage rows of kind "translate")
+// Returns a 429 response when a cap is hit, otherwise null. If a counter cannot be read it lets the request through.
+async function checkTranslateLimits(request, lang) {
+    if (!aiFlags().translateLimits) return null;
+    const { translateDailyLimit, translatePerMinutePerIp } = aiLimits();
+    try {
+        if (translatePerMinutePerIp > 0) {
+            const slot = await takeToken(hashKey(getClientIp(request)), "translate_ip", translatePerMinutePerIp, 60);
+            if (!slot.ok) {
+                return NextResponse.json(
+                    { error: aiMessage("translate_ip", lang), code: "busy", reason: "translate_ip" },
+                    { status: 429, headers: { "Retry-After": String(slot.retryAfter || 60) } }
+                );
+            }
+        }
+        if (translateDailyLimit > 0) {
+            const { requests } = await getTodayUsage("translate");
+            if (requests >= translateDailyLimit) {
+                return NextResponse.json(
+                    { error: aiMessage("translate_daily", lang), code: "busy", reason: "translate_daily" },
+                    { status: 429, headers: { "Retry-After": "3600" } }
+                );
+            }
+        }
+    } catch {
+        console.error("TRANSLATE LIMIT CHECK FAILED");
+    }
+    return null;
+}
+
 export async function POST(request) {
     try {
         const body = await request.json();
@@ -61,6 +98,9 @@ export async function POST(request) {
         if (!summaryEn.trim() && safeClauses.length === 0) {
             return NextResponse.json({ summaryEn: "", clauses: [] }, { status: 200 });
         }
+
+        const limited = await checkTranslateLimits(request, targetLang);
+        if (limited) return limited;
 
         const languageName = targetLang === "ar" ? "Arabic (Modern Standard Arabic)" : "English";
 
@@ -100,6 +140,15 @@ Return ONLY valid JSON in this format:
             response_format: { type: "json_object" }
         });
 
+        // Tokens are counted under kind "translate": a separate counter from the analysis budget
+        if (aiFlags().translateLimits && data?.usage) {
+            try {
+                await recordUsage({ kind: "translate", method: "ai", urlHash: null, usage: data.usage });
+            } catch {
+                console.error("TRANSLATE USAGE LOG FAILED");
+            }
+        }
+
         const content = data.choices?.[0]?.message?.content;
         if (!content) throw new Error("Translation returned an empty response.");
 
@@ -118,7 +167,8 @@ Return ONLY valid JSON in this format:
         }
 
         if (safeClauses.length > 0 && byIndex.size === 0) {
-            console.warn("TRANSLATE: AI returned no usable items:", content.slice(0, 300));
+            // Count only: the AI output itself is never logged
+            console.warn("TRANSLATE: AI returned no usable items");
         }
 
         const translatedClauses = safeClauses.map((orig, i) => {
