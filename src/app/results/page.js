@@ -1,19 +1,7 @@
 import ResultsClient from "./ResultsClient";
+import { getAnalysisById } from "@/database/db";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://www.byan.website";
-
-async function loadResult(id) {
-    try {
-        const res = await fetch(`${SITE}/api/result/${encodeURIComponent(id)}`, {
-            cache: "no-store"
-        });
-        if (!res.ok) return null;
-        const data = await res.json();
-        return data?.result || data;
-    } catch {
-        return null;
-    }
-}
 
 function hostOf(url) {
     try {
@@ -31,15 +19,22 @@ export async function generateMetadata({ searchParams }) {
         title: "Privacy analysis result | BYAN",
         description: "See the risks found in a privacy policy or terms of service."
     };
-    if (!id) return fallback;
+    if (!id || typeof id !== "string") return fallback;
 
-    const r = await loadResult(id);
-    if (!r || typeof r.riskScore !== "number") return fallback;
+    let r = null;
+    try {
+        r = await getAnalysisById(id);
+    } catch (e) {
+        console.error("OG METADATA ERROR:", e);
+    }
 
-    const site = hostOf(r.resolvedUrl || r.url);
+    const score = Number(r?.riskScore);
+    if (!r || !Number.isFinite(score)) return fallback;
+
+    const site = hostOf(r.resolvedUrl || r.url || r.title);
     const count = Array.isArray(r.clauses) ? r.clauses.length : 0;
-    const title = `${site || "Result"}: risk ${r.riskScore}/100 (${r.riskLevel}) | BYAN`;
-    const description = `${count} risky clause${count === 1 ? "" : "s"} found. ${r.summaryEn || ""
+    const title = `${site || "Result"}: risk ${score}/100 (${r.riskLevel || "n/a"}) | BYAN`;
+    const description = `${count} risky clause${count === 1 ? "" : "s"} found. ${r.summaryEn || r.result || ""
         }`.trim().slice(0, 200);
     const image = {
         url: `${SITE}/api/og/${encodeURIComponent(id)}`,
@@ -49,7 +44,7 @@ export async function generateMetadata({ searchParams }) {
     };
 
     return {
-        title,
+        title: { absolute: title },
         description,
         alternates: { canonical: `${SITE}/results?id=${id}` },
         openGraph: {

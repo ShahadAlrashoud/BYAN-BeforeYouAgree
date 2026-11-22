@@ -16,7 +16,11 @@ Nothing here has been run against any database. The development branch (CLINE_DA
 
 | # | Item | Status | Flag (default off) | Notes |
 |---|------|--------|--------------------|-------|
-Code is written. NOT verified by the assistant: the tsc output could not be captured, lint and build were not run, and no test has run.
+Code is written. Verification so far:
+- tsc: exit code 0, no errors.
+- lint: exit code 1, 59 problems project-wide (49 errors, 10 warnings). None are in the new Phase 2 files. In files Phase 2 edited: Footer.tsx has 1 warning (unused `heading`, existing code) and ResultsClient.js has 7 "setState synchronously within an effect" errors in code Phase 2 did not add (no effect was added). Not compared against a baseline, so "pre-existing" is an inference.
+- build: started with NODE_OPTIONS=--max-old-space-size=4096. Next printed "Environments: .env.local" (its own loader). The result was not observed: the log stopped at "Creating an optimized production build".
+- Phase 2 tests: BLOCKED. CLINE_DATABASE_URL is not set in the assistant's shell, so the dev server and test script were not started.
 
 | # | Item | Status | Flag (default off) | Notes |
 |---|------|--------|--------------------|-------|
