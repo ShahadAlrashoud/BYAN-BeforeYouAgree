@@ -61,7 +61,12 @@ html.dark .byan-help-fab {
 .byan-help-fab:focus-visible,
 .byan-tour-btn:focus-visible,
 .byan-fontsize-btn:focus-visible,
-.byan-danger-btn:focus-visible {
+.byan-danger-btn:focus-visible,
+.byan-account-btn:focus-visible,
+.byan-account-avatar:focus-visible,
+.byan-account-menuitem:focus-visible,
+.byan-account-tab:focus-visible,
+.byan-lang-link:focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 3px;
 }

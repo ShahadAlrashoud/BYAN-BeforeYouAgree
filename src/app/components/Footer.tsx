@@ -6,6 +6,7 @@ import { useTheme } from "../providers";
 import BYANLogo from "./BYANLogo";
 import FontSizeControl from "./FontSizeControl";
 import { stripArPrefix } from "@/lib/lang";
+import { ACCOUNT_V2 } from "@/lib/flags";
 
 const content = {
     en: {
@@ -153,7 +154,8 @@ export default function Footer() {
                         {t.description}
                     </p>
 
-                    {/* Language toggle */}
+                    {/* Language toggle. With Account v2 on it is removed: the header control and Settings are the only places */}
+                    {!ACCOUNT_V2 && (
                     <div
                         role="group"
                         aria-label={t.language}
@@ -195,6 +197,7 @@ export default function Footer() {
                             );
                         })}
                     </div>
+                    )}
 
                     {/* Text size control (A−, A, A+), moved here from the header */}
                     <div style={{ marginTop: 14, color: muted }}>

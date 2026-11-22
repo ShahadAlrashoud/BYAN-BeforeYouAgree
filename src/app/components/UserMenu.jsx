@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { useTheme } from "../providers";
+import { ACCOUNT_V2 } from "@/lib/flags";
+import AccountMenu from "./AccountMenu";
 
 const content = {
   en: {
@@ -20,7 +22,12 @@ const content = {
   },
 };
 
+// Feature flag: with Account v2 on, the new accessible menu replaces this one.
 export default function UserMenu() {
+  return ACCOUNT_V2 ? <AccountMenu /> : <LegacyUserMenu />;
+}
+
+function LegacyUserMenu() {
   const { data: session, status } = useSession();
   const { lang, theme, colors } = useTheme();
 

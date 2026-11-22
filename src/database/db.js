@@ -10,6 +10,9 @@ function mapUser(r) {
         email: r.email,
         passwordHash: r.password_hash,
         createdAt: r.created_at,
+        // Account v2 columns (migrations/001_account_v2.sql). Undefined until that migration is run.
+        displayName: r.display_name ?? null,
+        sessionsValidAfter: r.sessions_valid_after ?? null,
     };
 }
 
@@ -93,6 +96,16 @@ export async function deleteUserAccount(userId) {
         sql`DELETE FROM analyses WHERE user_id::text = ${id}`,
         // Pending password-reset tokens
         sql`DELETE FROM password_reset_tokens WHERE user_id::text = ${id}`,
+        // Account v2 data (tables from migrations/001_account_v2.sql). Only included when the
+        // feature flag is on, because with the flag off those tables may not exist yet.
+        // The users delete below must stay LAST: the result of the last query is checked.
+        ...(process.env.NEXT_PUBLIC_ACCOUNT_V2 === "true"
+            ? [
+                  sql`DELETE FROM user_settings WHERE user_id::text = ${id}`,
+                  sql`DELETE FROM email_change_requests WHERE user_id::text = ${id}`,
+                  sql`DELETE FROM rate_events WHERE key = ${crypto.createHash("sha256").update(id).digest("hex")}`,
+              ]
+            : []),
         // Profile + sign-in details (username, email, password hash)
         sql`DELETE FROM users WHERE id::text = ${id} RETURNING id`,
     ]);

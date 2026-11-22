@@ -4,6 +4,8 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { ACCOUNT_V2 } from "@/lib/flags";
+import { readResultLang } from "@/lib/prefs";
 import TermsBackground from "../components/TermsBackground";
 
 /* ---------- Risk colors (light + dark) ---------- */
@@ -1039,10 +1041,14 @@ function ResultsContent() {
         switchLanguage(displayLang === "ar" ? "en" : "ar");
     }
 
-    // Follow the site-wide EN/AR switch in the navbar
+    // Follow the site-wide EN/AR switch in the navbar.
+    // Account v2 setting "Default result language": "policy" opens a result in the policy's own
+    // language; "my" (the default, and the behaviour before this setting existed) follows the site language.
     useEffect(() => {
         if (!result || (siteLang !== "ar" && siteLang !== "en")) return;
-        switchLanguage(siteLang);
+        const policyLang = result.lang === "ar" ? "ar" : "en";
+        const target = ACCOUNT_V2 && readResultLang() === "policy" ? policyLang : siteLang;
+        switchLanguage(target);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [siteLang, result?.id]);
 

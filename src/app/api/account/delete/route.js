@@ -3,6 +3,9 @@ import { getServerSession } from "next-auth";
 import { Resend } from "resend";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { getUserById, deleteUserAccount } from "@/database/db";
+import { ACCOUNT_V2 } from "@/lib/flags";
+import { checkReauth } from "@/lib/reauth";
+import { tooMany } from "@/lib/accountApi";
 
 const escapeHtml = (s) =>
     String(s ?? "")
@@ -83,6 +86,16 @@ export async function POST(request) {
 
         if (!isConfirmed(body.confirmation, user.email)) {
             return NextResponse.json({ error: "Confirmation does not match." }, { status: 400 });
+        }
+
+        // Account v2: the typed confirmation is not enough. The person must also re-authenticate
+        // (password, or a fresh sign-in if the account has no password). This cannot be skipped.
+        if (ACCOUNT_V2) {
+            const reauth = await checkReauth({ user, session, password: body.password });
+            if (!reauth.ok) {
+                if (reauth.status === 429) return tooMany(reauth.retryAfter);
+                return NextResponse.json({ error: reauth.error }, { status: reauth.status });
+            }
         }
 
         const deleted = await deleteUserAccount(user.id);

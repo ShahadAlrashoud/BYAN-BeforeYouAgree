@@ -7,6 +7,9 @@ import { useTheme } from "../providers";
 import BYANLogo from "./BYANLogo";
 import UserMenu from "./UserMenu";
 import { stripArPrefix } from "@/lib/lang";
+import { useSession } from "next-auth/react";
+import { ACCOUNT_V2 } from "@/lib/flags";
+import { S } from "../account/strings";
 
 /* ---------- Icons ---------- */
 
@@ -155,6 +158,8 @@ export default function Header() {
     const isDark = theme === "dark";
     const isAr = lang === "ar";
     const t = content[isAr ? "ar" : "en"];
+    const { status: sessionStatus } = useSession();
+    const signedIn = sessionStatus === "authenticated";
 
     // Header-specific tokens, driven by the shared theme colors
     const c = {
@@ -279,6 +284,48 @@ export default function Header() {
         </div>
     );
 
+    /* Account v2 language control: one place to SAVE the language is Settings.
+       Signed in: a link to Settings. Signed out: the working toggle above, so visitors can still switch. */
+    const a = S[isAr ? "ar" : "en"];
+    const currentName = isAr ? "العربية" : "English";
+    const langLink = (
+        <Link
+            href="/account/settings"
+            className="byan-lang-link"
+            aria-label={a.langLinkLabel(currentName)}
+            style={{
+                display: "inline-flex",
+                alignItems: "center",
+                minHeight: 32,
+                padding: "4px 14px",
+                borderRadius: 999,
+                border: `1px solid ${c.langBorder}`,
+                color: c.link,
+                fontSize: "0.82rem",
+                fontWeight: 600,
+                textDecoration: "none",
+            }}
+        >
+            <span lang={isAr ? "ar" : "en"}>{currentName}</span>
+        </Link>
+    );
+    const languageControl = !ACCOUNT_V2 ? (
+        langToggle
+    ) : signedIn ? (
+        langLink
+    ) : (
+        <div style={{ display: "flex", alignItems: "center" }}>
+            {langToggle}
+            {/* Read out by screen readers: which language is active right now */}
+            <span
+                role="status"
+                style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}
+            >
+                {a.langCurrent(currentName)}
+            </span>
+        </div>
+    );
+
     /* Theme toggle */
     const themeToggle = (
         <button
@@ -361,7 +408,7 @@ export default function Header() {
                         menuToggle
                     ) : (
                         <>
-                            {langToggle}
+                            {languageControl}
                             {themeToggle}
                         </>
                     )}
@@ -463,7 +510,7 @@ export default function Header() {
                             padding: "14px 4px",
                         }}
                     >
-                        {langToggle}
+                        {languageControl}
                         {themeToggle}
                     </div>
                 </div>

@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTheme } from "../providers";
-
-const STEPS = [100, 115, 130, 150];
-const KEY = "byan-font-size";
+import { TEXT_SIZE_KEY as KEY, TEXT_SIZE_STEPS as STEPS, applyTextSize } from "@/lib/prefs";
 
 const labels = {
   en: { group: "Text size", smaller: "Decrease text size", larger: "Increase text size", reset: "Reset text size", now: (p) => `Text size ${p}%` },
@@ -20,12 +18,20 @@ export default function FontSizeControl() {
     const saved = Number(localStorage.getItem(KEY));
     const i = STEPS.indexOf(saved);
     if (i >= 0) setIdx(i);
+
+    // Another part of the site (Settings, or the saved account value) changed the size
+    function onChange(e) {
+      const j = STEPS.indexOf(e.detail?.value);
+      if (j >= 0) setIdx(j);
+    }
+    window.addEventListener("byan-text-size", onChange);
+    return () => window.removeEventListener("byan-text-size", onChange);
   }, []);
 
+  // Same stored value as before (localStorage "byan-font-size"), now also announced so it can be saved to the account
   function apply(i) {
     setIdx(i);
-    document.documentElement.style.fontSize = STEPS[i] + "%";
-    localStorage.setItem(KEY, String(STEPS[i]));
+    applyTextSize(STEPS[i], "control");
   }
 
   const btn = {
