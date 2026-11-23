@@ -1,5 +1,5 @@
 // Delete-account dialog, "deleted" screen and the confirm-email page.
-// [AR review pending] all "ar" values in this file.
+//  all "ar" values in this file.
 export const dialogs = {
     en: {
         confirmTitle: "Confirm your new email",
