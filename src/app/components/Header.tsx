@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "@/app/components/LocalizedLink";
 import { usePathname } from "next/navigation";
 import { useTheme } from "../providers";
@@ -94,6 +94,8 @@ const content = {
         compare: "Compare",
         glossary: "Glossary", // NEW
         about: "About",
+        tryIt: "Try it", // new header (NEW_HOME)
+        analyzedSites: "Analyzed websites", // new header, shown only when POPULAR_PAGE is on
         toggleTheme: "Toggle theme",
         language: "Language",
         openMenu: "Open menu",
@@ -106,6 +108,8 @@ const content = {
         compare: "مقارنة",
         glossary: "المصطلحات", 
         about: "من نحن",
+        tryIt: "جرّب الآن", // [AR review pending] new header (NEW_HOME)
+        analyzedSites: "المواقع المحللة", // [AR review pending] new header, shown only when POPULAR_PAGE is on
         toggleTheme: "تبديل المظهر",
         language: "اللغة",
         openMenu: "فتح القائمة",
@@ -123,6 +127,17 @@ const navItems = [
     { href: "/glossary", key: "glossary" },  
     { href: "/about", key: "about" },  
 ] as const;
+
+/* New header (NEW_HOME): one menu, in this order. "Analyzed websites" is added only when POPULAR_PAGE is on. */
+type MenuKey = "tryIt" | "home" | "howItWorks" | "compare" | "glossary" | "about" | "analyzedSites";
+const newMenuItems: { href: string; key: MenuKey }[] = [
+    { href: "/analyze", key: "tryIt" },
+    { href: "/", key: "home" },
+    { href: "/how-it-works", key: "howItWorks" },
+    { href: "/compare", key: "compare" },
+    { href: "/glossary", key: "glossary" },
+    { href: "/about", key: "about" },
+];
 
 /* ---------- Hooks ---------- */
 
@@ -144,13 +159,25 @@ function useIsMobile(breakpoint = 768) {
 
 /* ---------- Component ---------- */
 
-export default function Header() {
+// newHome and showPopular come from the server layout (NEW_HOME and POPULAR_PAGE flags, read per request).
+// Both default to false: the header is then exactly the current one.
+export default function Header({ newHome = false, showPopular = false }: { newHome?: boolean; showPopular?: boolean }) {
     const { theme, toggleTheme, lang, setLang, colors: themeColors } = useTheme();
     const pathname = usePathname();
 
     // 900px: the centered logo needs room beside the language / text-size / theme controls
     const isMobile = useIsMobile(900);
     const [menuOpen, setMenuOpen] = useState(false);
+
+    // New header: the menu button layout is used at every width. Off: only on narrow screens, as before.
+    const compact = newHome || isMobile;
+    const toggleRef = useRef<HTMLButtonElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const menuEntries: readonly { href: string; key: MenuKey }[] = newHome
+        ? showPopular
+            ? [...newMenuItems, { href: "/popular", key: "analyzedSites" }]
+            : newMenuItems
+        : navItems;
 
     // Logo state (keyboard focus opens the badge phrase)
     const [logoFocused, setLogoFocused] = useState(false);
@@ -181,10 +208,11 @@ export default function Header() {
 
     /* Close mobile menu when switching to desktop */
     useEffect(() => {
-        if (!isMobile) {
+        // New header: the menu stays available on desktop, so it is not closed when the width changes
+        if (!isMobile && !newHome) {
             setMenuOpen(false);
         }
-    }, [isMobile]);
+    }, [isMobile, newHome]);
 
     /* Close mobile menu with Escape */
     useEffect(() => {
@@ -193,13 +221,20 @@ export default function Header() {
         const onKey = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
                 setMenuOpen(false);
+                // New header: give focus back to the menu button, so keyboard users do not lose their place
+                if (newHome) toggleRef.current?.focus();
             }
         };
 
         window.addEventListener("keydown", onKey);
 
         return () => window.removeEventListener("keydown", onKey);
-    }, [menuOpen]);
+    }, [menuOpen, newHome]);
+
+    /* New header: when the menu opens, move focus to its first item (the menu sits after the bar in the page order) */
+    useEffect(() => {
+        if (newHome && menuOpen) menuRef.current?.querySelector("a")?.focus();
+    }, [newHome, menuOpen]);
 
     /* Active navigation item */
     // Ignore the /ar prefix so the active item is right on Arabic URLs too
@@ -368,6 +403,7 @@ export default function Header() {
             aria-label={menuOpen ? t.closeMenu : t.openMenu}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
+            ref={toggleRef}
         >
             <MenuIcon color={c.accent} open={menuOpen} />
         </button>
@@ -392,7 +428,7 @@ export default function Header() {
                     display: "grid",
                     gridTemplateColumns: "1fr auto 1fr",
                     alignItems: "center",
-                    padding: isMobile ? "12px 16px" : "12px 24px 8px",
+                    padding: compact ? "12px 16px" : "12px 24px 8px",
                 }}
             >
                 {/* Start side: menu toggle (mobile) or site controls (desktop) */}
@@ -404,7 +440,7 @@ export default function Header() {
                         justifySelf: "start",
                     }}
                 >
-                    {isMobile ? (
+                    {compact ? (
                         menuToggle
                     ) : (
                         <>
@@ -447,7 +483,7 @@ export default function Header() {
             </div>
 
             {/* Desktop navigation: its own row under the centered logo */}
-            {!isMobile && (
+            {!compact && (
                 <nav
                     aria-label={t.mainNav}
                     style={{
@@ -472,9 +508,10 @@ export default function Header() {
             )}
 
             {/* Mobile menu */}
-            {isMobile && menuOpen && (
+            {compact && menuOpen && (
                 <div
                     id="mobile-menu"
+                    ref={menuRef}
                     style={{
                         background: c.mobileBg,
                         borderTop: `1px solid ${c.border}`,
@@ -487,12 +524,14 @@ export default function Header() {
                         aria-label={t.mainNav}
                         style={{ display: "flex", flexDirection: "column" }}
                     >
-                        {navItems.map(({ href, key }) => (
+                        {menuEntries.map(({ href, key }) => (
                             <Link
                                 key={href}
                                 href={href}
                                 style={mobileLinkStyle(href)}
                                 aria-current={isActive(href) ? "page" : undefined}
+                                // New header: also close when the link points at the page already open
+                                onClick={newHome ? () => setMenuOpen(false) : undefined}
                             >
                                 {t[key]}
                             </Link>
