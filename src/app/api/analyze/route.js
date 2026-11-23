@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { runAnalysisForUrl, runAnalysisForText, lookupCachedAnalysis } from "../analysisService";
-import { aiFlags, aiLimits } from "@/lib/aiConfig";
+import { aiFlags, aiLimits, ALLOWANCE_PER_DAY, ALLOWANCE_WINDOW_SECONDS } from "@/lib/aiConfig";
 import { aiMessage } from "@/lib/aiMessages";
 import { AiError } from "@/lib/aiClient";
 import { getClientIp } from "@/lib/clientIp";
 import { hashKey } from "@/database/accountDb";
-import { takeAnalysisSlot, noteCacheServe } from "@/database/aiDb";
+import { takeAnalysisSlot, noteCacheServe, takeDailyAllowance } from "@/database/aiDb";
 
 // The "busy" answer: nothing was analyzed and no keyword result is returned.
 function busyResponse(code, lang, retryAfterSeconds) {
@@ -20,6 +20,7 @@ function busyResponse(code, lang, retryAfterSeconds) {
             retryAfterSeconds: retryAfter,
         },
         {
+            // "daily_allowance" is a limit on this visitor (429), not a fault of the service
             status: code === "budget" || code === "unavailable" ? 503 : 429,
             headers: { "Retry-After": String(retryAfter) },
         }
@@ -64,6 +65,27 @@ export async function POST(request) {
                 }
                 return NextResponse.json({ id: cached.record.id, fromCache: true }, { status: 200 });
             }
+        }
+
+        // 2a) Daily allowance (DAILY_ALLOWANCE): 1 real analysis per visitor per 24 hours, hashed IP.
+        //     It sits AFTER the cache check, so cached results never use it, and it covers every path that reaches
+        //     this point: a web address, pasted text, screenshots (which post text) and Compare (which posts
+        //     addresses). The demo never calls this route. It fails open if the counter cannot be read, as the
+        //     per-IP limits below do. Shared networks share one allowance (accepted by the owner).
+        //     The allowance is used when the analysis STARTS: a run that then fails still counts. That is the
+        //     simple, abuse-resistant choice, and it is stated here so it is a known behaviour.
+        if (aiFlags().dailyAllowance) {
+            let allowance = { ok: true };
+            try {
+                allowance = await takeDailyAllowance(
+                    hashKey(getClientIp(request)),
+                    ALLOWANCE_PER_DAY,
+                    ALLOWANCE_WINDOW_SECONDS
+                );
+            } catch {
+                console.error("DAILY ALLOWANCE CHECK FAILED");
+            }
+            if (!allowance.ok) return busyResponse("daily_allowance", preferredLang, allowance.retryAfter);
         }
 
         // 2) Per-IP limits on analyses that need the AI (FLAG_ANALYSIS_RATE_LIMITS). Fails open if the
