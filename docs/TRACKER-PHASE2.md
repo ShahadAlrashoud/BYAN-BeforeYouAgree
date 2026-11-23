@@ -36,7 +36,7 @@ Code is written. Verification so far:
 
 ## Arabic strings awaiting review
 
-All are [AR review pending], marked in code comments only (not shown to users). Lines as of the last edit.
+All are , marked in code comments only (not shown to users). Lines as of the last edit.
 
 | File | Line | English |
 |------|------|---------|
