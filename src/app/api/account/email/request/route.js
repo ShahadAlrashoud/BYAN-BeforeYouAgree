@@ -57,7 +57,7 @@ export async function POST(request) {
         const base = process.env.NEXT_PUBLIC_APP_URL || "";
         const link = `${base}/account/confirm-email?token=${token}`;
         const isAr = lang === "ar";
-        // [AR review pending] Arabic email text below
+        //  Arabic email text below
         await sendMail({
             to: newEmail,
             subject: isAr ? "تأكيد عنوان بريدك الإلكتروني الجديد في بيان" : "Confirm your new BYAN email address",
