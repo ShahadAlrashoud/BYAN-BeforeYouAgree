@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTheme } from "../providers";
 import TermsBackground from "../components/TermsBackground";
+import AnalyzeInput from "./AnalyzeInput";
+import { useFlags } from "../components/FlagsProvider";
 
 const content = {
     en: {
@@ -77,6 +79,8 @@ function AnalyzeContent() {
     const isDark = theme === "dark";
     const isAr = lang === "ar";
     const t = content[lang];
+    // NEW_HOME: with no ?url=, show the input page (link / screenshots / pasted text) instead of "Missing URL"
+    const { newHome } = useFlags();
 
     // Same neutral tokens as the homepage
     const colors = {
@@ -91,7 +95,7 @@ function AnalyzeContent() {
 
     useEffect(() => {
         if (!url) {
-            setError(t.missingUrl);
+            if (!newHome) setError(t.missingUrl);
             return;
         }
 
@@ -132,6 +136,9 @@ function AnalyzeContent() {
         // Only re-run when the URL itself changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [url]);
+
+    // All hooks above run on every render, so this early return is safe
+    if (newHome && !url) return <AnalyzeInput />;
 
     const accentButton = {
         display: "inline-block",
