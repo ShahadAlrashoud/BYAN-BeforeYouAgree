@@ -3,7 +3,7 @@
 // "arPending: true" means the Arabic text has NOT been approved by a native speaker yet.
 // Such entries keep ar: { term: "", def: "" } here on purpose: this file is bundled into the
 // browser, so unreviewed Arabic must not live in it. The Arabic view shows the English text
-// with an "[AR review pending]" tag instead (see localized() below). The Arabic drafts are in
+// with an "" tag instead (see localized() below). The Arabic drafts are in
 // docs/glossary-ar-pending.md. When approved: paste the Arabic into ar, delete arPending,
 // and add the Arabic phrases to match.ar.
 export const GLOSSARY = [
@@ -182,8 +182,8 @@ export const bySlug = (id) => GLOSSARY.find((x) => x.id === id);
 
 // The text to SHOW for an entry in language l.
 // Entries whose Arabic is still awaiting review fall back to the English text in the Arabic
-// view and are flagged (pending: true) so the UI can add the "[AR review pending]" tag.
-export const AR_PENDING_TAG = "[AR review pending]";
+// view and are flagged (pending: true) so the UI can add the "" tag.
+export const AR_PENDING_TAG = "";
 
 export const localized = (x, l) => {
     if (l === "ar" && x.arPending) return { ...x.en, pending: true, lang: "en" };
