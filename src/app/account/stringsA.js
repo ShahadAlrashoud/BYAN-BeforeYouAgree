@@ -1,5 +1,5 @@
 // Menu, tabs and Profile strings.
-// [AR review pending] all "ar" values in this file.
+//  all "ar" values in this file.
 export const shell = {
     en: {
         menuLabel: "Account menu",
