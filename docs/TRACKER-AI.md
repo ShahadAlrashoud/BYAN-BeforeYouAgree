@@ -47,7 +47,7 @@ Gate confirmed by the user before Phase 2: tsc, lint and build passed; the Phase
 
 ## Arabic strings awaiting review
 
-All are [AR review pending] (marked in code comments only, not shown to users). Line numbers are as written, before any later edits.
+All are  (marked in code comments only, not shown to users). Line numbers are as written, before any later edits.
 
 | File | Line | English |
 |------|------|---------|
