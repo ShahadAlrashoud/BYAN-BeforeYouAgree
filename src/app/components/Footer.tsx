@@ -39,7 +39,7 @@ const content = {
         compare: "مقارنة",
         howItWorks: "كيف يعمل",
         glossary: "المصطلحات", // NEW
-        analyzedSites: "المواقع المحللة", // [AR review pending] shown only when POPULAR_PAGE is on
+        analyzedSites: "المواقع المحللة", //  shown only when POPULAR_PAGE is on
         report: "الإبلاغ عن نتيجة غير صحيحة",
         about: "من نحن",
         contact: "تواصل معنا",
