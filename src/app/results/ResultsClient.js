@@ -7,6 +7,8 @@ import Link from "next/link";
 import { ACCOUNT_V2 } from "@/lib/flags";
 import { readResultLang } from "@/lib/prefs";
 import TermsBackground from "../components/TermsBackground";
+import { useFlags } from "../components/FlagsProvider";
+import { isNearHighBoundary, resultAge } from "@/lib/resultDisplay";
 
 /* ---------- Risk colors (light + dark) ---------- */
 // Light-mode text colors darkened to reach 4.5:1 contrast on their backgrounds
@@ -288,7 +290,9 @@ function buildCategoryComparison(clausesA = [], clausesB = []) {
 
 /* ---------- Score circle ---------- */
 
-function ScoreCircle({ score, tier, size = 180, isArabic = false }) {
+// hideNumber (NEW_HOME): the ring still fills to the score, but no number is printed and the spoken label
+// names the category instead. The category itself is shown by the label pill under the circle.
+function ScoreCircle({ score, tier, size = 180, isArabic = false, hideNumber = false }) {
     const p = usePalette();
     const reduced = usePrefersReducedMotion();
     const colors = p.risk[tier];
@@ -307,9 +311,13 @@ function ScoreCircle({ score, tier, size = 180, isArabic = false }) {
     }, [score, reduced]);
 
     const offset = circumference - (progress / 100) * circumference;
-    const label = isArabic
-        ? `درجة المخاطر ${score} من 100`
-        : `Risk score ${score} out of 100`;
+    const label = hideNumber
+        ? isArabic
+            ? "تصنيف المخاطر" // [AR review pending]
+            : "Risk category"
+        : isArabic
+            ? `درجة المخاطر ${score} من 100`
+            : `Risk score ${score} out of 100`;
 
     return (
         <div style={{ position: "relative", width: size, height: size }} role="img" aria-label={label}>
@@ -343,8 +351,14 @@ function ScoreCircle({ score, tier, size = 180, isArabic = false }) {
                     justifyContent: "center"
                 }}
             >
-                <span style={{ fontSize: `${2.2 * scale}rem`, fontWeight: 800, color: p.heading }}>{score}</span>
-                <span style={{ fontSize: `${Math.max(0.85 * scale, 0.7)}rem`, color: p.body }}>/ 100</span>
+                {hideNumber ? (
+                    <span style={{ fontSize: `${2 * scale}rem`, fontWeight: 800, color: colors.text }}>{TIER_SYMBOL[tier]}</span>
+                ) : (
+                    <>
+                        <span style={{ fontSize: `${2.2 * scale}rem`, fontWeight: 800, color: p.heading }}>{score}</span>
+                        <span style={{ fontSize: `${Math.max(0.85 * scale, 0.7)}rem`, color: p.body }}>/ 100</span>
+                    </>
+                )}
             </div>
         </div>
     );
@@ -789,6 +803,10 @@ function ResultsContent() {
     const [tourStep, setTourStep] = useState(-1); // -1 = not running
     const [liveStatus, setLiveStatus] = useState("");
 
+    // NEW_HOME: category only, age note, characters analyzed, re-run when older than the cache window.
+    // With the flag off none of these show and the page is exactly as before.
+    const { newHome, cacheTtlDays } = useFlags();
+
     // Phase 2 (REUSE_CACHED): re-run a result that was served from the cache
     const [rerunning, setRerunning] = useState(false);
     const [rerunError, setRerunError] = useState("");
@@ -1127,6 +1145,28 @@ function ResultsContent() {
         })()
         : undefined;
 
+    // NEW_HOME: age facts, near-boundary note and characters analyzed. Display only: no label or score is changed.
+    const age = newHome && result
+        ? resultAge({ analyzedAt: result.analyzedAt || result.checkedAt || result.createdAt, ttlDays: cacheTtlDays })
+        : null;
+    const nearHigh = newHome && result ? isNearHighBoundary(result.riskScore, result.riskLevel) : false;
+    const coverage =
+        newHome && result?.coverage &&
+        Number.isFinite(Number(result.coverage.analyzedChars)) &&
+        Number.isFinite(Number(result.coverage.totalChars))
+            ? result.coverage
+            : null;
+    // Re-run needs a real web address: screenshot and pasted-text results have none
+    const canRerunUrl = Boolean(result?.url) && /^https?:\/\//i.test(String(result.url));
+    const ageText = !age?.known
+        ? ""
+        : age.days === 0
+            ? t("This analysis was made today.", "أُجري هذا التحليل اليوم.") // [AR review pending]
+            : t(
+                `This analysis is ${age.days} ${age.days === 1 ? "day" : "days"} old.`,
+                `عمر هذا التحليل ${age.days} يوم.` // [AR review pending]
+            );
+
     const tourSteps = [
         {
             id: "tour-score",
@@ -1244,26 +1284,27 @@ function ResultsContent() {
                             </p>
                         )}
 
-                        {result && checkedDate && !result.analyzedAt && (
+                        {!newHome && result && checkedDate && !result.analyzedAt && (
                             <p style={{ margin: "0 auto 16px", color: p.body, fontSize: "0.85rem" }}>
                                 {t("Last checked", "آخر فحص")}:{" "}
                                 <time dateTime={checkedIso}>{checkedDate}</time>
                             </p>
                         )}
                         {/* Result cache (record has analyzedAt only when the cache flag was on): date + where it came from */}
-                        {result && checkedDate && result.analyzedAt && (
+                        {!newHome && result && checkedDate && result.analyzedAt && (
                             <p style={{ margin: "0 auto 16px", color: p.body, fontSize: "0.85rem" }}>
-                                {t("Analyzed on", "تم التحليل في")}{" "} {/* [AR review pending] */}
+                                {t("Analyzed on", "تم التحليل في")}{" "} {/*  */}
                                 <time dateTime={checkedIso}>{checkedDate}</time>
                                 {" · "}
                                 {result.fromCache
-                                    ? t("Served from the cache", "نتيجة محفوظة مسبقًا") /* [AR review pending] */
-                                    : t("New analysis", "تحليل جديد") /* [AR review pending] */}
+                                    ? t("Served from the cache", "نتيجة محفوظة مسبقًا") /*  */
+                                    : t("New analysis", "تحليل جديد") /*  */}
                             </p>
                         )}
 
                         {/* Phase 2, REUSE_CACHED: a result reused from the cache. The URL shown above is the one the visitor typed. */}
-                        {result && result.reusedCached && (
+                        {/* NEW_HOME replaces this block with the age rules below (re-run only when older than the cache window) */}
+                        {!newHome && result && result.reusedCached && (
                             <div
                                 role="status"
                                 style={{
@@ -1279,7 +1320,7 @@ function ResultsContent() {
                                 <p style={{ margin: "0 0 10px" }}>
                                     {t(
                                         `This result is from ${checkedDate}. Policies can change. Re-run the analysis for the latest version.`,
-                                        `هذه النتيجة بتاريخ ${checkedDate}. قد تتغير السياسات. أعد تشغيل التحليل للحصول على أحدث نسخة.` // [AR review pending]
+                                        `هذه النتيجة بتاريخ ${checkedDate}. قد تتغير السياسات. أعد تشغيل التحليل للحصول على أحدث نسخة.` // 
                                     )}
                                 </p>
                                 <button
@@ -1289,11 +1330,107 @@ function ResultsContent() {
                                     style={{ ...pillButton, cursor: rerunning ? "wait" : "pointer" }}
                                 >
                                     {rerunning
-                                        ? t("Re-running...", "جارٍ إعادة التحليل...") /* [AR review pending] */
-                                        : t("Re-run analysis", "إعادة التحليل") /* [AR review pending] */}
+                                        ? t("Re-running...", "جارٍ إعادة التحليل...") /*  */
+                                        : t("Re-run analysis", "إعادة التحليل") /*  */}
                                 </button>
                                 {rerunError && (
                                     <p role="alert" style={{ margin: "10px 0 0" }}>{rerunError}</p>
+                                )}
+                            </div>
+                        )}
+
+                        {/* NEW_HOME: date, age, near-boundary note, characters analyzed, and the re-run rule.
+                            Display only: the label and the score are never changed here. */}
+                        {newHome && result && (
+                            <div style={{ margin: "0 auto 16px", maxWidth: 560, display: "flex", flexDirection: "column", gap: 10 }}>
+                                {checkedDate && (
+                                    <p style={{ margin: 0, color: p.body, fontSize: "0.85rem", textAlign: "center" }}>
+                                        {t("Analyzed on", "تم التحليل في")}{" "}
+                                        <time dateTime={checkedIso}>{checkedDate}</time>
+                                        {ageText && <> · {ageText}</>}
+                                    </p>
+                                )}
+
+                                {age?.isOld && (
+                                    <p
+                                        role="status"
+                                        style={{
+                                            margin: 0,
+                                            padding: "12px 14px",
+                                            borderRadius: 10,
+                                            background: p.risk.high.bg,
+                                            color: p.risk.high.text,
+                                            ...borders(p.risk.high.ring, 1.5),
+                                            fontWeight: 700,
+                                            fontSize: "0.9rem",
+                                            lineHeight: 1.6
+                                        }}
+                                    >
+                                        {t(
+                                            "This is an old result. The policy may have changed since it was analyzed.",
+                                            "هذه نتيجة قديمة. قد تكون السياسة تغيّرت منذ تحليلها." // [AR review pending]
+                                        )}
+                                    </p>
+                                )}
+
+                                {nearHigh && (
+                                    <p
+                                        role="note"
+                                        style={{
+                                            margin: 0,
+                                            padding: "8px 12px",
+                                            borderRadius: 10,
+                                            background: p.risk.moderate.bg,
+                                            color: p.risk.moderate.text,
+                                            fontSize: "0.85rem",
+                                            textAlign: "center"
+                                        }}
+                                    >
+                                        {t(
+                                            "This result is close to the High Risk boundary.",
+                                            "هذه النتيجة قريبة من حد الخطورة العالية." // [AR review pending]
+                                        )}
+                                    </p>
+                                )}
+
+                                {coverage && (
+                                    <p style={{ margin: 0, color: p.body, fontSize: "0.85rem", textAlign: "center" }}>
+                                        {t(
+                                            `Analyzed ${Number(coverage.analyzedChars).toLocaleString("en-US")} of ${Number(coverage.totalChars).toLocaleString("en-US")} characters.`,
+                                            `تم تحليل ${Number(coverage.analyzedChars).toLocaleString("ar-SA")} من ${Number(coverage.totalChars).toLocaleString("ar-SA")} حرفًا.` // [AR review pending]
+                                        )}
+                                    </p>
+                                )}
+                                {/* Re-run: only when the result is older than the cache window, and only for a web address */}
+                                {age?.canRerun && canRerunUrl && (
+                                    <div
+                                        style={{
+                                            padding: "10px 12px",
+                                            borderRadius: 10,
+                                            background: p.risk.moderate.bg,
+                                            color: p.risk.moderate.text,
+                                            fontSize: "0.85rem",
+                                            textAlign: "center"
+                                        }}
+                                    >
+                                        <p style={{ margin: "0 0 10px" }}>
+                                            {t(
+                                                `This result is older than ${cacheTtlDays} days. Policies can change. Re-run the analysis for the latest version.`,
+                                                `عمر هذه النتيجة أكثر من ${cacheTtlDays} أيام. قد تتغير السياسات. أعد تشغيل التحليل للحصول على أحدث نسخة.` // [AR review pending]
+                                            )}
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={handleRerun}
+                                            disabled={rerunning}
+                                            style={{ ...pillButton, cursor: rerunning ? "wait" : "pointer" }}
+                                        >
+                                            {rerunning
+                                                ? t("Re-running...", "جارٍ إعادة التحليل...")
+                                                : t("Re-run analysis", "إعادة التحليل")}
+                                        </button>
+                                        {rerunError && <p role="alert" style={{ margin: "10px 0 0" }}>{rerunError}</p>}
+                                    </div>
                                 )}
                             </div>
                         )}
@@ -1314,7 +1451,7 @@ function ResultsContent() {
                             >
                                 {t(
                                     "Results may not reflect the current policy. Re-run the analysis for the latest version.",
-                                    "قد لا تعكس النتائج السياسة الحالية. أعد تشغيل التحليل للحصول على أحدث نسخة." // [AR review pending]
+                                    "قد لا تعكس النتائج السياسة الحالية. أعد تشغيل التحليل للحصول على أحدث نسخة." // 
                                 )}
                             </p>
                         )}
@@ -1408,7 +1545,7 @@ function ResultsContent() {
                                 {/* Score */}
                                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 32 }}>
                                     <div id="tour-score" style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: 8, ...highlight("tour-score") }}>
-                                        <ScoreCircle score={result.riskScore} tier={tier} isArabic={isArabic} />
+                                        <ScoreCircle score={result.riskScore} tier={tier} isArabic={isArabic} hideNumber={newHome} />
                                         <span
                                             style={{
                                                 marginTop: 16,
@@ -1543,7 +1680,7 @@ function ResultsContent() {
                                             ? "كل نتيجة مرتبطة بنص حرفي من السياسة. فقط النتائج المؤكدة بدليل نصي تُحتسب في درجة المخاطر."
                                             : "Each finding is linked to a word-for-word quote from the policy. Only findings verified against the text count toward the risk score."}
                                     </p>
-{(result.resolvedUrl || result.url) && (<p style={{ margin: "0 0 16px", color: p.body }}>{isArabic ? "المصدر الذي تم تحليله: " : "Analyzed source: "}<a href={result.resolvedUrl || result.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline", wordBreak: "break-all" }}>{result.resolvedUrl || result.url}</a></p>)}
+                                    {(result.resolvedUrl || result.url) && (<p style={{ margin: "0 0 16px", color: p.body }}>{isArabic ? "المصدر الذي تم تحليله: " : "Analyzed source: "}<a href={result.resolvedUrl || result.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline", wordBreak: "break-all" }}>{result.resolvedUrl || result.url}</a></p>)}
                                     {/* Visible method (record has analysisMethod only when the show-method flag was on) */}
                                     {result.analysisMethod === "keyword" && (
                                         <p
@@ -1560,11 +1697,11 @@ function ResultsContent() {
                                             {result.analysisReason === "rate_limited"
                                                 ? t(
                                                     "This result used a basic check because the AI service was busy.",
-                                                    "استخدمت هذه النتيجة فحصًا أساسيًا لأن خدمة الذكاء الاصطناعي كانت مشغولة." // [AR review pending]
+                                                    "استخدمت هذه النتيجة فحصًا أساسيًا لأن خدمة الذكاء الاصطناعي كانت مشغولة." // 
                                                 )
                                                 : t(
                                                     "This result used a basic check because the AI service was unavailable.",
-                                                    "استخدمت هذه النتيجة فحصًا أساسيًا لأن خدمة الذكاء الاصطناعي لم تكن متاحة." // [AR review pending]
+                                                    "استخدمت هذه النتيجة فحصًا أساسيًا لأن خدمة الذكاء الاصطناعي لم تكن متاحة." // 
                                                 )}
                                         </p>
                                     )}
