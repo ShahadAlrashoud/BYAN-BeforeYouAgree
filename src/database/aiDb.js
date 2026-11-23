@@ -134,6 +134,17 @@ export async function takeAnalysisSlot(key, perMinute, perHour) {
     return { ok: true, retryAfter: 0 };
 }
 
+// Daily allowance (DAILY_ALLOWANCE flag): "at most `max` real analyses per `windowSeconds`" for one hashed key.
+// Records the event when allowed. Uses the same hashed-IP table as the limits above, under its own kind, so it
+// never mixes with the per-minute and per-hour limits. The count and the insert are two statements, so two
+// requests at the very same moment can both pass: acceptable for a daily allowance.
+export async function takeDailyAllowance(key, max, windowSeconds) {
+    const { count, retryAfter } = await countEvents(key, "daily_allowance", windowSeconds);
+    if (count >= max) return { ok: false, retryAfter };
+    await recordEvent(key, "daily_allowance");
+    return { ok: true, retryAfter: 0 };
+}
+
 // Cache hits are recorded under their own kind, so they never count toward the AI limits above.
 export async function noteCacheServe(key) {
     await recordEvent(key, "analysis_cache");
