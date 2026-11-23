@@ -1,6 +1,6 @@
 // All visible strings for the /popular page. English (en) and Arabic (ar).
 // Wording rule: neutral and factual. Never "popular", "most trusted" or "best". A count says nothing about trust.
-// [AR review pending] every Arabic string in this file must be approved by a native speaker.
+//  every Arabic string in this file must be approved by a native speaker.
 // The risk level names reuse the Arabic labels already live on the How It Works page.
 export const popularStrings = {
     en: {
@@ -18,7 +18,7 @@ export const popularStrings = {
         levels: { safe: "Safe", moderate: "Moderate Risk", high: "High Risk" },
     },
     ar: {
-        // [AR review pending]
+        // 
         metaTitle: "مواقع تم تحليلها 5 مرات على الأقل | بيان",
         metaDescription: "مواقع تم تحليل سياساتها 5 مرات على الأقل خلال آخر 30 يومًا.",
         title: "مواقع تم تحليلها 5 مرات على الأقل",
