@@ -1,5 +1,5 @@
 // Settings strings and the header language-control strings.
-// [AR review pending] all "ar" values in this file.
+//  all "ar" values in this file.
 export const settings = {
     en: {
         settingsIntro: "These preferences are saved to your account on every device.",
