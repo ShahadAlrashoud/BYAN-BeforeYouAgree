@@ -126,9 +126,18 @@ async function runList() {
         main.includes("phase2-test-a.example") && /phase2-test-a\.example[\s\S]*?analyzed 5 times/.test(main));
     check("1 event: not listed", !main.includes("phase2-test-b.example"));
     check("5 events older than 30 days: not listed", !main.includes("phase2-test-c.example"));
-    const dCount = (main.match(/phase2-test-d\.example/g) || []).length;
+    // Count rendered list entries (<li>) whose heading is exactly the test domain. The domain text inside link
+    // targets (the result id in href) is removed first, so it cannot be counted as an entry.
+    const listItems = [...main.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/g)].map((m) => m[1].replace(/href="[^"]*"/g, ""));
+    const entriesFor = (domain) =>
+        listItems.filter((li) => {
+            const h = li.match(/<h2\b[^>]*>([\s\S]*?)<\/h2>/);
+            return Boolean(h) && h[1].replace(/<[^>]+>/g, "").trim() === domain;
+        });
+    const dEntries = entriesFor("phase2-test-d.example");
     check("two URL keys on one domain: one row, count of the busiest key (6)",
-        dCount === 1 && /phase2-test-d\.example[\s\S]*?analyzed 6 times/.test(main), `rows for that domain: ${dCount}`);
+        dEntries.length === 1 && /analyzed 6 times/.test(dEntries[0]),
+        `list entries for that domain: ${dEntries.length}, list entries on page: ${listItems.length}`);
 
     // Rendered output scan. Link targets are removed first (the result link has an id and from=popular).
     const text = main.replace(/href="[^"]*"/g, "");

@@ -86,11 +86,19 @@ async function eventCount(p, source) {
 
 await new Promise((r) => server.listen(PORT, r));
 console.log(`mode=${mode} TEST_PATH=${path}`);
+// Diagnostic: the origin only (scheme, host, port), so no path or query string is ever printed
+try {
+    console.log(`base=${new URL(base).origin}`);
+} catch {
+    console.log("base=(not a valid URL)");
+}
 
 try {
     if (mode === "cache") {
         const out = [];
         for (let i = 0; i < 5; i++) out.push(await analyze(path));
+        // Diagnostic: the HTTP status of each request, on one line, before the checks
+        console.log(`statuses: ${out.map((o) => o.status).join(",")}`);
         check("all 5 requests succeeded", out.every((o) => o.status === 200 && o.body.id));
         check("model called exactly once", modelCalls === 1, `model calls: ${modelCalls}`);
         check("first is new, next four from cache",
