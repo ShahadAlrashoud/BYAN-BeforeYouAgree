@@ -8,7 +8,8 @@ import Footer from "./components/Footer";
 import HelpButton from "./components/HelpButton";
 import { getRequestLang } from "@/lib/seo";
 import { OG_IMAGE } from "@/lib/site";
-import { aiFlags } from "@/lib/aiConfig";
+import { aiFlags, aiLimits } from "@/lib/aiConfig";
+import FlagsProvider from "./components/FlagsProvider";
 
 const body = IBM_Plex_Sans_Arabic({
   subsets: ["arabic", "latin"],
@@ -78,11 +79,21 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       </head>
       <body>
         <Providers initialLang={lang}>
-          <Header />
-          <main id="main">{children}</main>
-          {/* The /popular link exists only while POPULAR_PAGE is on (read per request) */}
-          <Footer showPopular={aiFlags().popularPage} />
-          <HelpButton />
+          {/* Flags that client pages need (/analyze, results), read per request and passed down. Defaults: off. */}
+          <FlagsProvider
+            value={{
+              newHome: aiFlags().newHome,
+              dailyAllowance: aiFlags().dailyAllowance,
+              cacheTtlDays: aiLimits().cacheTtlDays,
+            }}
+          >
+            {/* NEW_HOME: one menu button at every width. POPULAR_PAGE adds "Analyzed websites". Both read per request. */}
+            <Header newHome={aiFlags().newHome} showPopular={aiFlags().popularPage} />
+            <main id="main">{children}</main>
+            {/* The /popular link exists only while POPULAR_PAGE is on (read per request) */}
+            <Footer showPopular={aiFlags().popularPage} />
+            <HelpButton />
+          </FlagsProvider>
         </Providers>
       </body>
     </html>
