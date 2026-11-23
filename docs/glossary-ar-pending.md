@@ -1,10 +1,10 @@
 # Glossary: Arabic drafts awaiting native-speaker review
 
-**Status: [AR review pending]. Do NOT publish.**
+**Status: . Do NOT publish.**
 
 These drafts are deliberately kept out of `src/data/glossary.js`, because that file is bundled
 into the browser. Until a native speaker approves them, the Arabic glossary shows the English
-text with an "[AR review pending]" tag for these terms.
+text with an "" tag for these terms.
 
 ## How to publish an approved entry
 In `src/data/glossary.js`, for the matching entry:
