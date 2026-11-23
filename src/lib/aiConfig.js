@@ -49,8 +49,25 @@ export function aiFlags() {
         // Phase 2: a result served from the cache shows its date, the "policies can change" notice and a
         // "Re-run analysis" button, and the re-run request is honoured. Needs FLAG_RESULT_CACHE.
         reuseCached: isOn("REUSE_CACHED"),
+        // Home brief: the welcome homepage, the demo, the homepage popular cards, the new header (one menu
+        // button) AND every results-page change (category only, age note, characters analyzed, re-run rule).
+        // Off: all of these stay exactly as they were.
+        newHome: isOn("NEW_HOME"),
+        // Home brief: the print-friendly view (saved as PDF by the browser) and the public share page.
+        exportShare: isOn("EXPORT_SHARE"),
+        // Home brief: 1 real analysis per visitor per 24 hours (hashed IP). Cache hits and the demo do not count.
+        dailyAllowance: isOn("DAILY_ALLOWANCE"),
     };
 }
+
+// The daily allowance rule (fixed, not configurable): each visitor gets ALLOWANCE_PER_DAY real analyses per
+// ALLOWANCE_WINDOW_SECONDS. It uses the existing hashed-IP counter (rate_events), so no new table is needed.
+// Shared networks share one allowance (accepted by the owner). Compare uses the same counter.
+export const ALLOWANCE_PER_DAY = 1;
+export const ALLOWANCE_WINDOW_SECONDS = 24 * 60 * 60;
+
+// DAILY_TOKEN_BUDGET is NOT set in code. The owner sets it in the hosting environment (Vercel), for example
+// 100000, and can raise it for an event day. See DEFAULT_DAILY_TOKEN_BUDGET above (null = no budget enforced).
 
 // The /popular page rule (fixed, not configurable): an entry needs at least POPULAR_MIN_EVENTS rows in
 // analysis_events within the last POPULAR_WINDOW_DAYS days (cache hits included); the list shows the top POPULAR_LIMIT.
