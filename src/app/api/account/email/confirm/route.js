@@ -40,7 +40,7 @@ export async function POST(request) {
 
     // Notice to the OLD address, now that the change is complete
     const isAr = change.lang === "ar";
-    // [AR review pending] Arabic email text below
+    //  Arabic email text below
     await sendMail({
         to: oldEmail,
         subject: isAr ? "تم تغيير البريد الإلكتروني لحسابك في بيان" : "The email address on your BYAN account was changed",
