@@ -115,7 +115,7 @@ const content: Record<"en" | "ar", Content> = {
         tourLink: "Take a quick tour",
 
         sampleLabel: "Sample",
-        sampleNote: "Illustrative example, not a real service. A Safe result is not a legal guarantee.",
+        sampleNote: "Illustrative example, not a real service. A Low result is not a legal guarantee.",
         sampleTitle: "Sample report",
         sampleScoreLabel: "Risk score",
         sampleLevel: "High Risk",
@@ -141,8 +141,8 @@ const content: Record<"en" | "ar", Content> = {
         ],
 
         legendTitle: "Know the risk at a glance",
-        legendText: "Every policy is summarized in a single risk score from 0 to 100, classified into one of three levels: 0–29 Safe, 30–59 Moderate Risk, 60–100 High Risk. A higher score means higher risk.",
-        legend: ["Safe", "Moderate Risk", "High Risk"],
+        legendText: "Every policy is summarized in a single risk score from 0 to 100, classified into one of three levels: 0–29 Low, 30–59 Moderate Risk, 60–100 High Risk. A higher score means higher risk.",
+        legend: ["Low", "Moderate Risk", "High Risk"],
 
         disclaimerTitle: "Disclaimer",
         disclaimerText:
@@ -168,7 +168,7 @@ const content: Record<"en" | "ar", Content> = {
         tourLink: "خذ جولة سريعة",
 
         sampleLabel: "نموذج",
-        sampleNote: "مثال توضيحي وليس خدمة حقيقية، ونتيجة آمن لا تعني ضماناً قانونياً.",
+        sampleNote: "مثال توضيحي وليس خدمة حقيقية، ونتيجة منخفض لا تعني ضماناً قانونياً.", // [AR review pending]
         sampleTitle: "تقرير نموذجي",
         sampleScoreLabel: "درجة المخاطر",
         sampleLevel: "خطر مرتفع",
@@ -195,8 +195,8 @@ const content: Record<"en" | "ar", Content> = {
 
         legendTitle: "اعرف مستوى الخطر بنظرة واحدة",
         legendText:
-            "يتم تلخيص كل سياسة في درجة مخاطر واحدة من 0 إلى 100، وتُصنَّف ضمن واحد من ثلاثة مستويات: من 0 إلى 29 آمن، ومن 30 إلى 59 خطر متوسط، ومن 60 إلى 100 خطر مرتفع، وكلما زادت الدرجة زاد الخطر.",
-        legend: ["آمن", "خطر متوسط", "خطر مرتفع"],
+            "يتم تلخيص كل سياسة في درجة مخاطر واحدة من 0 إلى 100، وتُصنَّف ضمن واحد من ثلاثة مستويات: من 0 إلى 29 منخفض، ومن 30 إلى 59 خطر متوسط، ومن 60 إلى 100 خطر مرتفع، وكلما زادت الدرجة زاد الخطر.", // [AR review pending]
+        legend: ["منخفض", "خطر متوسط", "خطر مرتفع"], // [AR review pending]
 
         disclaimerTitle: "تنبيه",
         disclaimerText:

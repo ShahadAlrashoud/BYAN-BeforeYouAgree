@@ -11,7 +11,7 @@ export const welcomeStrings = {
         steps: [
             "Give BYAN a link to a policy page.",
             "BYAN finds the risky clauses and checks each one against the original text.",
-            "You get a plain-language summary and a risk category: Safe, Moderate Risk or High Risk.",
+            "You get a plain-language summary and a risk category: Low, Moderate Risk or High Risk.",
         ],
         allowance: "Each visitor can run one new analysis per day. Results BYAN has already analyzed recently open without using it. No sign-up is needed.",
         tryIt: "Try it",
@@ -46,7 +46,7 @@ export const welcomeStrings = {
         steps: [
             "أعطِ بيان رابط صفحة السياسة.",
             "يجد بيان البنود الخطرة ويتحقق من كل بند مقابل النص الأصلي.",
-            "تحصل على ملخص مبسّط وتصنيف للمخاطر: آمن أو متوسط الخطورة أو عالي الخطورة.",
+            "تحصل على ملخص مبسّط وتصنيف للمخاطر: منخفض أو متوسط الخطورة أو عالي الخطورة.", // [AR review pending]
         ],
         allowance: "يمكن لكل زائر إجراء تحليل جديد واحد في اليوم. النتائج التي حللها بيان مؤخرًا تُفتح دون استهلاكه. لا حاجة إلى التسجيل.",
         tryIt: "جرّب الآن",

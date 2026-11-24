@@ -8,7 +8,7 @@ import { ACCOUNT_V2 } from "@/lib/flags";
 import { readResultLang } from "@/lib/prefs";
 import TermsBackground from "../components/TermsBackground";
 import { useFlags } from "../components/FlagsProvider";
-import { isNearHighBoundary, resultAge } from "@/lib/resultDisplay";
+import { isNearHighBoundary, resultAge, displayRiskLabel } from "@/lib/resultDisplay";
 
 /* ---------- Risk colors (light + dark) ---------- */
 // Light-mode text colors darkened to reach 4.5:1 contrast on their backgrounds
@@ -410,7 +410,7 @@ function SiteColumn({ data, tier, label, host, isArabic }) {
                 }}
             >
                 <span aria-hidden="true">{TIER_SYMBOL[tier]} </span>
-                {data.riskLevel}
+                {displayRiskLabel(data.riskLevel)}
             </span>
         </div>
     );
@@ -1559,7 +1559,7 @@ function ResultsContent() {
                                             }}
                                         >
                                             <span aria-hidden="true">{TIER_SYMBOL[tier]} </span>
-                                            {result.riskLevel}
+                                            {displayRiskLabel(result.riskLevel)}
                                         </span>
                                     </div>
 

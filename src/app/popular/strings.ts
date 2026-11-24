@@ -15,7 +15,7 @@ export const popularStrings = {
         score: "Risk score",
         lastAnalyzed: "Last analyzed",
         view: "View result",
-        levels: { safe: "Safe", moderate: "Moderate Risk", high: "High Risk" },
+        levels: { safe: "Low", moderate: "Moderate Risk", high: "High Risk" },
     },
     ar: {
         // 
@@ -30,6 +30,6 @@ export const popularStrings = {
         score: "درجة المخاطر",
         lastAnalyzed: "آخر تحليل",
         view: "عرض النتيجة",
-        levels: { safe: "آمن", moderate: "متوسط الخطورة", high: "عالي الخطورة" },
+        levels: { safe: "منخفض", moderate: "متوسط الخطورة", high: "عالي الخطورة" }, // "منخفض" [AR review pending]
     },
 } as const;

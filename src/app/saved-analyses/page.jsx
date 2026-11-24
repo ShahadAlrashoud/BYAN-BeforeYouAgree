@@ -37,7 +37,7 @@ const content = {
     severity: "severity",
     riskScore: "Risk score",
     notAvailable: "not available",
-    tiers: { safe: "Safe", moderate: "Moderate", high: "High", unknown: "Unknown" },
+    tiers: { safe: "Low", moderate: "Moderate", high: "High", unknown: "Unknown" },
     severities: { high: "High", medium: "Medium", low: "Low" },
   },
   ar: {
@@ -71,7 +71,7 @@ const content = {
     severity: "الخطورة",
     riskScore: "درجة الخطورة",
     notAvailable: "غير متاحة",
-    tiers: { safe: "آمن", moderate: "متوسط", high: "عالٍ", unknown: "غير معروف" },
+    tiers: { safe: "منخفض", moderate: "متوسط", high: "عالٍ", unknown: "غير معروف" }, // "منخفض" [AR review pending]
     severities: { high: "عالية", medium: "متوسطة", low: "منخفضة" },
   },
 };

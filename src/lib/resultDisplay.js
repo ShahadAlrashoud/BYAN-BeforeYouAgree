@@ -18,6 +18,16 @@ export function riskTier(riskLevel) {
     return "moderate";
 }
 
+// The label SHOWN for a stored risk level. Display only: the stored value ("Safe", "Moderate Risk", "High Risk")
+// is never changed. Stored "Safe" is shown as "Low".
+const DISPLAY_LABEL = {
+    en: { safe: "Low", moderate: "Moderate Risk", high: "High Risk" },
+    ar: { safe: "منخفض", moderate: "متوسط الخطورة", high: "عالي الخطورة" }, // "منخفض" is [AR review pending]
+};
+export function displayRiskLabel(riskLevel, lang = "en") {
+    return DISPLAY_LABEL[lang === "ar" ? "ar" : "en"][riskTier(riskLevel)];
+}
+
 // True for a Moderate Risk result whose score is within NEAR_HIGH_POINTS below the High boundary.
 export function isNearHighBoundary(riskScore, riskLevel) {
     const n = Number(riskScore);
