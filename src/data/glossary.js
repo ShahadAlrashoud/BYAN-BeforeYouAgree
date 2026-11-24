@@ -11,7 +11,7 @@ export const GLOSSARY = [
         id: "arbitration",
         related: ["class-action-waiver", "governing-law"],
         match: { en: ["arbitration"], ar: ["التحكيم"] },
-        en: { term: "Arbitration", def: "A private process where a neutral person, not a court, settles disputes. You usually give up the right to sue in court.", example: "“Any dispute will be resolved through binding arbitration.”" },
+        en: { term: "Arbitration", def: "A private process where a neutral person, not a court, settles disputes. The arbitrator is selected as stated in the policy. You give up the right to sue in court.", example: "“Any dispute will be resolved through binding arbitration.”" },
         ar: { term: "التحكيم", def: "عملية خاصة يفصل فيها طرف محايد في النزاع بدلاً من المحكمة. غالباً تتنازل فيها عن حقك في رفع دعوى أمام القضاء.", example: "«تُحل أي نزاعات عن طريق التحكيم الملزم.»" },
     },
     {
@@ -25,7 +25,7 @@ export const GLOSSARY = [
         id: "cookies",
         related: ["personal-data", "third-party-sharing"],
         match: { en: ["cookies", "trackers"], ar: ["ملفات تعريف الارتباط", "الكوكيز"] },
-        en: { term: "Cookies", def: "Small files saved in your browser that remember you, keep you logged in, or track your activity." },
+        en: { term: "Cookies", def: "Small files saved in your browser. Necessary cookies remember you and keep you logged in; tracking cookies follow your activity across sites." },
         ar: { term: "ملفات تعريف الارتباط (الكوكيز)", def: "ملفات صغيرة تُحفظ في متصفحك لتتذكرك أو تُبقيك مسجلاً للدخول أو تتبع نشاطك." },
     },
     {
@@ -56,14 +56,14 @@ export const GLOSSARY = [
         id: "data-retention",
         related: ["personal-data", "data-breach"],
         match: { en: ["retain", "retention"], ar: ["الاحتفاظ بالبيانات", "نحتفظ"] },
-        en: { term: "Data retention", def: "How long a company keeps your data before deleting it.", example: "“We retain your information for as long as necessary.” (vague: no fixed period)" },
+        en: { term: "Data retention", def: "How long a company keeps your data before deleting it. Some policies give no fixed period.", example: "“We retain your information for as long as necessary.” (vague: no fixed period)" },
         ar: { term: "الاحتفاظ بالبيانات", def: "المدة التي تحتفظ فيها الشركة ببياناتك قبل حذفها.", example: "«نحتفظ بمعلوماتك للمدة اللازمة.» (غامض: لا توجد مدة محددة)" },
     },
     {
         id: "indemnification",
         related: ["limitation-of-liability"],
         match: { en: ["indemnify", "indemnification"], ar: ["التعويض"] },
-        en: { term: "Indemnification", def: "A promise to cover the company's losses or legal costs if your actions cause a claim against it.", example: "“You agree to indemnify us against any claims arising from your content.”" },
+        en: { term: "Indemnification", def: "A promise to compensate the company for its losses or legal costs if your actions lead to a claim against it.", example: "“You agree to indemnify us against any claims arising from your content.”" },
         ar: { term: "التعويض", def: "تعهد بتغطية خسائر الشركة أو تكاليفها القانونية إذا تسببت أفعالك في مطالبة ضدها.", example: "«توافق على تعويضنا عن أي مطالبات ناشئة عن محتواك.»" },
     },
     {
@@ -130,7 +130,7 @@ export const GLOSSARY = [
             en: "The PDPL gives sensitive data extra protection. Confirm the listed categories with the official text.",
             ar: "يمنح النظام البيانات الحساسة حماية إضافية. يُرجى التأكد من الفئات من النص الرسمي.",
         },
-        en: { term: "Sensitive data", def: "Personal data that could harm you if misused, such as health, religion, biometrics or financial details.", example: "“We may collect biometric information to verify your identity.”" },
+        en: { term: "Sensitive data", def: "Personal data that could harm you if misused, such as health, religion, biometrics or financial details (to be confirmed against the PDPL).", example: "“We may collect biometric information to verify your identity.”" },
         ar: { term: "البيانات الحساسة", def: "بيانات شخصية قد تضرك إذا أُسيء استخدامها، مثل البيانات الصحية أو الدينية أو الحيوية أو المالية.", example: "«قد نجمع بيانات حيوية للتحقق من هويتك.»" },
     },
     {
@@ -149,8 +149,36 @@ export const GLOSSARY = [
         id: "opt-out",
         related: ["third-party-sharing", "automatic-renewal"],
         match: { en: ["opt out", "opt-out"], ar: ["الانسحاب"] },
+        pdplNote: {
+            en: "How the PDPL treats opting out is to be confirmed against the official text.",
+            ar: "طريقة تناول النظام للانسحاب يجب التأكد منها من النص الرسمي.", // [AR review pending]
+        },
         en: { term: "Opt-out", def: "Your ability to say no to something that is on by default, such as marketing or data sharing.", example: "“You may opt out of marketing emails at any time.”" },
         ar: { term: "الانسحاب (Opt-out)", def: "قدرتك على رفض أمر مفعّل افتراضياً، مثل الرسائل التسويقية أو مشاركة البيانات.", example: "«يمكنك الانسحاب من الرسائل التسويقية في أي وقت.»" },
+    },
+    {
+        id: "tracking",
+        arPending: true,
+        related: ["cookies", "third-party-sharing"],
+        match: { en: ["tracking", "trackers"], ar: [] },
+        en: { term: "Tracking", def: "Following your activity across websites or apps.", example: "“We track your activity across sites.”" },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "advertising",
+        arPending: true,
+        related: ["third-party-sharing"],
+        match: { en: ["advertising", "ads"], ar: [] },
+        en: { term: "Advertising", def: "Showing ads based on your data or activity.", example: "“We may show you ads based on your data.”" },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "consent",
+        arPending: true,
+        related: ["opt-out"],
+        match: { en: ["consent"], ar: [] },
+        en: { term: "Consent", def: "Your agreement to a company collecting or using your data.", example: "“By continuing, you consent to our use of cookies.”" },
+        ar: { term: "", def: "" },
     },
     {
         id: "data-broker",
@@ -165,7 +193,7 @@ export const GLOSSARY = [
         arPending: true,
         related: ["personal-data", "cookies"],
         match: { en: ["telemetry"], ar: [] },
-        en: { term: "Telemetry", def: "Automatic data a service collects about how you use its software or device." },
+        en: { term: "Telemetry", def: "Automatic data a service collects about how you use its software or device.", example: "“We collect usage data to improve performance.”" },
         ar: { term: "", def: "" },
     },
     {

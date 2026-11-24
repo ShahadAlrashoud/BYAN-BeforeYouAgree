@@ -6,8 +6,8 @@ import { useTheme } from "../providers";
 import { GLOSSARY, AR_PENDING_TAG, localized } from "@/data/glossary";
 
 const ui = {
-  en: { title: "Glossary", intro: "Common terms you'll meet in Terms of Service and Privacy Policies, explained in plain language.", search: "Search terms...", searchLabel: "Search the glossary", count: (n) => `${n} term${n === 1 ? "" : "s"} shown`, none: "No matching terms.", pdpl: "PDPL", more: "Read more" },
-  ar: { title: "المصطلحات", intro: "مصطلحات شائعة في شروط الخدمة وسياسات الخصوصية، مشروحة بلغة بسيطة.", search: "ابحث في المصطلحات...", searchLabel: "البحث في المصطلحات", count: (n) => `عدد المصطلحات المعروضة: ${n}`, none: "لا توجد مصطلحات مطابقة.", pdpl: "نظام حماية البيانات", more: "اقرأ المزيد" },
+  en: { title: "Glossary", intro: "Common terms you'll meet in Terms of Service and Privacy Policies, explained in plain language.", search: "Search terms...", searchLabel: "Search the glossary", count: (n) => `${n} term${n === 1 ? "" : "s"} shown`, none: "No matching terms.", pdpl: "PDPL", more: "More terms exist beyond those shown here." },
+  ar: { title: "المصطلحات", intro: "مصطلحات شائعة في شروط الخدمة وسياسات الخصوصية، مشروحة بلغة بسيطة.", search: "ابحث في المصطلحات...", searchLabel: "البحث في المصطلحات", count: (n) => `عدد المصطلحات المعروضة: ${n}`, none: "لا توجد مصطلحات مطابقة.", pdpl: "نظام حماية البيانات", more: "توجد مصطلحات أخرى غير المعروضة هنا." /* [AR review pending] */ },
 };
 
 export default function GlossaryClient() {
@@ -59,6 +59,7 @@ export default function GlossaryClient() {
           </div>
         ))}
       </dl>
+      <p style={{ marginTop: "1.5rem", fontSize: 13, color: "inherit", opacity: 0.8 }}>{t.more}</p>
     </div>
   );
 }

@@ -20,7 +20,7 @@ const content = {
     en: {
         tagline: "Before You Agree",
         backLink: "← Back to Homepage",
-        lead: `Every day, we click "I Agree" on Terms of Service and Privacy Policies we never read, not because we don't care, but because they're long, dense, and written in language designed to be skimmed past, not understood.`,
+        lead: `Every day, we click "I Agree" on Terms of Service and Privacy Policies we never read. Terms are often long and dense, which makes them hard to read.`,
         changes: "BYAN changes that.",
         howTitle: "How it works",
         steps: [
@@ -30,23 +30,26 @@ const content = {
             },
             {
                 title: "Get a clear summary",
-                text: `It breaks the text down using natural language processing built for both Arabic and English. In seconds, you get a clear, plain-language summary highlighting what matters most: the potential risks, the fine print worth knowing, and the clauses genuinely in your favor.`
+                text: `It breaks the text down in English or Arabic. In seconds, you get a clear, plain-language summary highlighting what matters most: the potential risks and the fine print worth knowing.`
             },
             {
                 title: "See the Risk Score",
-                text: `Every policy is distilled into a single Risk Score from 0 to 100, placing it into one of three categories: Safe, Moderate Risk, or High Risk, so you can judge a platform's trustworthiness at a glance. Want to weigh your options? BYAN also lets you compare two platforms side by side.`
+                text: `Every policy is placed into one of three categories: Low, Moderate Risk, or High Risk, so you can see how a policy's text compares at a glance. Want to weigh your options? BYAN also lets you compare two platforms side by side.`
             }
         ],
         aboutTitle: "About BYAN",
-        about: `BYAN is built bilingually from the ground up, with analysis grounded in Saudi Arabia's Personal Data Protection Law (PDPL), because digital rights shouldn't be lost in translation. It's designed for everyday users across Saudi Arabia and the Arab world, as well as digital rights advocates, legal educators, and compliance professionals who need a faster, clearer way to evaluate the agreements shaping our digital lives.`,
-        mission: `Our mission is simple: replace blind clicking with conscious consent. Before you agree, know what you're agreeing to.`,
+        about: `BYAN is built bilingually from the ground up, with analysis grounded in Saudi Arabia's Personal Data Protection Law (PDPL). It's designed for everyday users in Saudi Arabia, as well as digital rights advocates, legal educators, and compliance professionals who need a faster, clearer way to evaluate the agreements shaping our digital lives.`,
+        mission: `Our mission is simple: help you understand what you're agreeing to. Before you agree, know what you're agreeing to.`,
+        longPoliciesNote: "Long policies may be only partly analyzed until coverage analysis is complete.",
         teamTitle: "The BYAN Team",
         teamSub: "The people who built BYAN.",
         linkedinLabel: "LinkedIn",
+        privacyLink: "Read BYAN's Privacy Policy",
+        contactLink: "Contact us",
         team: [
-            { name: "Shahad Alrashoud", role: "", linkedin: "" },
-            { name: "Ghadah Almutairi", role: "", linkedin: "" },
-            { name: "Nourah Almudbil", role: "", linkedin: "" }
+            { name: "Shahad Alrashoud", role: "Role to be confirmed", linkedin: "" },
+            { name: "Ghadah Almutairi", role: "Role to be confirmed", linkedin: "" },
+            { name: "Nourah Almudbil", role: "Role to be confirmed", linkedin: "" }
         ] as Person[]
     },
     ar: {
@@ -71,14 +74,17 @@ const content = {
         ],
         aboutTitle: "عن بيان",
         about: `بُني بيان ليكون ثنائي اللغة من الأساس، مع تحليل مستند إلى نظام حماية البيانات الشخصية السعودي (PDPL)، لأن الحقوق الرقمية لا ينبغي أن تضيع في الترجمة. صُمم للمستخدمين في السعودية والعالم العربي، وكذلك للمدافعين عن الحقوق الرقمية، والمعلمين القانونيين، ومتخصصي الامتثال الذين يحتاجون إلى طريقة أسرع وأوضح لتقييم الاتفاقيات التي تشكل حياتنا الرقمية.`,
-        mission: `مهمتنا بسيطة: استبدال النقر الأعمى بموافقة واعية. قبل أن توافق، اعرف على ماذا توافق.`,
+        mission: `مهمتنا بسيطة: ساعد في فهم ما توافق عليه. قبل أن توافق، اعرف على ماذا توافق.`,
+        longPoliciesNote: "قد تُحلل السياسات الطويلة جزئيًا حتى يكتمل تحليل التغطية.", // [AR review pending]
         teamTitle: "فريق بيان",
         teamSub: "الأشخاص الذين بنوا بيان.",
         linkedinLabel: "LinkedIn",
+        privacyLink: "اقرأ سياسة خصوصية بيان", // [AR review pending]
+        contactLink: "تواصل معنا", // [AR review pending]
         team: [
-            { name: "شهد الرشود", role: "", linkedin: "" },
-            { name: "غادة المطيري", role: "", linkedin: "" },
-            { name: "نورة المدبل", role: "", linkedin: "" }
+            { name: "شهد الرشود", role: "Role to be confirmed", linkedin: "" },
+            { name: "غادة المطيري", role: "Role to be confirmed", linkedin: "" },
+            { name: "نورة المدبل", role: "Role to be confirmed", linkedin: "" }
         ] as Person[]
     }
 };
@@ -349,6 +355,17 @@ export default function AboutPage() {
                     >
                         {t.mission}
                     </blockquote>
+                    <p
+                        style={{
+                            margin: "0 0 48px",
+                            color: colors.body,
+                            lineHeight: 1.9,
+                            fontSize: "1rem",
+                            textAlign: align
+                        }}
+                    >
+                        {t.longPoliciesNote}
+                    </p>
                 </div>
 
                 {/* Team */}
@@ -379,6 +396,32 @@ export default function AboutPage() {
                     </div>
                 </section>
 
+                <div style={{ marginTop: 32, textAlign: "center" }}>
+                    <Link
+                        href="/privacy"
+                        style={{
+                            display: "inline-block",
+                            margin: "0 12px",
+                            color: themeColors.accentText,
+                            fontWeight: 600,
+                            textDecoration: "none"
+                        }}
+                    >
+                        {t.privacyLink}
+                    </Link>
+                    <Link
+                        href="/contact"
+                        style={{
+                            display: "inline-block",
+                            margin: "0 12px",
+                            color: themeColors.accentText,
+                            fontWeight: 600,
+                            textDecoration: "none"
+                        }}
+                    >
+                        {t.contactLink}
+                    </Link>
+                </div>
                 <Link
                     href="/"
                     style={{

@@ -10,6 +10,7 @@ type WebsiteResult = {
   riskScore?: number;
   overallRiskScore?: number;
   summary?: string;
+  coverage?: { analyzedChars: number; totalChars: number };
   clauses?: {
     category?: string;
     text?: string;
@@ -41,29 +42,32 @@ const translations = {
     noSummary: "No summary is available.",
     noClauses: "No clause details were returned.",
     risk: "Risk",
-    low: "Low risk",
+    low: "Low",
     medium: "Moderate Risk",
-    high: "High risk",
+    high: "High Risk",
     enterBoth: "Please enter both website URLs.",
     invalid1: "Please enter a valid URL for the first website.",
     invalid2: "Please enter a valid URL for the second website.",
     different: "Please enter two different website URLs.",
     failed: "Unable to compare the websites. Please try again.",
+    helperUrl: "Enter the website address as shown in your browser's address bar.",
+    comparabilityNote: "Policies of different types of services may not be directly comparable.",
+    coverage: (a: number, b: number) => `Read ${a.toLocaleString("en-US")} of ${b.toLocaleString("en-US")} characters.`,
     resultLabel: "Website",
-    secureNote: "BYAN provides informational analysis, not legal advice.",
+    secureNote: "Automated analysis. Not legal advice.",
 
     howTitle: "How to compare",
     howSteps: [
       "Enter the address of the first website.",
       "Enter the address of a second website.",
-      "Press “Compare these two sites” to see scores and flagged clauses side by side.",
+      "Press “Compare these two sites” to compare their risk categories side by side.",
     ],
     useSample: "Fill in the sample pair",
 
-    sampleLabel: "Sample",
+    sampleLabel: "Format example only",
     sampleTitle: "Sample comparison",
     sampleNote:
-      "Illustrative example with fictional services. These are not findings about real websites.",
+      "Format example only unless its weights are shown. Key differences are generated from detected clauses and may not capture the full policy. Illustrative example with fictional services.",
     sampleSites: [
       {
         name: "example-shop.com",
@@ -106,16 +110,19 @@ const translations = {
     noSummary: "لا يتوفر ملخص.",
     noClauses: "لم يتم إرجاع تفاصيل البنود.",
     risk: "المخاطر",
-    low: "مخاطر منخفضة",
+    low: "منخفض", // [AR review pending]
     medium: "مخاطر متوسطة",
-    high: "مخاطر مرتفعة",
+    high: "عالي الخطورة", // [AR review pending]
     enterBoth: "يرجى إدخال رابطَي الموقعين.",
     invalid1: "يرجى إدخال رابط صحيح للموقع الأول.",
     invalid2: "يرجى إدخال رابط صحيح للموقع الثاني.",
     different: "يرجى إدخال رابطين مختلفين.",
     failed: "تعذرت مقارنة الموقعين. حاول مرة أخرى.",
+    helperUrl: "أدخل عنوان الموقع كما يظهر في شريط عناوين المتصفح.", // [AR review pending]
+    comparabilityNote: "قد لا تكون سياسات أنواع الخدمات المختلفة قابلة للمقارنة بشكل مباشر.", // [AR review pending]
+    coverage: (a: number, b: number) => `تمت قراءة ${a.toLocaleString("ar-SA")} من ${b.toLocaleString("ar-SA")} حرفًا.`, // [AR review pending]
     resultLabel: "الموقع",
-    secureNote: "يقدم بيان تحليلاً معلوماتياً ولا يُعد استشارة قانونية.",
+    secureNote: "تحليل آلي. ليس استشارة قانونية.", // [AR review pending]
 
     howTitle: "كيف تقارن",
     howSteps: [
@@ -125,10 +132,10 @@ const translations = {
     ],
     useSample: "املأ الحقلين بالمثال",
 
-    sampleLabel: "نموذج",
+    sampleLabel: "نموذج توضيحي فقط", // [AR review pending]
     sampleTitle: "مقارنة نموذجية",
     sampleNote:
-      "مثال توضيحي لخدمات وهمية، وليست نتائج عن مواقع حقيقية.",
+      "نموذج توضيحي فقط ما دُونت أوزانه. تُنشأ الفروق الجوهرية من البنود المكتشفة وقد لا تشمل السياسة بأكملها. مثال توضيحي لخدمات وهمية، وليست نتائج عن مواقع حقيقية.", // [AR review pending]
     sampleSites: [
       {
         name: "example-shop.com",
@@ -327,6 +334,7 @@ export default function ComparePage() {
       url: full.url || url,
       riskScore: full.riskScore,
       summary: full.summaryEn ?? full.summary,
+      coverage: full.coverage,
       clauses: (full.clauses ?? []).map(
         (c: { category?: string; text?: string; riskWeight?: number }) => ({
           category: c.category,
@@ -426,20 +434,27 @@ export default function ComparePage() {
           }}
         >
           <div>
-            <div style={{ fontSize: 12, color: colors.muted }}>{t.score}</div>
-            <div
-              style={{
-                fontSize: 36,
-                fontWeight: 850,
-                color: level ? level.color : colors.muted,
-                lineHeight: 1.1,
-              }}
-            >
-              {score !== null ? score : "—"}
-              {score !== null && (
-                <span style={{ fontSize: 14, color: colors.muted }}> /100</span>
-              )}
-            </div>
+            {level && (
+              <span
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 99,
+                  background: isDark ? "transparent" : level.background,
+                  border: `1px solid ${level.color}`,
+                  color: level.color,
+                  fontWeight: 700,
+                  fontSize: 13,
+                }}
+              >
+                <span aria-hidden="true">{level.symbol} </span>
+                {level.label}
+              </span>
+            )}
+            {result.coverage && (
+              <p style={{ margin: "6px 0 0", fontSize: 12, color: colors.muted }}>
+                {t.coverage(result.coverage.analyzedChars, result.coverage.totalChars)}
+              </p>
+            )}
           </div>
 
           {level && (
@@ -693,6 +708,7 @@ export default function ComparePage() {
               {error}
             </div>
           )}
+          <p style={{ marginTop: 14, fontSize: 13, color: colors.muted }}>{t.helperUrl}</p>
 
           <button
             type="submit"
@@ -732,7 +748,9 @@ export default function ComparePage() {
         )}
 
         {result1 && result2 ? (
-          <section aria-label={t.differences}>
+          <>
+            <p style={{ marginTop: 18, fontSize: 13, color: colors.muted }}>{t.comparabilityNote}</p>
+            <section aria-label={t.differences}>
             <div
               style={{
                 display: "grid",
@@ -746,6 +764,7 @@ export default function ComparePage() {
               {renderResult(result2, 1)}
             </div>
           </section>
+          </>
         ) : (
           !loading && (
             /* Static sample comparison (shown until a real comparison runs) */
@@ -810,12 +829,6 @@ export default function ComparePage() {
                         {site.name}
                       </h3>
                       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
-                        <div style={{ fontSize: 34, fontWeight: 850, color: lv.color, lineHeight: 1.1 }}>
-                          {isAr ? site.score.toLocaleString("ar-SA") : site.score}
-                          <span style={{ fontSize: 14, color: colors.muted }}>
-                            {" "}/{isAr ? (100).toLocaleString("ar-SA") : 100}
-                          </span>
-                        </div>
                         <span
                           style={{
                             padding: "5px 12px",
