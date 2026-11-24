@@ -74,22 +74,28 @@ export default function TermsBackground() {
 
     const mask = "radial-gradient(ellipse at center, transparent 20%, black 80%)";
 
+    // Shared by both layers so the "I Agree" boxes sit and fade exactly as before
+    const layer = {
+        position: "absolute",
+        inset: 0,
+        overflow: "hidden",
+        pointerEvents: "none",
+        maskImage: mask,
+        WebkitMaskImage: mask,
+    } as const;
+
     return (
         <>
-            {/* Decorative layer: hidden from assistive tech (ticker + "I Agree" boxes) */}
+            {/* Decorative clause text: purely visual, skipped by screen readers */}
             <div
                 aria-hidden="true"
+                role="presentation"
                 dir="ltr"
                 style={{
-                    position: "absolute",
-                    inset: 0,
-                    overflow: "hidden",
-                    pointerEvents: "none",
+                    ...layer,
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-around",
-                    maskImage: mask,
-                    WebkitMaskImage: mask,
                 }}
             >
                 <style>{`
@@ -175,8 +181,11 @@ export default function TermsBackground() {
                         </div>
                     </div>
                 ))}
+            </div>
 
-                {/* Layer 2: drifting "I Agree" checkboxes (decorative) */}
+            {/* "I Agree" boxes: decoration only (not clickable), so screen readers skip them.
+                Same place and look, outside the decorative text container, painted on top as before. */}
+            <div aria-hidden="true" dir="ltr" style={layer}>
                 {CHECKBOXES.map((box, b) => (
                     <div
                         key={b}
