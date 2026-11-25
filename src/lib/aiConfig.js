@@ -11,8 +11,20 @@
 // ---------------------------------------------------------------------------------------------
 // (ANALYSIS_VERSION_TEST exists only so the "version change bypasses the cache" test can run without a code
 // edit. It is ignored when NODE_ENV is "production".)
+// (ANALYSIS_VERSION_TEST exists only so the "version change bypasses the cache" test can run without a code
+// edit. It is ignored when NODE_ENV is "production".)
 export const ANALYSIS_VERSION =
     (process.env.NODE_ENV !== "production" && process.env.ANALYSIS_VERSION_TEST) || "v1";
+
+// Default for DAILY_TOKEN_BUDGET. Left unset (no limit enforced) until the team approves a figure
+// based on the measured usage of one real analysis. The environment variable still overrides it.
+export const DEFAULT_DAILY_TOKEN_BUDGET = null;
+
+// NEW_HOME: welcome homepage, demo example, popular cards on the homepage, and the new header
+export const NEW_HOME = process.env.NEW_HOME === "true";
+
+// Full analysis and popular cards
+export const POPULAR_PAGE = process.env.POPULAR_PAGE === "true";
 
 // Default for DAILY_TOKEN_BUDGET. Left unset (no limit enforced) until the team approves a figure
 // based on the measured usage of one real analysis. The environment variable still overrides it.
@@ -57,8 +69,9 @@ export function aiFlags() {
         exportShare: isOn("EXPORT_SHARE"),
         // Home brief: 1 real analysis per visitor per 24 hours (hashed IP). Cache hits and the demo do not count.
         dailyAllowance: isOn("DAILY_ALLOWANCE"),
-    };
-}
+        // NEW_HOME: welcome homepage, demo, homepage cards, new header (one menu button) AND the results-page changes (category only, age note, characters analyzed, re-run rule). Off: all of these stay exactly as they were.
+        newHome: isOn("NEW_HOME"),
+};
 
 // The daily allowance rule (fixed, not configurable): each visitor gets ALLOWANCE_PER_DAY real analyses per
 // ALLOWANCE_WINDOW_SECONDS. It uses the existing hashed-IP counter (rate_events), so no new table is needed.
@@ -68,6 +81,25 @@ export const ALLOWANCE_WINDOW_SECONDS = 24 * 60 * 60;
 
 // DAILY_TOKEN_BUDGET is NOT set in code. The owner sets it in the hosting environment (Vercel), for example
 // 100000, and can raise it for an event day. See DEFAULT_DAILY_TOKEN_BUDGET above (null = no budget enforced).
+// AI provider: "groq" (default) or "openai". Controls which model endpoint is used.
+// When "groq": uses GROQ_API_KEY and GROQ_DEFAULT_URL.
+// When "openai": uses OPENAI_API_KEY and OPENAI_MODEL (both must be set in the environment).
+export const AI_PROVIDER = process.env.AI_PROVIDER || "groq";
+
+// ---------------------------------------------------------------------------------------------
+// GROQ_DEFAULT_URL: the URL of the Groq API endpoint.
+// GROQ_API_KEY: the API key for Groq (read at call time).
+// OPENAI_API_KEY: the API key for OpenAI (read at call time).
+// OPENAI_MODEL: the model name for OpenAI (read at call time).
+// ---------------------------------------------------------------------------------------------
+// If AI_PROVIDER is "openai", this is the OpenAI model name read from env.
+// Ignored when AI_PROVIDER is "groq".
+export function groqUrl() {
+    if (process.env.AI_PROVIDER === "openai" && process.env.OPENAI_API_URL) {
+        return process.env.OPENAI_API_URL;
+    }
+    return GROQ_DEFAULT_URL;
+}
 
 // The /popular page rule (fixed, not configurable): an entry needs at least POPULAR_MIN_EVENTS rows in
 // analysis_events within the last POPULAR_WINDOW_DAYS days (cache hits included); the list shows the top POPULAR_LIMIT.

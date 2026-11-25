@@ -16,7 +16,7 @@ Every new feature is behind a flag, default off. Nothing in this tracker has bee
 
 | # | Item | Status | Flag (default off) | Notes |
 |---|------|--------|--------------------|-------|
-Gate confirmed by the user before Phase 2: tsc, lint and build passed; the Phase 1 test script passed on the development branch; migrations 002 and 003 were applied to the development branch only. The assistant did not observe these runs itself.
+Gate confirmed by the user before Phase 2: tsc exit code 0 (unverified due to output capture issues). Lint had 59 project-wide errors (none in new Phase 2 files). Build started but not observed. No Phase 2 test has run (BLOCKED: CLINE_DATABASE_URL not set in assistant's shell).
 
 | # | Item | Status | Flag (default off) | Notes |
 |---|------|--------|--------------------|-------|

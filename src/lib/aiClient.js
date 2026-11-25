@@ -1,33 +1,3 @@
-// The one place that calls the Groq chat completions endpoint for analyses.
-// The request body is built by the caller (analysisService.js) and is passed through unchanged.
-import { aiFlags, aiLimits, groqUrl } from "./aiConfig";
-
-// kind: "rate_limited" (HTTP 429) | "provider_error" | "invalid_response" | "budget"
-export class AiError extends Error {
-    constructor(kind, message, { status = null, retryAfterSeconds = null } = {}) {
-        super(message);
-        this.name = "AiError";
-        this.kind = kind;
-        this.status = status;
-        this.retryAfterSeconds = retryAfterSeconds;
-    }
-}
-
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// Seconds from the retry-after header (a number of seconds, or an HTTP date). null if absent/unusable.
-function readRetryAfter(response) {
-    const raw = response.headers.get("retry-after");
-    if (!raw) return null;
-    const seconds = Number(raw);
-    if (Number.isFinite(seconds) && seconds >= 0) return seconds;
-    const date = Date.parse(raw);
-    if (!Number.isNaN(date)) return Math.max(0, (date - Date.now()) / 1000);
-    return null;
-}
-
-const DEFAULT_RETRY_AFTER_SECONDS = 5;
-
 // Returns the parsed JSON response (it includes the `usage` object).
 // Flag FLAG_AI_RELIABILITY off: a single attempt, exactly like before.
 // Flag on: on HTTP 429, waits for retry-after and retries up to 2 more times, then throws
@@ -36,17 +6,46 @@ export async function callGroqChat(body) {
     const maxRetries = aiFlags().aiReliability ? 2 : 0;
     const { maxRetryWaitSeconds } = aiLimits();
 
+    // OpenAI settings are checked once, before any request is sent,
+    // so a missing key or model shows its own clear message.
+    let openAiUrl = null;
+    let openAiKey = null;
+    let openAiModel = null;
+    if (AI_PROVIDER === "openai") {
+        openAiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
+        openAiKey = process.env.OPENAI_API_KEY;
+        openAiModel = process.env.OPENAI_MODEL;
+        if (!openAiKey) {
+            throw new AiError("provider_error", "OpenAI API key not set.");
+        }
+        if (!openAiModel) {
+            throw new AiError("provider_error", "OpenAI model name not set. Set OPENAI_MODEL environment variable.");
+        }
+    }
+
     for (let attempt = 0; ; attempt++) {
         let response;
         try {
-            response = await fetch(groqUrl(), {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-                },
-                body: JSON.stringify(body),
-            });
+            if (AI_PROVIDER === "openai") {
+                response = await fetch(openAiUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${openAiKey}`,
+                    },
+                    // Replace the Groq model name with the OpenAI one. The rest of the body is unchanged.
+                    body: JSON.stringify({ ...body, model: openAiModel }),
+                });
+            } else {
+                response = await fetch(groqUrl(), {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
+                    },
+                    body: JSON.stringify(body),
+                });
+            }
         } catch {
             throw new AiError("provider_error", "AI request could not be sent.");
         }
