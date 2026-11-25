@@ -37,7 +37,7 @@ const content = {
     severity: "severity",
     riskScore: "Risk score",
     notAvailable: "not available",
-    tiers: { safe: "Low", moderate: "Moderate", high: "High", unknown: "Unknown" },
+    tiers: { low: "Low", moderate: "Moderate", high: "High", unknown: "Unknown" },
     severities: { high: "High", medium: "Medium", low: "Low" },
   },
   ar: {
@@ -71,7 +71,7 @@ const content = {
     severity: "الخطورة",
     riskScore: "درجة الخطورة",
     notAvailable: "غير متاحة",
-    tiers: { safe: "منخفض", moderate: "متوسط", high: "عالٍ", unknown: "غير معروف" }, // "منخفض" [AR review pending]
+    tiers: { low: "منخفض", moderate: "متوسط", high: "عالٍ", unknown: "غير معروف" }, // "منخفض" [AR review pending]
     severities: { high: "عالية", medium: "متوسطة", low: "منخفضة" },
   },
 };
@@ -86,14 +86,14 @@ function getRiskTier(riskLevel) {
 
 // Text colors are dark enough for 4.5:1 contrast on their backgrounds
 const TIER_COLORS_LIGHT = {
-  safe: { bg: "#eafcf1", text: "#2b6b49", ring: "#86d9a4" },
+  low: { bg: "#eafcf1", text: "#2b6b49", ring: "#86d9a4" },
   moderate: { bg: "#fdf6e3", text: "#7a5c12", ring: "#f2c96b" },
   high: { bg: "#fdecec", text: "#a03636", ring: "#f19a9a" },
   unknown: { bg: "#f1f5f9", text: "#475569", ring: "#cbd5e1" },
 };
 
 const TIER_COLORS_DARK = {
-  safe: { bg: "rgba(134,217,164,0.12)", text: "#86d9a4", ring: "#86d9a4" },
+  low: { bg: "rgba(134,217,164,0.12)", text: "#86d9a4", ring: "#86d9a4" },
   moderate: { bg: "rgba(242,201,107,0.12)", text: "#f2c96b", ring: "#f2c96b" },
   high: { bg: "rgba(241,154,154,0.12)", text: "#f19a9a", ring: "#f19a9a" },
   unknown: { bg: "rgba(148,163,184,0.12)", text: "#cbd5e1", ring: "#64748b" },

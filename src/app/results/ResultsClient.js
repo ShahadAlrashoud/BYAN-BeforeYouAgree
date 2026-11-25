@@ -20,18 +20,18 @@ const RISK_LIGHT = {
 };
 
 const RISK_DARK = {
-    safe: { ring: "#86d9a4", bg: "rgba(134,217,164,0.12)", text: "#86d9a4" },
+    low: { ring: "#86d9a4", bg: "rgba(134,217,164,0.12)", text: "#86d9a4" },
     moderate: { ring: "#f2c96b", bg: "rgba(242,201,107,0.12)", text: "#f2c96b" },
     high: { ring: "#f19a9a", bg: "rgba(241,154,154,0.12)", text: "#f19a9a" }
 };
 
 // Symbols so risk is never shown by color alone
-const TIER_SYMBOL = { safe: "✓", moderate: "!", high: "▲" };
+const TIER_SYMBOL = { low: "✓", moderate: "!", high: "▲" };
 
 function getRiskTier(riskLevel) {
     if (!riskLevel) return "moderate";
     const level = riskLevel.toLowerCase();
-    if (level.includes("safe")) return "safe";
+    if (level.includes("low")) return "low";
     if (level.includes("high")) return "high";
     return "moderate";
 }
@@ -39,7 +39,7 @@ function getRiskTier(riskLevel) {
 function weightTier(weight) {
     if (weight >= 15) return "high";
     if (weight >= 8) return "moderate";
-    return "safe";
+    return "low";
 }
 
 function getHostname(url) {
@@ -50,7 +50,7 @@ function getHostname(url) {
     }
 }
 
-const SEVERITY_TIER = { high: "high", medium: "moderate", low: "safe" };
+const SEVERITY_TIER = { high: "high", medium: "moderate", low: "low" };
 const SEVERITY_LABEL = {
     high: { en: "High", ar: "عالي" },
     medium: { en: "Medium", ar: "متوسط" },
@@ -435,7 +435,7 @@ function ComparisonPanel({ current, other, isArabic, onClear }) {
             ? `مستوى المخاطر متقارب (فرق ${absDiff} نقاط).`
             : `Both sites have a similar risk level (${absDiff} point difference).`;
     } else if (diff > 0) {
-        verdictTier = "safe";
+        verdictTier = "low";
         verdict = isArabic
             ? `${hostA} أكثر أمانًا بفارق ${absDiff} نقطة.`
             : `${hostA} is safer by ${absDiff} points.`;

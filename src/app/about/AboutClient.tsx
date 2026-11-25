@@ -47,9 +47,9 @@ const content = {
         privacyLink: "Read BYAN's Privacy Policy",
         contactLink: "Contact us",
         team: [
-            { name: "Shahad Alrashoud", role: "Role to be confirmed", linkedin: "" },
-            { name: "Ghadah Almutairi", role: "Role to be confirmed", linkedin: "" },
-            { name: "Nourah Almudbil", role: "Role to be confirmed", linkedin: "" }
+            { name: "Shahad Alrashoud", role: "", linkedin: "" },
+            { name: "Ghadah Almutairi", role: "", linkedin: "" },
+            { name: "Nourah Almudbil", role: "", linkedin: "" }
         ] as Person[]
     },
     ar: {
@@ -82,9 +82,9 @@ const content = {
         privacyLink: "اقرأ سياسة خصوصية بيان", // [AR review pending]
         contactLink: "تواصل معنا", // [AR review pending]
         team: [
-            { name: "شهد الرشود", role: "Role to be confirmed", linkedin: "" },
-            { name: "غادة المطيري", role: "Role to be confirmed", linkedin: "" },
-            { name: "نورة المدبل", role: "Role to be confirmed", linkedin: "" }
+            { name: "شهد الرشود", role: "", linkedin: "" },
+            { name: "غادة المطيري", role: "", linkedin: "" },
+            { name: "نورة المدبل", role: "", linkedin: "" }
         ] as Person[]
     }
 };
