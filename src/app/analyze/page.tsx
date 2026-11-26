@@ -181,7 +181,7 @@ function AnalyzeContent() {
                         }}
                     >
                         {error ? t.failedPrefix : t.titlePrefix}
-                        <span style={{ color: error ? themeColors.high.bg : themeColors.accent }}>
+                        <span style={{ color: error ? themeColors.high : themeColors.accent }}>
                             {error ? t.failedAccent : t.titleAccent}
                         </span>
                     </h1>
@@ -245,9 +245,9 @@ function AnalyzeContent() {
                                 <div
                                     style={{
                                         borderRadius: 12,
-                                        border: `1px solid ${themeColors.high.bg}`,
+                                        border: `1px solid ${themeColors.high}`,
                                         padding: "14px 16px",
-                                        color: themeColors.high.bg,
+                                        color: themeColors.high,
                                         fontSize: "0.92rem",
                                         lineHeight: 1.7,
                                         textAlign: isAr ? "right" : "left",

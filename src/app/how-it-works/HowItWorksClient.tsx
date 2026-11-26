@@ -30,7 +30,7 @@ const content = {
         readTitle: "Reading your results",
         scoreTitle: "The Risk Score",
         scoreText: "Every policy receives a single score from 0 to 100 and is placed in one of three categories. Scores of 0-29 are Safe, 30-59 Moderate Risk, and 60-100 High Risk. A higher score means higher risk, and a Safe result is not a legal guarantee.",
-        tiers: ["Low", "Moderate", "High"],
+        tiers: ["Safe", "Moderate Risk", "High Risk"],
         clauseTitle: "Clause weights",
         clauseText: "Each detected clause is given a weight showing how much it contributes to the overall risk:",
         weights: [

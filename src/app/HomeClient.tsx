@@ -3,7 +3,7 @@
 import Link from "@/app/components/LocalizedLink";
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTheme, type Colors } from "./providers";
+import { useTheme } from "./providers";
 import ImageAnalyzer from "./components/ImageAnalyzer";
 import TermsBackground from "./components/TermsBackground";
 import GuidedTour from "./components/GuidedTour";
@@ -141,8 +141,8 @@ const content: Record<"en" | "ar", Content> = {
         ],
 
         legendTitle: "Know the risk at a glance",
-        legendText: "Every policy is summarized in a single risk score from 0 to 100, classified into one of three levels: 0–29 Low, 30–59 Moderate, 60–100 High. A higher score means higher risk.",
-        legend: ["Low", "Moderate", "High"],
+        legendText: "Every policy is summarized in a single risk score from 0 to 100, classified into one of three levels: 0–29 Low, 30–59 Moderate Risk, 60–100 High Risk. A higher score means higher risk.",
+        legend: ["Low", "Moderate Risk", "High Risk"],
 
         disclaimerTitle: "Disclaimer",
         disclaimerText:
@@ -227,7 +227,7 @@ function SampleReport({
     t: Content;
     isAr: boolean;
     isDark: boolean;
-    themeColors: Colors;
+    themeColors: any;
     bodyColor: string;
 }) {
     const ARC = Math.PI * 60; // length of the semicircle
@@ -289,7 +289,7 @@ function SampleReport({
                         className="byan-gauge-arc"
                         d="M10 70 A60 60 0 0 1 130 70"
                         fill="none"
-                        stroke={themeColors.high.bg}
+                        stroke={themeColors.high}
                         strokeWidth="12"
                         strokeLinecap="round"
                         strokeDasharray={ARC}
@@ -315,7 +315,7 @@ function SampleReport({
                                 padding: "10px 12px",
                                 borderRadius: 12,
                                 border: `1px solid ${themeColors.border}`,
-                                borderInlineStart: `4px solid ${isHigh ? themeColors.high.bg : themeColors.moderate.bg}`,
+                                borderInlineStart: `4px solid ${isHigh ? themeColors.high : themeColors.medium}`,
                                 background: themeColors.input,
                             }}
                         >
@@ -606,7 +606,7 @@ export default function HomePage() {
                                 <p
                                     role="alert"
                                     style={{
-                                        color: themeColors.high.bg,
+                                        color: themeColors.high,
                                         fontSize: "0.85rem",
                                         margin: "10px 0 0",
                                     }}
@@ -966,7 +966,7 @@ export default function HomePage() {
                             marginBottom: 8,
                         }}
                     >
-                        <IconWarning color={themeColors.moderate.bg} />
+                        <IconWarning color={themeColors.medium} />
 
                         <h3
                             style={{

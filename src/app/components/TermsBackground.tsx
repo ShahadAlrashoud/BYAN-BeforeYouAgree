@@ -137,7 +137,7 @@ export default function TermsBackground() {
                                     <span
                                         key={i}
                                         dir={currentLang === "ar" ? "rtl" : "ltr"}
-                                        style={{ unicodeBidi: "isolate", marginInline: 40, opacity: 0.6 }}
+                                        style={{ unicodeBidi: "isolate", marginInline: 40 }}
                                     >
                                         {/* Faint clause number */}
                                         <span

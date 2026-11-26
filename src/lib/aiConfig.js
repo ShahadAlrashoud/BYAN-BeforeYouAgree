@@ -73,7 +73,6 @@ export const ALLOWANCE_WINDOW_SECONDS = 24 * 60 * 60;
 // analysis_events within the last POPULAR_WINDOW_DAYS days (cache hits included); the list shows the top POPULAR_LIMIT.
 export const POPULAR_MIN_EVENTS = 5;
 export const POPULAR_WINDOW_DAYS = 30;
-export const NEW_ANALYSIS_OPTIONS = process.env.NEW_ANALYSIS_OPTIONS === "true";
 export const POPULAR_LIMIT = 20;
 
 export function aiLimits() {

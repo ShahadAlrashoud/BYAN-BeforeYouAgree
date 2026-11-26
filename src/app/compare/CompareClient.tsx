@@ -1,70 +1,59 @@
 "use client";
 
-import type { CSSProperties, FormEvent } from "react";
-import { Fragment, useState } from "react";
+import type { FormEvent, CSSProperties } from "react";
+import { useState } from "react";
 import { useTheme } from "../providers";
-
-type Level = "high" | "medium" | "low";
-
-type Finding = {
-  category: string;
-  text: string;
-  level: Level | null;
-  score: number | null;
-};
-
-type ApiResult = {
-  url?: string;
-  summaryEn?: string;
-  summaryAr?: string;
-  summary?: string;
-  coverage?: { analyzedChars: number; totalChars: number };
-  clauses?: { category?: string; text?: string; riskWeight?: number | string }[];
-};
 
 type WebsiteResult = {
   url: string;
   websiteName?: string;
+  riskScore?: number;
+  overallRiskScore?: number;
   summary?: string;
   coverage?: { analyzedChars: number; totalChars: number };
-  clauses?: { category?: string; text?: string; risk?: number | string }[];
+  clauses?: {
+    category?: string;
+    text?: string;
+    risk?: number | string;
+    riskScore?: number | string;
+  }[];
 };
 
-type Slot =
-  | { kind: "result"; url: string; result: WebsiteResult }
-  | { kind: "error"; url: string; message: string };
-
-class AnalysisError extends Error {}
+type SampleSite = {
+  name: string;
+  score: number;
+  clauses: { category: string; text: string; level: "high" | "medium" | "low" }[];
+};
 
 const translations = {
   en: {
     title: "Compare Websites",
-    subtitle: "Compare the Terms of Service and Privacy Policies of two websites.",
+    subtitle:
+      "Compare the Terms of Service and Privacy Policies of two websites.",
     first: "First website",
     second: "Second website",
     placeholder1: "e.g. example-shop.com",
     placeholder2: "e.g. sample-app.com",
     submit: "Compare these two sites",
     loading: "Analyzing both websites...",
+    score: "Risk score",
     summary: "Summary",
     differences: "Policy findings",
     noSummary: "No summary is available.",
     noClauses: "No clause details were returned.",
-    low: "Low risk",
-    medium: "Moderate risk",
-    high: "High risk",
+    risk: "Risk",
+    low: "Low",
+    medium: "Moderate Risk",
+    high: "High Risk",
     enterBoth: "Please enter both website URLs.",
     invalid1: "Please enter a valid URL for the first website.",
     invalid2: "Please enter a valid URL for the second website.",
     different: "Please enter two different website URLs.",
     failed: "Unable to compare the websites. Please try again.",
-    blocked: "This website could not be analyzed.",
     helperUrl: "Enter the website address as shown in your browser's address bar.",
     comparabilityNote: "Policies of different types of services may not be directly comparable.",
-    coverage: (a: number, b: number) =>
-      `Read ${a.toLocaleString("en-US")} of ${b.toLocaleString("en-US")} characters.`,
+    coverage: (a: number, b: number) => `Read ${a.toLocaleString("en-US")} of ${b.toLocaleString("en-US")} characters.`,
     resultLabel: "Website",
-    resultsTitle: "Comparison results",
     secureNote: "Automated analysis. Not legal advice.",
 
     howTitle: "How to compare",
@@ -75,13 +64,14 @@ const translations = {
     ],
     useSample: "Fill in the sample pair",
 
-    sampleLabel: "Example only",
+    sampleLabel: "Format example only",
     sampleTitle: "Sample comparison",
     sampleNote:
-      "Illustrative example with fictional services, not real websites. Key differences are generated from detected clauses and may not capture the full policy.",
+      "Format example only unless its weights are shown. Key differences are generated from detected clauses and may not capture the full policy. Illustrative example with fictional services.",
     sampleSites: [
       {
         name: "example-shop.com",
+        score: 28,
         clauses: [
           { category: "Data sharing", text: "Shares data only with payment and delivery providers.", level: "low" },
           { category: "Renewal", text: "No automatic renewal.", level: "low" },
@@ -90,13 +80,14 @@ const translations = {
       },
       {
         name: "sample-app.com",
+        score: 74,
         clauses: [
           { category: "Data sharing", text: "May share data with advertising partners.", level: "high" },
           { category: "Renewal", text: "Subscription renews automatically each period.", level: "medium" },
           { category: "Disputes", text: "Mandatory private arbitration.", level: "high" },
         ],
       },
-    ] as const,
+    ] as SampleSite[],
     sampleDiffTitle: "Key differences in this sample",
     sampleDiffs: [
       "Data sharing: the second service shares more widely.",
@@ -113,42 +104,42 @@ const translations = {
     placeholder2: "مثال: sample-app.com",
     submit: "قارن بين هذين الموقعين",
     loading: "جارٍ تحليل الموقعين...",
+    score: "درجة المخاطر",
     summary: "الملخص",
     differences: "نتائج تحليل السياسات",
     noSummary: "لا يتوفر ملخص.",
     noClauses: "لم يتم إرجاع تفاصيل البنود.",
-    low: "منخفضة المخاطر",
-    medium: "متوسطة المخاطر",
-    high: "عالية المخاطر",
+    risk: "المخاطر",
+    low: "منخفض", // [AR review pending]
+    medium: "مخاطر متوسطة",
+    high: "عالي الخطورة", // [AR review pending]
     enterBoth: "يرجى إدخال رابطَي الموقعين.",
     invalid1: "يرجى إدخال رابط صحيح للموقع الأول.",
     invalid2: "يرجى إدخال رابط صحيح للموقع الثاني.",
     different: "يرجى إدخال رابطين مختلفين.",
     failed: "تعذرت مقارنة الموقعين. حاول مرة أخرى.",
-    blocked: "تعذر تحليل هذا الموقع.",
-    helperUrl: "أدخل عنوان الموقع كما يظهر في شريط عناوين المتصفح.",
-    comparabilityNote: "قد لا تكون سياسات أنواع الخدمات المختلفة قابلة للمقارنة بشكل مباشر.",
-    coverage: (a: number, b: number) =>
-      `تمت قراءة ${a.toLocaleString("ar-SA")} من ${b.toLocaleString("ar-SA")} حرفًا.`,
+    helperUrl: "أدخل عنوان الموقع كما يظهر في شريط عناوين المتصفح.", // [AR review pending]
+    comparabilityNote: "قد لا تكون سياسات أنواع الخدمات المختلفة قابلة للمقارنة بشكل مباشر.", // [AR review pending]
+    coverage: (a: number, b: number) => `تمت قراءة ${a.toLocaleString("ar-SA")} من ${b.toLocaleString("ar-SA")} حرفًا.`, // [AR review pending]
     resultLabel: "الموقع",
-    resultsTitle: "نتائج المقارنة",
-    secureNote: "تحليل آلي. ليس استشارة قانونية.",
+    secureNote: "تحليل آلي. ليس استشارة قانونية.", // [AR review pending]
 
     howTitle: "كيف تقارن",
     howSteps: [
       "أدخل عنوان الموقع الأول.",
       "أدخل عنوان موقع ثانٍ.",
-      "اضغط «قارن بين هذين الموقعين» لعرض الفئات والبنود المهمة جنبًا إلى جنب.",
+      "اضغط «قارن بين هذين الموقعين» لعرض الدرجات والبنود المهمة جنبًا إلى جنب.",
     ],
     useSample: "املأ الحقلين بالمثال",
 
-    sampleLabel: "مثال توضيحي فقط",
+    sampleLabel: "نموذج توضيحي فقط", // [AR review pending]
     sampleTitle: "مقارنة نموذجية",
     sampleNote:
-      "مثال توضيحي لخدمات وهمية، وليست نتائج لمواقع حقيقية. تُنشأ الفروق الرئيسية من البنود المكتشفة وقد لا تشمل السياسة كاملة.",
+      "نموذج توضيحي فقط ما دُونت أوزانه. تُنشأ الفروق الجوهرية من البنود المكتشفة وقد لا تشمل السياسة بأكملها. مثال توضيحي لخدمات وهمية، وليست نتائج عن مواقع حقيقية.", // [AR review pending]
     sampleSites: [
       {
         name: "example-shop.com",
+        score: 28,
         clauses: [
           { category: "مشاركة البيانات", text: "تُشارك البيانات فقط مع مزوّدي الدفع والتوصيل.", level: "low" },
           { category: "التجديد", text: "لا يوجد تجديد تلقائي.", level: "low" },
@@ -157,13 +148,14 @@ const translations = {
       },
       {
         name: "sample-app.com",
+        score: 74,
         clauses: [
           { category: "مشاركة البيانات", text: "قد تُشارك البيانات مع شركاء إعلانيين.", level: "high" },
           { category: "التجديد", text: "يتجدد الاشتراك تلقائيًا كل فترة.", level: "medium" },
           { category: "النزاعات", text: "تحكيم خاص إلزامي.", level: "high" },
         ],
       },
-    ] as const,
+    ] as SampleSite[],
     sampleDiffTitle: "أبرز الفروق في هذا النموذج",
     sampleDiffs: [
       "مشاركة البيانات: الخدمة الثانية تشارك بيانات أكثر.",
@@ -175,37 +167,9 @@ const translations = {
 
 type T = (typeof translations)["en"];
 
-// Clause risk thresholds (0–100).
-const THRESHOLDS = { high: 70, medium: 40 };
-
-// Marker position on the bar when a clause has no numeric score (0–100).
-const LEVEL_POSITION: Record<Level, number> = { low: 15, medium: 50, high: 85 };
-
-const SYMBOLS: Record<Level, string> = { high: "▲", medium: "●", low: "✓" };
-
-function levelFromScore(score: number): Level {
-  if (score >= THRESHOLDS.high) return "high";
-  if (score >= THRESHOLDS.medium) return "medium";
-  return "low";
-}
-
-function parseScore(raw: unknown): number | null {
-  if (raw === undefined || raw === null || raw === "") return null;
-  const n = Number(raw);
-  return Number.isFinite(n) && n >= 0 && n <= 100 ? n : null;
-}
-
-// Light-mode colors are darkened for contrast; dark mode keeps brighter tones.
-function palette(isDark: boolean): Record<Level, { color: string; background: string }> {
-  return {
-    high: { color: isDark ? "#f08a8a" : "#b83a3a", background: "#feecec" },
-    medium: { color: isDark ? "#e0b44a" : "#8a5f0a", background: "#fff5d9" },
-    low: { color: isDark ? "#5ccf94" : "#1a6e45", background: "#e6f7ee" },
-  };
-}
-
 function normalizeUrl(value: string): string | null {
   let input = value.trim();
+
   if (!input) return null;
 
   if (!/^https?:\/\//i.test(input)) {
@@ -214,6 +178,7 @@ function normalizeUrl(value: string): string | null {
 
   try {
     const parsed = new URL(input);
+
     if (
       !["http:", "https:"].includes(parsed.protocol) ||
       !parsed.hostname.includes(".") ||
@@ -222,6 +187,7 @@ function normalizeUrl(value: string): string | null {
     ) {
       return null;
     }
+
     return parsed.toString();
   } catch {
     return null;
@@ -236,119 +202,60 @@ function getHostname(url: string): string {
   }
 }
 
-function RiskBadge({
-  level,
-  label,
-  isDark,
-  small = false,
-}: {
-  level: Level;
-  label: string;
-  isDark: boolean;
-  small?: boolean;
-}) {
-  const p = palette(isDark)[level];
-  return (
-    <span
-      style={{
-        display: "inline-block",
-        padding: small ? "4px 10px" : "6px 14px",
-        borderRadius: 99,
-        background: isDark ? "transparent" : p.background,
-        border: `1px solid ${p.color}`,
-        color: p.color,
-        fontWeight: 700,
-        fontSize: small ? 12 : 13,
-        whiteSpace: "nowrap",
-      }}
-    >
-      <span aria-hidden="true">{SYMBOLS[level]} </span>
-      {label}
-    </span>
-  );
+function getScore(result: WebsiteResult): number | null {
+  const raw: unknown = result.overallRiskScore ?? result.riskScore;
+
+  if (raw === undefined || raw === null || raw === "") {
+    return null;
+  }
+
+  const score = Number(raw);
+
+  return Number.isFinite(score) && score >= 0 && score <= 100 ? score : null;
 }
 
-function RiskBar({
-  value,
-  level,
-  isDark,
-  isAr,
-  borderColor,
-  mutedColor,
-  labels,
-}: {
-  value: number;
-  level: Level;
-  isDark: boolean;
-  isAr: boolean;
-  borderColor: string;
-  mutedColor: string;
-  labels: [string, string, string];
-}) {
-  const position = Math.min(100, Math.max(0, value));
-  const markerColor = palette(isDark)[level].color;
+// Light-mode amber is darkened for readable contrast; dark mode keeps the brighter tones.
+function levelColors(isDark: boolean) {
+  return {
+    high: isDark ? "#f08a8a" : "#b83a3a",
+    medium: isDark ? "#e0b44a" : "#8a5f0a",
+    low: isDark ? "#5ccf94" : "#1a6e45",
+  };
+}
 
-  // Green (low risk) starts at the inline-start edge, red (high risk) at the end.
-  const gradient = isAr
-    ? "linear-gradient(to left, #1a6e45, #c9a227, #b83a3a)"
-    : "linear-gradient(to right, #1a6e45, #c9a227, #b83a3a)";
+function getRiskLevel(score: number, t: T, isDark: boolean) {
+  const c = levelColors(isDark);
 
-  return (
-    <div aria-hidden="true" style={{ padding: "4px 0 0" }}>
-      <div
-        style={{
-          position: "relative",
-          height: 12,
-          borderRadius: 99,
-          background: gradient,
-          border: `1px solid ${borderColor}`,
-        }}
-      >
-        <span
-          style={{
-            position: "absolute",
-            top: "50%",
-            insetInlineStart: `calc(${position}% - 9px)`,
-            transform: "translateY(-50%)",
-            width: 18,
-            height: 18,
-            borderRadius: "50%",
-            background: "#ffffff",
-            border: `3px solid ${markerColor}`,
-            boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
-            boxSizing: "border-box",
-          }}
-        />
-      </div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          fontSize: 11,
-          color: mutedColor,
-          marginTop: 6,
-        }}
-      >
-        <span>{labels[0]}</span>
-        <span>{labels[1]}</span>
-        <span>{labels[2]}</span>
-      </div>
-    </div>
-  );
+  if (score >= 70) {
+    return { key: "high" as const, label: t.high, color: c.high, background: "#feecec", symbol: "▲" };
+  }
+
+  if (score >= 40) {
+    return { key: "medium" as const, label: t.medium, color: c.medium, background: "#fff5d9", symbol: "●" };
+  }
+
+  return { key: "low" as const, label: t.low, color: c.low, background: "#e6f7ee", symbol: "✓" };
+}
+
+function getClauseScore(value: unknown): number | null {
+  if (value === undefined || value === null || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
 }
 
 export default function ComparePage() {
   const [url1, setUrl1] = useState("");
   const [url2, setUrl2] = useState("");
-  const [slots, setSlots] = useState<[Slot | null, Slot | null]>([null, null]);
+  const [result1, setResult1] = useState<WebsiteResult | null>(null);
+  const [result2, setResult2] = useState<WebsiteResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const { theme, lang, colors: themeColors } = useTheme();
   const isDark = theme === "dark";
   const isAr = lang === "ar";
-  const t: T = translations[isAr ? "ar" : "en"];
-  const locale = isAr ? "ar-SA" : "en-US";
+  const t = translations[isAr ? "ar" : "en"];
+  const lvl = levelColors(isDark);
 
   // Page-specific neutral tokens (accents come from themeColors)
   const colors = {
@@ -370,14 +277,19 @@ export default function ComparePage() {
     textAlign: isAr ? "right" : "left",
   };
 
-  const container: CSSProperties = { maxWidth: 1040, margin: "0 auto" };
+  const container: CSSProperties = {
+    maxWidth: 1040,
+    margin: "0 auto",
+  };
 
   const card: CSSProperties = {
     background: colors.card,
     border: `1px solid ${colors.border}`,
     borderRadius: 18,
     padding: 26,
-    boxShadow: isDark ? "0 6px 24px rgba(0,0,0,0.25)" : "0 6px 24px rgba(15,23,42,0.06)",
+    boxShadow: isDark
+      ? "0 6px 24px rgba(0,0,0,0.25)"
+      : "0 6px 24px rgba(15,23,42,0.06)",
   };
 
   const inputStyle: CSSProperties = {
@@ -393,78 +305,43 @@ export default function ComparePage() {
     boxSizing: "border-box",
   };
 
-  const errorBox: CSSProperties = {
-    color: isDark ? "#fca5a5" : "#b91c1c",
-    background: isDark ? "#351b28" : "#fef2f2",
-    border: `1px solid ${isDark ? "#7f1d35" : "#fecaca"}`,
-    borderRadius: 10,
-    padding: "12px 14px",
-    fontSize: 13,
-    lineHeight: 1.6,
-  };
-
-  const subHeading: CSSProperties = {
-    fontSize: 15,
-    fontWeight: 750,
-    color: colors.heading,
-    margin: "0 0 8px",
-  };
-
-  const hasResults = slots.some((s) => s !== null);
-
-  const fieldErrors = {
-    first: error !== "" && [t.enterBoth, t.invalid1, t.different].includes(error),
-    second: error !== "" && [t.enterBoth, t.invalid2, t.different].includes(error),
-  };
-  const describedBy = error ? "url-helper form-error" : "url-helper";
-
   async function analyzeWebsite(url: string): Promise<WebsiteResult> {
-    let response: Response;
-    try {
-      response = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, lang }),
-      });
-    } catch {
-      throw new AnalysisError(t.failed);
-    }
+    const response = await fetch("/api/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, lang }),
+    });
 
-    const data: { id?: string; error?: unknown } = await response
-      .json()
-      .catch(() => ({}));
+    const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      const code = typeof data.error === "string" ? data.error : "";
-      throw new AnalysisError(code.startsWith("BLOCKED") ? t.blocked : t.failed);
+      throw new Error(
+        String(data.error || data.message || t.failed).replace(
+          /^BLOCKED:\s*/,
+          ""
+        )
+      );
     }
 
-    if (!data.id) {
-      throw new AnalysisError(t.failed);
-    }
-
-    let res: Response;
-    try {
-      res = await fetch(`/api/result/${encodeURIComponent(data.id)}`);
-    } catch {
-      throw new AnalysisError(t.failed);
-    }
-
-    const full: ApiResult = await res.json().catch(() => ({}));
+    const res = await fetch(`/api/result/${data.id}`);
+    const full = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      throw new AnalysisError(t.failed);
+      throw new Error(full.error || t.failed);
     }
 
     return {
       url: full.url || url,
-      summary: isAr ? (full.summaryAr ?? full.summary) : (full.summaryEn ?? full.summary),
+      riskScore: full.riskScore,
+      summary: full.summaryEn ?? full.summary,
       coverage: full.coverage,
-      clauses: (full.clauses ?? []).map((c) => ({
-        category: c.category,
-        text: c.text,
-        risk: c.riskWeight,
-      })),
+      clauses: (full.clauses ?? []).map(
+        (c: { category?: string; text?: string; riskWeight?: number }) => ({
+          category: c.category,
+          text: c.text,
+          risk: c.riskWeight,
+        })
+      ),
     };
   }
 
@@ -474,7 +351,8 @@ export default function ComparePage() {
     if (loading) return;
 
     setError("");
-    setSlots([null, null]);
+    setResult1(null);
+    setResult2(null);
 
     if (!url1.trim() || !url2.trim()) {
       setError(t.enterBoth);
@@ -501,199 +379,202 @@ export default function ComparePage() {
 
     setLoading(true);
 
-    const urls = [normalized1, normalized2];
-    const settled = await Promise.allSettled([
-      analyzeWebsite(normalized1),
-      analyzeWebsite(normalized2),
-    ]);
+    try {
+      const [first, second] = await Promise.all([
+        analyzeWebsite(normalized1),
+        analyzeWebsite(normalized2),
+      ]);
 
-    // Keep a successful result even if the other site failed.
-    const next = settled.map((s, i): Slot =>
-      s.status === "fulfilled"
-        ? { kind: "result", url: urls[i], result: s.value }
-        : {
-            kind: "error",
-            url: urls[i],
-            message: s.reason instanceof AnalysisError ? s.reason.message : t.failed,
-          }
-    ) as [Slot, Slot];
-
-    setSlots(next);
-    setLoading(false);
+      setResult1(first);
+      setResult2(second);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t.failed);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function fillSample() {
-    setUrl1(t.sampleSites[0].name);
-    setUrl2(t.sampleSites[1].name);
-    setError("");
-    setSlots([null, null]);
-  }
+  function renderResult(result: WebsiteResult, index: number) {
+    const score = getScore(result);
+    const level = score !== null ? getRiskLevel(score, t, isDark) : null;
+    const clauses = result.clauses ?? [];
 
-  function renderSiteCard(site: {
-    label?: string;
-    name: string;
-    coverage?: { analyzedChars: number; totalChars: number };
-    summary?: string;
-    findings: Finding[];
-  }) {
     return (
-      <article style={card}>
-        {site.label && (
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              color: themeColors.accentText,
-              marginBottom: 6,
-            }}
-          >
-            {site.label}
-          </div>
-        )}
+      <article key={index} style={card}>
+        <div
+          style={{
+            fontSize: 12,
+            fontWeight: 700,
+            color: themeColors.accentText,
+            marginBottom: 8,
+          }}
+        >
+          {t.resultLabel} {isAr ? (index + 1).toLocaleString("ar-SA") : index + 1}
+        </div>
 
-        <h3
-          dir="ltr"
+        <h2
           style={{
             fontSize: 20,
             fontWeight: 800,
             color: colors.heading,
-            margin: "0 0 14px",
+            margin: "0 0 18px",
             wordBreak: "break-word",
-            textAlign: isAr ? "right" : "left",
           }}
         >
-          {site.name}
-        </h3>
+          {result.websiteName || getHostname(result.url)}
+        </h2>
 
-        {site.coverage && (
-          <p style={{ margin: "0 0 18px", fontSize: 12, color: colors.muted }}>
-            {t.coverage(site.coverage.analyzedChars, site.coverage.totalChars)}
-          </p>
-        )}
-
-        {site.summary !== undefined && (
-          <>
-            <h4 style={subHeading}>{t.summary}</h4>
-            <p style={{ fontSize: 14, lineHeight: 1.8, margin: "0 0 22px" }}>
-              {site.summary}
-            </p>
-          </>
-        )}
-
-        <h4 style={subHeading}>{t.differences}</h4>
-
-        {site.findings.length === 0 ? (
-          <p style={{ fontSize: 13, color: colors.muted, margin: 0 }}>{t.noClauses}</p>
-        ) : (
-          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 12 }}>
-            {site.findings.map((f, i) => (
-              <li
-                key={`${f.category}-${i}`}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            flexWrap: "wrap",
+            marginBottom: 20,
+          }}
+        >
+          <div>
+            {level && (
+              <span
                 style={{
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: 14,
-                  padding: "14px 16px",
+                  padding: "6px 14px",
+                  borderRadius: 99,
+                  background: isDark ? "transparent" : level.background,
+                  border: `1px solid ${level.color}`,
+                  color: level.color,
+                  fontWeight: 700,
+                  fontSize: 13,
                 }}
               >
+                <span aria-hidden="true">{level.symbol} </span>
+                {level.label}
+              </span>
+            )}
+            {result.coverage && (
+              <p style={{ margin: "6px 0 0", fontSize: 12, color: colors.muted }}>
+                {t.coverage(result.coverage.analyzedChars, result.coverage.totalChars)}
+              </p>
+            )}
+          </div>
+
+          {level && (
+            <span
+              style={{
+                padding: "6px 14px",
+                borderRadius: 99,
+                background: isDark ? "transparent" : level.background,
+                border: `1px solid ${level.color}`,
+                color: level.color,
+                fontWeight: 700,
+                fontSize: 13,
+              }}
+            >
+              <span aria-hidden="true">{level.symbol} </span>
+              {level.label}
+            </span>
+          )}
+        </div>
+
+        <h3
+          style={{
+            fontSize: 15,
+            fontWeight: 750,
+            color: colors.heading,
+            margin: "0 0 8px",
+          }}
+        >
+          {t.summary}
+        </h3>
+        <p style={{ fontSize: 14, lineHeight: 1.8, margin: "0 0 22px" }}>
+          {result.summary?.trim() || t.noSummary}
+        </p>
+
+        <h3
+          style={{
+            fontSize: 15,
+            fontWeight: 750,
+            color: colors.heading,
+            margin: "0 0 10px",
+          }}
+        >
+          {t.differences}
+        </h3>
+
+        {clauses.length === 0 ? (
+          <p style={{ fontSize: 13, color: colors.muted, margin: 0 }}>
+            {t.noClauses}
+          </p>
+        ) : (
+          <div style={{ display: "grid", gap: 10 }}>
+            {clauses.map((clause, i) => {
+              const clauseScore = getClauseScore(
+                clause.riskScore ?? clause.risk
+              );
+
+              const clauseRisk =
+                clauseScore === null || !Number.isFinite(clauseScore)
+                  ? null
+                  : clauseScore >= 15
+                  ? { color: lvl.high, label: t.high, symbol: "▲" }
+                  : clauseScore >= 8
+                  ? { color: lvl.medium, label: t.medium, symbol: "●" }
+                  : { color: lvl.low, label: t.low, symbol: "✓" };
+
+              return (
                 <div
+                  key={i}
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 10,
-                    flexWrap: "wrap",
-                    marginBottom: 6,
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: 12,
+                    padding: "12px 14px",
                   }}
                 >
-                  <strong style={{ fontSize: 14, color: colors.heading }}>
-                    {f.category || "—"}
-                  </strong>
-                  {f.level && (
-                    <RiskBadge level={f.level} label={t[f.level]} isDark={isDark} small />
-                  )}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 10,
+                      marginBottom: 6,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <strong style={{ fontSize: 13, color: colors.heading }}>
+                      {clause.category || "—"}
+                    </strong>
+
+                    {clauseRisk && (
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: clauseRisk.color,
+                        }}
+                      >
+                        <span aria-hidden="true">{clauseRisk.symbol} </span>
+                        {t.risk}: {clauseRisk.label}
+                      </span>
+                    )}
+                  </div>
+
+                  <p style={{ fontSize: 13, lineHeight: 1.7, margin: 0 }}>
+                    {clause.text || "—"}
+                  </p>
                 </div>
-
-                <p style={{ margin: "0 0 12px", fontSize: 14, lineHeight: 1.7 }}>
-                  {f.text || "—"}
-                </p>
-
-                {f.level && (
-                  <RiskBar
-                    value={f.score ?? LEVEL_POSITION[f.level]}
-                    level={f.level}
-                    isDark={isDark}
-                    isAr={isAr}
-                    borderColor={colors.border}
-                    mutedColor={colors.muted}
-                    labels={[t.low, t.medium, t.high]}
-                  />
-                )}
-              </li>
-            ))}
-          </ul>
+              );
+            })}
+          </div>
         )}
       </article>
     );
   }
 
-  function renderSlot(slot: Slot, index: number) {
-    const label = `${t.resultLabel} ${(index + 1).toLocaleString(locale)}`;
-
-    if (slot.kind === "error") {
-      return (
-        <article style={card}>
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              color: themeColors.accentText,
-              marginBottom: 6,
-            }}
-          >
-            {label}
-          </div>
-          <h3
-            dir="ltr"
-            style={{
-              fontSize: 20,
-              fontWeight: 800,
-              color: colors.heading,
-              margin: "0 0 14px",
-              wordBreak: "break-word",
-              textAlign: isAr ? "right" : "left",
-            }}
-          >
-            {getHostname(slot.url)}
-          </h3>
-          <p role="alert" style={errorBox}>
-            {slot.message}
-          </p>
-        </article>
-      );
-    }
-
-    const findings: Finding[] = (slot.result.clauses ?? []).map((c) => {
-      const clauseScore = parseScore(c.risk);
-      return {
-        category: c.category ?? "",
-        text: c.text ?? "",
-        level: clauseScore === null ? null : levelFromScore(clauseScore),
-        score: clauseScore,
-      };
-    });
-
-    return renderSiteCard({
-      label,
-      name: slot.result.websiteName || getHostname(slot.result.url),
-      coverage: slot.result.coverage,
-      summary: slot.result.summary?.trim() || t.noSummary,
-      findings,
-    });
-  }
+  const levelLabel = { high: t.high, medium: t.medium, low: t.low };
+  const levelSymbol = { high: "▲", medium: "●", low: "✓" };
 
   return (
     <div style={page}>
-      <main style={container}>
+      <div style={container}>
         <header style={{ textAlign: "center", marginBottom: 36 }}>
           <h1
             style={{
@@ -707,6 +588,7 @@ export default function ComparePage() {
           >
             {t.title}
           </h1>
+
           <p
             style={{
               color: colors.muted,
@@ -720,7 +602,11 @@ export default function ComparePage() {
           </p>
         </header>
 
-        <section aria-labelledby="how-to-compare" style={{ ...card, marginBottom: 24, padding: 22 }}>
+        {/* How to compare */}
+        <section
+          aria-labelledby="how-to-compare"
+          style={{ ...card, marginBottom: 24, padding: 22 }}
+        >
           <h2
             id="how-to-compare"
             style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800, color: colors.heading }}
@@ -734,7 +620,10 @@ export default function ComparePage() {
           </ol>
           <button
             type="button"
-            onClick={fillSample}
+            onClick={() => {
+              setUrl1(t.sampleSites[0].name);
+              setUrl2(t.sampleSites[1].name);
+            }}
             style={{
               border: "none",
               background: "transparent",
@@ -754,12 +643,16 @@ export default function ComparePage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
               gap: 22,
             }}
           >
             <div>
-              <label htmlFor="compare-url-1" style={{ fontSize: 14, fontWeight: 700 }}>
+              <label
+                htmlFor="compare-url-1"
+                style={{ fontSize: 14, fontWeight: 700 }}
+              >
                 {t.first}
               </label>
               <input
@@ -773,13 +666,14 @@ export default function ComparePage() {
                 style={inputStyle}
                 disabled={loading}
                 dir="ltr"
-                aria-invalid={fieldErrors.first}
-                aria-describedby={describedBy}
               />
             </div>
 
             <div>
-              <label htmlFor="compare-url-2" style={{ fontSize: 14, fontWeight: 700 }}>
+              <label
+                htmlFor="compare-url-2"
+                style={{ fontSize: 14, fontWeight: 700 }}
+              >
                 {t.second}
               </label>
               <input
@@ -793,21 +687,28 @@ export default function ComparePage() {
                 style={inputStyle}
                 disabled={loading}
                 dir="ltr"
-                aria-invalid={fieldErrors.second}
-                aria-describedby={describedBy}
               />
             </div>
           </div>
 
-          <p id="url-helper" style={{ marginTop: 14, fontSize: 13, color: colors.muted }}>
-            {t.helperUrl}
-          </p>
-
           {error && (
-            <div id="form-error" role="alert" style={{ ...errorBox, marginTop: 20 }}>
+            <div
+              role="alert"
+              style={{
+                color: isDark ? "#fca5a5" : "#b91c1c",
+                background: isDark ? "#351b28" : "#fef2f2",
+                border: `1px solid ${isDark ? "#7f1d35" : "#fecaca"}`,
+                borderRadius: 10,
+                padding: "12px 14px",
+                fontSize: 13,
+                lineHeight: 1.6,
+                marginTop: 20,
+              }}
+            >
               {error}
             </div>
           )}
+          <p style={{ marginTop: 14, fontSize: 13, color: colors.muted }}>{t.helperUrl}</p>
 
           <button
             type="submit"
@@ -828,113 +729,158 @@ export default function ComparePage() {
               transition: "opacity 0.2s ease",
             }}
           >
-            {t.submit}
+            {loading ? t.loading : t.submit}
           </button>
         </form>
 
         {loading && (
           <p
             role="status"
-            style={{ textAlign: "center", color: colors.muted, padding: 20, fontSize: 14 }}
+            style={{
+              textAlign: "center",
+              color: colors.muted,
+              padding: 20,
+              fontSize: 14,
+            }}
           >
             {t.loading}
           </p>
         )}
 
-        {hasResults && !loading && (
-          <section aria-labelledby="results-heading">
-            <h2
-              id="results-heading"
-              style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 800, color: colors.heading }}
-            >
-              {t.resultsTitle}
-            </h2>
-            <p style={{ margin: "0 0 18px", fontSize: 13, color: colors.muted }}>
-              {t.comparabilityNote}
-            </p>
+        {result1 && result2 ? (
+          <>
+            <p style={{ marginTop: 18, fontSize: 13, color: colors.muted }}>{t.comparabilityNote}</p>
+            <section aria-label={t.differences}>
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
                 gap: 22,
                 alignItems: "start",
               }}
             >
-              {slots.map((slot, i) =>
-                slot ? <Fragment key={i}>{renderSlot(slot, i)}</Fragment> : null
-              )}
+              {renderResult(result1, 0)}
+              {renderResult(result2, 1)}
             </div>
           </section>
-        )}
-
-        {!hasResults && !loading && (
-          <section aria-labelledby="sample-compare">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                flexWrap: "wrap",
-                marginBottom: 6,
-              }}
-            >
-              <h2
-                id="sample-compare"
-                style={{ margin: 0, fontSize: 18, fontWeight: 800, color: colors.heading }}
-              >
-                {t.sampleTitle}
-              </h2>
-              <span
+          </>
+        ) : (
+          !loading && (
+            /* Static sample comparison (shown until a real comparison runs) */
+            <section aria-labelledby="sample-compare">
+              <div
                 style={{
-                  padding: "3px 10px",
-                  borderRadius: 999,
-                  fontSize: 12,
-                  fontWeight: 800,
-                  background: themeColors.accentSoft,
-                  color: themeColors.accentText,
-                  border: `1px solid ${themeColors.accent}`,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  flexWrap: "wrap",
+                  marginBottom: 6,
                 }}
               >
-                {t.sampleLabel}
-              </span>
-            </div>
-            <p style={{ margin: "0 0 16px", fontSize: 13, color: colors.muted }}>
-              {t.sampleNote}
-            </p>
+                <h2
+                  id="sample-compare"
+                  style={{ margin: 0, fontSize: 18, fontWeight: 800, color: colors.heading }}
+                >
+                  {t.sampleTitle}
+                </h2>
+                <span
+                  style={{
+                    padding: "3px 10px",
+                    borderRadius: 999,
+                    fontSize: 12,
+                    fontWeight: 800,
+                    background: themeColors.accentSoft,
+                    color: themeColors.accentText,
+                    border: `1px solid ${themeColors.accent}`,
+                  }}
+                >
+                  {t.sampleLabel}
+                </span>
+              </div>
+              <p style={{ margin: "0 0 16px", fontSize: 13, color: colors.muted }}>
+                {t.sampleNote}
+              </p>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
-                gap: 22,
-                alignItems: "start",
-                marginBottom: 18,
-              }}
-            >
-              {t.sampleSites.map((site) => (
-                <Fragment key={site.name}>
-                  {renderSiteCard({
-                    name: site.name,
-                    findings: site.clauses.map((c) => ({
-                      category: c.category,
-                      text: c.text,
-                      level: c.level,
-                      score: null,
-                    })),
-                  })}
-                </Fragment>
-              ))}
-            </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
+                  gap: 22,
+                  alignItems: "start",
+                  marginBottom: 18,
+                }}
+              >
+                {t.sampleSites.map((site, i) => {
+                  const lv = getRiskLevel(site.score, t, isDark);
+                  return (
+                    <article key={site.name} style={{ ...card, borderStyle: "dashed" }}>
+                      <h3
+                        dir="ltr"
+                        style={{
+                          margin: "0 0 12px",
+                          fontSize: 18,
+                          fontWeight: 800,
+                          color: colors.heading,
+                          textAlign: isAr ? "right" : "left",
+                        }}
+                      >
+                        {site.name}
+                      </h3>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+                        <span
+                          style={{
+                            padding: "5px 12px",
+                            borderRadius: 99,
+                            border: `1px solid ${lv.color}`,
+                            color: lv.color,
+                            fontWeight: 700,
+                            fontSize: 13,
+                          }}
+                        >
+                          <span aria-hidden="true">{lv.symbol} </span>
+                          {lv.label}
+                        </span>
+                      </div>
+                      <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 10 }}>
+                        {site.clauses.map((c) => (
+                          <li
+                            key={c.category}
+                            style={{
+                              border: `1px solid ${colors.border}`,
+                              borderRadius: 12,
+                              padding: "10px 14px",
+                            }}
+                          >
+                            <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
+                              <strong style={{ fontSize: 13, color: colors.heading }}>{c.category}</strong>
+                              <span style={{ fontSize: 12, fontWeight: 700, color: lvl[c.level] }}>
+                                <span aria-hidden="true">{levelSymbol[c.level]} </span>
+                                {t.risk}: {levelLabel[c.level]}
+                              </span>
+                            </div>
+                            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7 }}>{c.text}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    </article>
+                  );
+                })}
+              </div>
 
-            <div style={{ ...card, padding: 20 }}>
-              <h3 style={{ ...subHeading, fontSize: 15 }}>{t.sampleDiffTitle}</h3>
-              <ul style={{ margin: 0, paddingInlineStart: 20, fontSize: 14, lineHeight: 1.9 }}>
-                {t.sampleDiffs.map((d) => (
-                  <li key={d}>{d}</li>
-                ))}
-              </ul>
-            </div>
-          </section>
+              <div style={{ ...card, padding: 20 }}>
+                <h3 style={{ margin: "0 0 8px", fontSize: 15, fontWeight: 800, color: colors.heading }}>
+                  {t.sampleDiffTitle}
+                </h3>
+                <ul style={{ margin: 0, paddingInlineStart: 20, fontSize: 14, lineHeight: 1.9 }}>
+                  {t.sampleDiffs.map((d) => (
+                    <li key={d}>{d}</li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+          )
         )}
 
         <p
@@ -949,7 +895,7 @@ export default function ComparePage() {
         >
           {t.secureNote}
         </p>
-      </main>
+      </div>
     </div>
   );
 }

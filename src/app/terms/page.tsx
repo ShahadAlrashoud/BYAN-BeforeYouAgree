@@ -49,7 +49,7 @@ const content = {
             {
                 title: "Intellectual property",
                 body: [
-                    `BYAN's name, logo, design and software belong to Shahad Alrashoud, Ghadah Almutairi and Nourah Almudbil. You may use the results for your personal, educational or professional reference, but you may not copy or redistribute the service itself.`
+                    `BYAN's name, logo, design and software belong to us [or the project owners]. You may use the results for your personal, educational or professional reference, but you may not copy or redistribute the service itself.`
                 ]
             },
             {
@@ -70,11 +70,11 @@ const content = {
             },
             {
                 title: "Governing law",
-                body: [`These Terms are governed by the laws of the Kingdom of Saudi Arabia. Any dispute arising from them or from your use of BYAN shall be subject to the competent courts of the Kingdom of Saudi Arabia.`]
+                body: [`These Terms are governed by the laws of the Kingdom of Saudi Arabia [confirm jurisdiction and dispute process].`]
             },
             {
                 title: "Contact us",
-                body: [`For questions about these Terms, email contact@byan.website.`]
+                body: [`For questions about these Terms, email [contact email].`]
             }
         ]
     },
@@ -123,7 +123,7 @@ const content = {
             {
                 title: "الملكية الفكرية",
                 body: [
-                    `اسم بيان وشعاره وتصميمه وبرمجياته مملوكة لشهد الرشود وغادة المطيري ونورة المدبل. يمكنك استخدام النتائج للرجوع الشخصي أو التعليمي أو المهني، ولا يجوز نسخ الخدمة نفسها أو إعادة توزيعها.`
+                    `اسم بيان وشعاره وتصميمه وبرمجياته مملوكة لنا [أو لأصحاب المشروع]. يمكنك استخدام النتائج للرجوع الشخصي أو التعليمي أو المهني، ولا يجوز نسخ الخدمة نفسها أو إعادة توزيعها.`
                 ]
             },
             {
@@ -142,11 +142,11 @@ const content = {
             },
             {
                 title: "النظام الواجب التطبيق",
-                body: [`تخضع هذه الشروط لأنظمة المملكة العربية السعودية. وتختص المحاكم المختصة في المملكة العربية السعودية بالنظر في أي نزاع ينشأ عنها أو عن استخدامك لبيان.`]
+                body: [`تخضع هذه الشروط لأنظمة المملكة العربية السعودية [أكد الاختصاص القضائي وآلية حل النزاعات].`]
             },
             {
                 title: "تواصل معنا",
-                body: [`للاستفسار عن هذه الشروط، راسلنا على contact@byan.website.`]
+                body: [`للاستفسار عن هذه الشروط، راسلنا على [البريد الإلكتروني].`]
             }
         ]
     }

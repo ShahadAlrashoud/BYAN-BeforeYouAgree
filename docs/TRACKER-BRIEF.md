@@ -40,7 +40,7 @@ Legal pages and analysis logic/scoring are NOT changed. Stored label values are 
 | L1 | Glossary: wording fixes | DONE (English) | Arbitration, cookies, sensitive data, retention, indemnification, opt-out PDPL note, telemetry example. Arabic definitions NOT updated. Negative option and unilateral-changes example not done |
 | L2 | Glossary: add tracking, advertising, consent terms | DONE (English) | Added with arPending, so Arabic shows the English text |
 | L3 | Glossary: more-terms note | DONE | Note only, no pagination |
-| AB1 | About page: wording fixes + team roles + links | PARTLY | English fixed. Arabic lead, steps and about text still have the old wording. Roles are "" placeholders |
+| AB1 | About page: wording fixes + team roles + links | PARTLY | English fixed. Arabic lead, steps and about text still have the old wording. Roles are "Role to be confirmed" placeholders |
 | AW1 | Analyzed websites list: remove rank numbers, sort alphabetically | TODO | |
 | AW2 | Analyzed websites list: show "Analyzed [X] times" + "Last analyzed" date | TODO | |
 | AW3 | Analyzed websites list: per-row disclaimer + "Request correction" link | TODO | |
