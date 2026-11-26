@@ -7,7 +7,6 @@ import { useTheme } from "../providers";
 import TermsBackground from "../components/TermsBackground";
 import AnalyzeInput from "./AnalyzeInput";
 import { useFlags } from "../components/FlagsProvider";
-import { NEW_HOME, POPULAR_PAGE } from "@/lib/aiConfig";
 
 const content = {
     en: {
@@ -182,7 +181,7 @@ function AnalyzeContent() {
                         }}
                     >
                         {error ? t.failedPrefix : t.titlePrefix}
-                        <span style={{ color: error ? themeColors.high : themeColors.accent }}>
+                        <span style={{ color: error ? themeColors.high.bg : themeColors.accent }}>
                             {error ? t.failedAccent : t.titleAccent}
                         </span>
                     </h1>
@@ -246,9 +245,9 @@ function AnalyzeContent() {
                                 <div
                                     style={{
                                         borderRadius: 12,
-                                        border: `1px solid ${themeColors.high}`,
+                                        border: `1px solid ${themeColors.high.bg}`,
                                         padding: "14px 16px",
-                                        color: themeColors.high,
+                                        color: themeColors.high.bg,
                                         fontSize: "0.92rem",
                                         lineHeight: 1.7,
                                         textAlign: isAr ? "right" : "left",

@@ -3,7 +3,7 @@
 import Link from "@/app/components/LocalizedLink";
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTheme } from "./providers";
+import { useTheme, type Colors } from "./providers";
 import ImageAnalyzer from "./components/ImageAnalyzer";
 import TermsBackground from "./components/TermsBackground";
 import GuidedTour from "./components/GuidedTour";
@@ -227,7 +227,7 @@ function SampleReport({
     t: Content;
     isAr: boolean;
     isDark: boolean;
-    themeColors: any;
+    themeColors: Colors;
     bodyColor: string;
 }) {
     const ARC = Math.PI * 60; // length of the semicircle
@@ -289,7 +289,7 @@ function SampleReport({
                         className="byan-gauge-arc"
                         d="M10 70 A60 60 0 0 1 130 70"
                         fill="none"
-                        stroke={themeColors.high}
+                        stroke={themeColors.high.bg}
                         strokeWidth="12"
                         strokeLinecap="round"
                         strokeDasharray={ARC}
@@ -315,7 +315,7 @@ function SampleReport({
                                 padding: "10px 12px",
                                 borderRadius: 12,
                                 border: `1px solid ${themeColors.border}`,
-                                borderInlineStart: `4px solid ${isHigh ? themeColors.high : themeColors.medium}`,
+                                borderInlineStart: `4px solid ${isHigh ? themeColors.high.bg : themeColors.moderate.bg}`,
                                 background: themeColors.input,
                             }}
                         >
@@ -606,7 +606,7 @@ export default function HomePage() {
                                 <p
                                     role="alert"
                                     style={{
-                                        color: themeColors.high,
+                                        color: themeColors.high.bg,
                                         fontSize: "0.85rem",
                                         margin: "10px 0 0",
                                     }}
@@ -966,7 +966,7 @@ export default function HomePage() {
                             marginBottom: 8,
                         }}
                     >
-                        <IconWarning color={themeColors.medium} />
+                        <IconWarning color={themeColors.moderate.bg} />
 
                         <h3
                             style={{

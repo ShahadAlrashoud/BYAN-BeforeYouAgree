@@ -12,9 +12,10 @@ export const ACCENT_DARK = "#1F2839";
 export const ACCENT_LIGHT = "#1F2839";
 
 // Color tokens per the design spec
-// Primary: #1F2839 (navy) - used for header, CTA button
+// Primary: #1F2839 (navy) - header, CTA button, headings
 // Background: #F5F5EF (cream) - page backgrounds
-// Accent: #B69D74 (tan) - dividers, icons, decorative elements
+// Accent: #B69D74 (tan) - fills, dividers, icons
+// Accent text: #7A6242 (bronze) - tan-colored text on cream
 
 export function getColors(isDark: boolean) {
   const high = {
@@ -46,19 +47,24 @@ export function getColors(isDark: boolean) {
     text: isDark ? "#f5efe2" : "#1F2839",
     muted: isDark ? "rgba(245,239,226,0.65)" : "#64748b",
 
-accent: "#B69D74",
+    accent: "#B69D74",
     accentHover: isDark ? "#c6af86" : "#a58e5c",
     accentSoft: isDark ? "rgba(182,157,116,0.15)" : "rgba(182,157,116,0.08)",
-accentText: isDark ? "#eed2b6" : "#7A6242",
+    accentText: isDark ? "#eed2b6" : "#7A6242",
 
-onAccent: isDark ? "#ffffff" : "#1F2839",
+    onAccent: isDark ? "#ffffff" : "#1F2839",
+
     high,
     moderate,
+    // Alias: some components use "medium" for the moderate level
+    medium: moderate,
     low,
     // "safe" is displayed as "Low"
     safe: low,
   };
 }
+
+export type Colors = ReturnType<typeof getColors>;
 
 // Font families must match the stylesheet loaded in layout.tsx
 export const FONT = {
@@ -88,8 +94,6 @@ export const FONT = {
     },
   },
 };
-
-type Colors = ReturnType<typeof getColors>;
 
 const ThemeContext = createContext<{
   theme: Theme;

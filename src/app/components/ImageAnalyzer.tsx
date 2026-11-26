@@ -289,7 +289,7 @@ export default function ImageAnalyzer({
                 onClick={() => removeItem(item.id)}
                 disabled={loading}
                 aria-label="Remove"
-                style={iconBtn(colors.high, loading)}
+                style={iconBtn(colors.high.bg, loading)}
               >
                 ✕
               </button>
@@ -298,7 +298,7 @@ export default function ImageAnalyzer({
         </ul>
       )}
 
-      {error && <p style={{ color: colors.high, marginTop: 10 }}>{error}</p>}
+      {error && <p style={{ color: colors.high.bg, marginTop: 10 }}>{error}</p>}
     </div>
   );
 }

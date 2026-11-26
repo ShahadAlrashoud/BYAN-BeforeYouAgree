@@ -170,7 +170,7 @@ export default function AnalyzeInput() {
                     )}
 
                     {error && (
-                        <p role="alert" style={{ margin: "12px 0 0", color: colors.high, fontSize: "0.9rem" }}>{error}</p>
+                        <p role="alert" style={{ margin: "12px 0 0", color: colors.high.bg, fontSize: "0.9rem" }}>{error}</p>
                     )}
                     {limited && (
                         <div role="alert" style={{ margin: "12px 0 0", padding: "10px 12px", borderRadius: 10, background: colors.accentSoft, color: colors.accentText }}>
@@ -187,4 +187,3 @@ export default function AnalyzeInput() {
         </div>
     );
 }
-
