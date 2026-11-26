@@ -3,9 +3,10 @@
 // "arPending: true" means the Arabic text has NOT been approved by a native speaker yet.
 // Such entries keep ar: { term: "", def: "" } here on purpose: this file is bundled into the
 // browser, so unreviewed Arabic must not live in it. The Arabic view shows the English text
-// with an "" tag instead (see localized() below). The Arabic drafts are in
+// with an "AR pending" tag instead (see localized() below). The Arabic drafts are in
 // docs/glossary-ar-pending.md. When approved: paste the Arabic into ar, delete arPending,
 // and add the Arabic phrases to match.ar.
+
 export const GLOSSARY = [
     {
         id: "arbitration",
@@ -151,7 +152,7 @@ export const GLOSSARY = [
         match: { en: ["opt out", "opt-out"], ar: ["الانسحاب"] },
         pdplNote: {
             en: "How the PDPL treats opting out is to be confirmed against the official text.",
-            ar: "طريقة تناول النظام للانسحاب يجب التأكد منها من النص الرسمي.", // [AR review pending]
+            ar: "طريقة تناول النظام للانسحاب يجب التأكد منها من النص الرسمي.",
         },
         en: { term: "Opt-out", def: "Your ability to say no to something that is on by default, such as marketing or data sharing.", example: "“You may opt out of marketing emails at any time.”" },
         ar: { term: "الانسحاب (Opt-out)", def: "قدرتك على رفض أمر مفعّل افتراضياً، مثل الرسائل التسويقية أو مشاركة البيانات.", example: "«يمكنك الانسحاب من الرسائل التسويقية في أي وقت.»" },
@@ -204,14 +205,138 @@ export const GLOSSARY = [
         en: { term: "Negative option", def: "A clause that treats your silence or continued use as agreement, such as an automatic renewal." },
         ar: { term: "", def: "" },
     },
+
+    // NEW ENTRIES
+    // Arabic translations are intentionally pending native-speaker review.
+
+    {
+        id: "data-subject-rights",
+        arPending: true,
+        related: ["personal-data", "consent", "data-portability", "consent-withdrawal"],
+        match: { en: ["data subject rights", "rights of data subjects"], ar: [] },
+        en: { term: "Data subject rights", def: "The rights a person may have over their personal data, such as requesting access, correction, or deletion where applicable under the law.", example: "“You may request access to or correction of your personal data.”" },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "data-processing",
+        arPending: true,
+        related: ["data-controller", "data-processor", "personal-data", "lawful-basis"],
+        match: { en: ["data processing", "processing of personal data"], ar: [] },
+        en: { term: "Data processing", def: "Any action performed on personal data, such as collecting, recording, organizing, storing, using, sharing, or deleting it.", example: "“We process your information to provide and maintain the service.”" },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "lawful-basis",
+        arPending: true,
+        related: ["consent", "data-processing", "purpose-limitation"],
+        match: { en: ["lawful basis", "legal basis for processing"], ar: [] },
+        en: { term: "Lawful basis", def: "The legal reason an organization relies on to process personal data. Consent may be one basis, but it is not the only possible one.", example: "“We process this information where we have a lawful basis to do so.”" },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "purpose-limitation",
+        arPending: true,
+        related: ["data-minimization", "lawful-basis", "data-processing"],
+        match: { en: ["purpose limitation", "specified purposes"], ar: [] },
+        en: { term: "Purpose limitation", def: "The principle that personal data should be collected for clear purposes and not used in ways that are incompatible with those purposes.", example: "“We use the information for the purposes explained when it was collected.”" },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "data-minimization",
+        arPending: true,
+        related: ["purpose-limitation", "personal-data", "data-processing"],
+        match: { en: ["data minimization", "data minimisation", "minimum amount of data"], ar: [] },
+        en: { term: "Data minimization", def: "The principle of collecting and using only the personal data that is necessary for a specific purpose.", example: "“We only request the information needed to create your account.”" },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "cross-border-data-transfer",
+        arPending: true,
+        related: ["personal-data", "data-controller", "data-processor"],
+        match: { en: ["cross-border data transfer", "international data transfer", "transfer data overseas"], ar: [] },
+        en: { term: "Cross-border data transfer", def: "Sending personal data to, or making it accessible in, another country. Additional legal requirements may apply depending on the countries and circumstances.", example: "“Your information may be transferred to service providers in other countries.”" },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "consent-withdrawal",
+        arPending: true,
+        related: ["consent", "data-subject-rights", "opt-out"],
+        match: { en: ["withdraw consent", "withdrawal of consent", "consent withdrawal"], ar: [] },
+        en: { term: "Consent withdrawal", def: "Taking back permission you previously gave for a particular use of your personal data. Withdrawal may not affect processing that was lawful before you withdrew consent.", example: "“You can withdraw your consent at any time through your account settings.”" },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "data-portability",
+        arPending: true,
+        related: ["data-subject-rights", "personal-data"],
+        match: { en: ["data portability", "portable copy of your data"], ar: [] },
+        en: { term: "Data portability", def: "The ability, where provided by applicable law, to receive certain personal data in a usable format and sometimes transfer it to another organization.", example: "“You may request a copy of eligible account data in a downloadable format.”" },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "profiling",
+        arPending: true,
+        related: ["personal-data", "behavioral-advertising", "automated-decision-making"],
+        match: { en: ["profiling", "profile you", "build a profile"], ar: [] },
+        en: { term: "Profiling", def: "Using personal data to analyze or predict things about a person, such as their interests, preferences, behavior, or likely choices.", example: "“We may use your activity to build a profile of your interests.”" },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "behavioral-advertising",
+        arPending: true,
+        related: ["advertising", "tracking", "profiling", "cookies"],
+        match: { en: ["behavioral advertising", "behavioural advertising", "interest-based advertising"], ar: [] },
+        en: { term: "Behavioral advertising", def: "Advertising selected or personalized based on information about your activity, interests, or behavior, often collected over time.", example: "“We use browsing activity to show interest-based ads.”" },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "device-fingerprinting",
+        arPending: true,
+        related: ["tracking", "cookies", "personal-data"],
+        match: { en: ["device fingerprinting", "browser fingerprinting", "digital fingerprint"], ar: [] },
+        en: { term: "Device fingerprinting", def: "A technique that combines details about your device or browser, such as settings and technical characteristics, to recognize it or distinguish it from other devices.", example: "“We may use device characteristics to help recognize returning visitors.”" },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "termination",
+        arPending: true,
+        related: ["suspension", "automatic-renewal", "unilateral-changes"],
+        match: { en: ["termination", "terminate this agreement", "terminate your account"], ar: [] },
+        en: { term: "Termination", def: "Ending an agreement or service. The terms may explain when you or the company can end it and what happens afterward.", example: "“Either party may terminate this agreement by giving written notice.”" },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "suspension",
+        arPending: true,
+        related: ["termination", "unilateral-changes"],
+        match: { en: ["suspension", "suspend your account", "suspend access"], ar: [] },
+        en: { term: "Suspension", def: "A temporary restriction on your account or access to a service, often because of suspected rule violations, security concerns, or non-payment.", example: "“We may suspend access if we detect activity that violates these terms.”" },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "license-agreement",
+        arPending: true,
+        related: ["intellectual-property-rights", "termination"],
+        match: { en: ["license agreement", "software license", "licence agreement"], ar: [] },
+        en: { term: "License agreement", def: "An agreement that gives you permission to use software, content, or another product under stated conditions. It usually does not mean you own it.", example: "“We grant you a limited, non-transferable license to use the app.”" },
+        ar: { term: "", def: "" },
+    },
+    {
+        id: "subprocessor",
+        arPending: true,
+        related: ["data-processor", "data-controller", "third-party-sharing"],
+        match: { en: ["subprocessor", "sub-processors", "sub-processor"], ar: [] },
+        en: { term: "Subprocessor", def: "A third party engaged by a data processor to help process personal data on behalf of the organization responsible for it.", example: "“Our hosting provider may use subprocessors to support the service.”" },
+        ar: { term: "", def: "" },
+    },
 ];
 
 export const bySlug = (id) => GLOSSARY.find((x) => x.id === id);
 
 // The text to SHOW for an entry in language l.
 // Entries whose Arabic is still awaiting review fall back to the English text in the Arabic
-// view and are flagged (pending: true) so the UI can add the "" tag.
-export const AR_PENDING_TAG = "";
+// view and are flagged (pending: true) so the UI can add the "AR pending" tag.
+export const AR_PENDING_TAG = "AR pending";
 
 export const localized = (x, l) => {
     if (l === "ar" && x.arPending) return { ...x.en, pending: true, lang: "en" };
