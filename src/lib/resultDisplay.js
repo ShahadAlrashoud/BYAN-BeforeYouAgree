@@ -28,7 +28,43 @@ export function displayRiskLabel(riskLevel, lang = "en") {
     return DISPLAY_LABEL[lang === "ar" ? "ar" : "en"][riskTier(riskLevel)];
 }
 
+// The label SHOWN for a stored risk level. Display only: the stored value (\"Safe\", \"Moderate Risk\", \"High Risk\") is never changed. Stored \"Safe\" is shown as \"Low\".
+const DISPLAY_LABEL = {
+    en: { safe: \"Low\", moderate: \"Moderate Risk\", high: \"High Risk\" },
+    ar: { safe: \"منخفض\", moderate: \"متوسط الخطورة\", high: \"عالي الخطورة\" }, // [AR review pending]
+};
+export function riskTier(riskLevel) {
+    const l = String(riskLevel).toLowerCase();
+    if (l.includes(\"safe\")) return \"safe\";
+    if (l.includes(\"high\")) return \"high\";
+    return \"moderate\";
+}
+
 // True for a Moderate Risk result whose score is within NEAR_HIGH_POINTS below the High boundary.
+export function isNearHighBoundary(riskScore, riskLevel) {
+    const n = Number(riskScore);
+    if (!Number.isFinite(n)) return false;
+    return riskTier(riskLevel) === \"moderate\" && n >= HIGH_BOUNDARY - NEAR_HIGH_POINTS && n < HIGH_BOUNDARY;
+}
+
+// Age facts for the results page. `analyzedAt` is the date the analysis was made (not the date it was opened).
+//   days      whole days since the analysis (0 if the date is missing, invalid or in the future)
+//   isOld     at least OLD_RESULT_DAYS old: show the prominent warning
+//   canRerun  older than the cache window (ttlDays): the re-run button may be shown
+// `ttlDays` is CACHE_TTL_DAYS from the server. If it is not a positive number, canRerun is false (fail closed).
+export function resultAge({ analyzedAt, ttlDays, now = Date.now() }) {
+    const t = analyzedAt ? new Date(analyzedAt).getTime() : NaN;
+    if (!Number.isFinite(t)) return { days: 0, isOld: false, canRerun: false, known: false };
+    const ageMs = Math.max(0, now - t);
+    const days = Math.floor(ageMs / DAY_MS);
+    const ttl = Number(ttlDays);
+    return {
+        days,
+        isOld: days >= OLD_RESULT_DAYS,
+        canRerun: Number.isFinite(ttl) && ttl > 0 && ageMs > ttl * DAY_MS,
+        known: true,
+    };
+}
 export function isNearHighBoundary(riskScore, riskLevel) {
     const n = Number(riskScore);
     if (!Number.isFinite(n)) return false;
