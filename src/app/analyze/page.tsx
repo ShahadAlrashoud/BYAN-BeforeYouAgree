@@ -7,9 +7,7 @@ import { useTheme } from "../providers";
 import TermsBackground from "../components/TermsBackground";
 import AnalyzeInput from "./AnalyzeInput";
 import { useFlags } from "../components/FlagsProvider";
-import { NEW_ANALYSIS_OPTIONS } from "@/lib/aiConfig";
-import { inputStrings } from "./welcome/strings";
-import { popularStrings } from "./popular/strings";
+import { NEW_HOME, POPULAR_PAGE } from "@/lib/aiConfig";
 
 const content = {
     en: {
