@@ -12,11 +12,9 @@ type BYANLogoProps = {
 // Trimmed to phrases about reading terms and knowing your rights.
 // Every phrase starts with "N" to match the badge letter.
 const PHRASES = [
-  "Know Now",
   "Need to Know",
   "No Surprises",
   "Notice",
-  "Know Your Rights",
   "Nothing Hidden",
   "No Fine Print",
   "Note the Terms",
@@ -24,6 +22,17 @@ const PHRASES = [
   "Next, Read This",
   "Navigate the Terms",
   "Never Skip the Terms",
+  "No Guesswork",
+  "Notice Everything",
+  "Now You Know",
+  "No More Guessing",
+  "Note the Fine Print",
+  "Never Agree Blindly",
+  "No Rushed Decisions",
+  "No Blind Trust",
+  "Newfound Awareness",
+  "Notice. Understand. Decide.",
+  "Never Miss the Details"
 ];
 
 const SIZES = {
