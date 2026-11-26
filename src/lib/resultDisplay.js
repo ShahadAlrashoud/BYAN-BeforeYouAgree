@@ -22,7 +22,7 @@ export function riskTier(riskLevel) {
 // is never changed. Stored "Safe" is shown as "Low".
 const DISPLAY_LABEL = {
     en: { safe: "Low", moderate: "Moderate Risk", high: "High Risk" },
-    ar: { safe: "منخفض", moderate: "متوسط الخطورة", high: "عالي الخطورة" }, // "منخفض" is [AR review pending]
+    ar: { safe: "منخفض", moderate: "متوسط الخطورة", high: "عالي الخطورة" }, // "منخفض" is 
 };
 
 export function displayRiskLabel(riskLevel, lang = "en") {

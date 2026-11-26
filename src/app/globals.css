@@ -26,8 +26,63 @@ h1, h2, h3 {
   padding: 0 16px;
 }
 
-:root { --accent: #1e3a5f; }
-html.dark { --accent: #6366f1; }
+:root {
+  --accent: #1F2839;
+  --texture-damask: url("/assets/damask-texture.svg");
+}
+
+html.dark {
+  --accent: #6366f1;
+  --texture-damask: url("/assets/damask-texture.svg");
+}
+
+/* Damask texture - applied as CSS background via SVG tile */
+.texture-el {
+  background-image: var(--texture-damask);
+  background-repeat: repeat;
+  background-size: auto;
+  pointer-events: none;
+}
+
+/* Hero: subtle texture band at top/bottom only (not behind central text) */
+@media (min-width: 768px) {
+  .byan-hero {
+    /* Texture as bottom border effect via pseudo-element */
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background-image: var(--texture-damask);
+      background-repeat: repeat-x;
+      background-size: auto;
+      opacity: 0.06;
+      pointer-events: none;
+      z-index: 0;
+    }
+  }
+  
+  /* Footer with subtle texture */
+  footer {
+    padding-top: 40px;
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background-image: var(--texture-damask);
+      background-repeat: repeat-x;
+      background-size: auto;
+      opacity: 0.05;
+      pointer-events: none;
+      z-index: 0;
+    }
+  }
+}
 
 /* Floating Help "?" button: bottom-right on every page (also in RTL) */
 .byan-help-fab {

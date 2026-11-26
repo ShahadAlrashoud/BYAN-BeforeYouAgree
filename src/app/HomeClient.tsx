@@ -141,8 +141,8 @@ const content: Record<"en" | "ar", Content> = {
         ],
 
         legendTitle: "Know the risk at a glance",
-        legendText: "Every policy is summarized in a single risk score from 0 to 100, classified into one of three levels: 0–29 Low, 30–59 Moderate Risk, 60–100 High Risk. A higher score means higher risk.",
-        legend: ["Low", "Moderate Risk", "High Risk"],
+        legendText: "Every policy is summarized in a single risk score from 0 to 100, classified into one of three levels: 0–29 Low, 30–59 Moderate, 60–100 High. A higher score means higher risk.",
+        legend: ["Low", "Moderate", "High"],
 
         disclaimerTitle: "Disclaimer",
         disclaimerText:
