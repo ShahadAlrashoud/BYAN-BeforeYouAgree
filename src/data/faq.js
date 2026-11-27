@@ -36,7 +36,7 @@ export const FAQ = {
         },
         {
             "q": "Do I need an account?",
-            "a": "No, you can analyze websites without signing in. Signing in lets you save results and return to them later."
+            "a": "No. Your analysis is not stored. BYAN doesn't have accounts, sign-up, or login, so Once you leave the page, the results are gone. nothing is saved to a profile."
         },
         {
             "q": "Is my analysis stored?",
@@ -82,7 +82,7 @@ export const FAQ = {
         },
         {
             "q": "هل أحتاج إلى حساب؟",
-            "a": "لا، يمكنك تحليل المواقع دون تسجيل الدخول. يتيح لك تسجيل الدخول حفظ النتائج والرجوع إليها لاحقًا."
+            "a": "لا، يمكنك تحليل المواقع دون تسجيل الدخول."
         },
         {
             "q": "هل يتم حفظ التحليل؟",
