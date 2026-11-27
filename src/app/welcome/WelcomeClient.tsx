@@ -8,6 +8,9 @@ import TermsBackground from "../components/TermsBackground";
 import { popularStrings } from "../popular/strings";
 import { welcomeStrings } from "./strings";
 
+const GAUGE_ARC = Math.PI * 60; // length of the semicircle
+const DEMO_SCORE = 45; // falls in the Moderate band (30–59) shown in the demo
+
 const css = `
 .wl-root {
   background: var(--wl-bg);
@@ -132,16 +135,9 @@ const css = `
   font-weight: 700;
 }
 .wl-site { margin: 0 0 8px; font-size: 1.05rem; font-weight: 700; }
-.wl-badge-row { margin: 0 0 12px; }
-.wl-badge {
-  display: inline-block;
-  padding: 3px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--wl-medium);
-  color: var(--wl-medium);
-  font-size: 0.82rem;
-  font-weight: 700;
-}
+.wl-gauge { text-align: center; margin: 0 0 16px; }
+.wl-gauge-arc { transition: stroke-dashoffset 1.1s cubic-bezier(0.4, 0, 0.2, 1); }
+.wl-gauge-label { margin: 4px 0 0; font-size: 0.85rem; font-weight: 700; color: var(--wl-heading); }
 .wl-summary { margin: 0 0 16px; color: var(--wl-body); line-height: 1.7; }
 .wl-findings {
   list-style: none;
@@ -199,7 +195,7 @@ const css = `
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wl-cta, .wl-popular { transition: none; }
+  .wl-cta, .wl-popular, .wl-gauge-arc { transition: none; }
   .wl-cta:hover { transform: none; }
 }
 `;
@@ -217,6 +213,10 @@ export default function WelcomeClient({
   const isAr = L === "ar";
   const t = welcomeStrings[L];
   const p = popularStrings[L];
+
+  const gaugeOffset = GAUGE_ARC * (1 - DEMO_SCORE / 100);
+  const scoreText = isAr ? DEMO_SCORE.toLocaleString("ar-SA") : String(DEMO_SCORE);
+  const maxText = isAr ? (100).toLocaleString("ar-SA") : "100";
 
   // Theme values reach the stylesheet as custom properties.
   const vars = {
@@ -284,9 +284,47 @@ export default function WelcomeClient({
           <article className="wl-card">
             <span className="wl-chip">{t.demoLabel}</span>
             <h3 className="wl-site">{t.demoSite}</h3>
-            <p className="wl-badge-row">
-              <span className="wl-badge">{p.levels.moderate}</span>
-            </p>
+
+            <div className="wl-gauge">
+              <svg
+                viewBox="0 0 140 84"
+                width="190"
+                role="img"
+                aria-label={`${t.demoScoreLabel}: ${scoreText} / ${maxText}, ${t.demoLevel}`}
+              >
+                <path
+                  d="M10 70 A60 60 0 0 1 130 70"
+                  fill="none"
+                  strokeWidth="12"
+                  strokeLinecap="round"
+                  style={{ stroke: "var(--wl-border)" }}
+                />
+                <path
+                  className="wl-gauge-arc"
+                  d="M10 70 A60 60 0 0 1 130 70"
+                  fill="none"
+                  strokeWidth="12"
+                  strokeLinecap="round"
+                  strokeDasharray={GAUGE_ARC}
+                  strokeDashoffset={gaugeOffset}
+                  style={{ stroke: "var(--wl-medium)" }}
+                />
+                <text
+                  x="70"
+                  y="64"
+                  textAnchor="middle"
+                  fontSize="28"
+                  fontWeight="800"
+                  style={{ fill: "var(--wl-heading)" }}
+                >
+                  {scoreText}
+                </text>
+              </svg>
+              <p className="wl-gauge-label">
+                {t.demoScoreLabel}: {t.demoLevel}
+              </p>
+            </div>
+
             <p className="wl-summary">{t.demoSummary}</p>
 
             <ul className="wl-findings">

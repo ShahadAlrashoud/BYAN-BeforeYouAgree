@@ -1,8 +1,3 @@
-// All visible strings for the welcome homepage (NEW_HOME). English (en) and Arabic (ar).
-// No token counts anywhere: the allowance is described in plain terms.
-// Risk category names, "analyzed N times", "Last analyzed", "View result" and the "may not reflect the current
-// policy" note are reused from src/app/popular/strings.ts so both pages say exactly the same thing.
-// [AR review pending] every Arabic string in this file must be approved by a native speaker.
 export const welcomeStrings = {
     en: {
         title: "Understand a privacy policy before you agree to it",
@@ -20,6 +15,8 @@ export const welcomeStrings = {
         demoSite: "Sample Service (fictional)",
         demoSummary: "This fictional service shares some data with partners and keeps data for a long time.",
         demoQuoteLabel: "Quote from the policy (fictional)",
+        demoScoreLabel: "Risk score",
+        demoLevel: "Moderate Risk",
         demoFindings: [
             {
                 category: "Third-party sharing",
@@ -55,6 +52,8 @@ export const welcomeStrings = {
         demoSite: "خدمة نموذجية (وهمية)",
         demoSummary: "هذه الخدمة الوهمية تشارك بعض البيانات مع شركاء وتحتفظ بالبيانات لمدة طويلة.",
         demoQuoteLabel: "اقتباس من السياسة (وهمي)",
+        demoScoreLabel: "درجة المخاطر", // [AR review pending]
+        demoLevel: "خطر متوسط", // [AR review pending]
         demoFindings: [
             {
                 category: "المشاركة مع أطراف ثالثة",
