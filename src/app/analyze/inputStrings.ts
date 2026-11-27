@@ -20,6 +20,7 @@ export const inputStrings = {
         limitTitle: "Daily limit reached",
         limitBody: "You have used today's analysis. You can still open results that were analyzed before, or try again tomorrow.",
         privacy: "Read the Privacy Policy",
+        accessRequired: "The full analysis needs an access code. Choose Full analysis on the input page and enter the code.",
     },
     ar: {
         // [AR review pending]
@@ -41,5 +42,6 @@ export const inputStrings = {
         limitTitle: "تم بلوغ الحد اليومي",
         limitBody: "لقد استخدمت تحليل اليوم. ما زال بإمكانك فتح النتائج التي حُللت سابقًا، أو المحاولة غدًا.",
         privacy: "اقرأ سياسة الخصوصية",
+        accessRequired: "التحليل الكامل يحتاج رمز وصول. اختر التحليل الكامل من صفحة الإدخال وأدخل الرمز.",
     },
 } as const;

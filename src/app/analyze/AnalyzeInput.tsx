@@ -1,15 +1,16 @@
 "use client";
 
 // The /analyze input page (NEW_HOME): three ways to give BYAN a policy. Nothing runs here by itself.
-//   Link         -> goes to /analyze?url=..., which already runs the analysis and shows progress
-//   Screenshots  -> the existing ImageAnalyzer (reads text in the browser, then posts it)
-//   Paste text   -> posts the text to /api/analyze, like screenshots do
-// The daily allowance is enforced by /api/analyze for all three, so it is not checked here.
+//   Link         -> goes to /analyze?url=...&tier=..., which already runs the analysis and shows progress
+//   Screenshots  -> the existing ImageAnalyzer (reads text in the browser, then posts it with the chosen tier)
+//   Paste text   -> posts the text to /api/analyze with the chosen tier
+// The daily allowance and the access check are enforced by /api/analyze for all three.
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "@/app/components/LocalizedLink";
 import { useTheme } from "../providers";
 import ImageAnalyzer from "../components/ImageAnalyzer";
+import AnalysisTierPicker, { type Tier } from "../components/AnalysisTierPicker";
 import { inputStrings } from "./inputStrings";
 
 type Tab = "url" | "files" | "text";
@@ -22,6 +23,7 @@ export default function AnalyzeInput() {
     const t = inputStrings[isAr ? "ar" : "en"];
 
     const [tab, setTab] = useState<Tab>("url");
+    const [tier, setTier] = useState<Tier>("free");
     const [url, setUrl] = useState("");
     const [text, setText] = useState("");
     const [error, setError] = useState("");
@@ -38,7 +40,7 @@ export default function AnalyzeInput() {
             return;
         }
         setError("");
-        router.push(`/analyze?url=${encodeURIComponent(url.trim())}&lang=${lang}`);
+        router.push(`/analyze?url=${encodeURIComponent(url.trim())}&lang=${lang}&tier=${tier}`);
     }
 
     async function submitText(e: React.FormEvent) {
@@ -55,11 +57,12 @@ export default function AnalyzeInput() {
             const res = await fetch("/api/analyze", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text: text.trim(), lang }),
+                body: JSON.stringify({ text: text.trim(), lang, tier }),
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data?.id) {
                 if (data?.reason === "daily_allowance") setLimited(true);
+                else if (data?.code === "access_required") setError(t.accessRequired);
                 else setError(String(data?.error || t.failed));
                 return;
             }
@@ -125,6 +128,10 @@ export default function AnalyzeInput() {
                 <h1 style={{ margin: "0 0 12px", fontSize: "clamp(1.8rem, 4vw, 2.4rem)", fontWeight: 800, textAlign: "center" }}>{t.title}</h1>
                 <p style={{ margin: "0 0 24px", color: body, textAlign: "center", lineHeight: 1.7 }}>{t.intro}</p>
 
+                <div style={{ marginBottom: 22, padding: 22, borderRadius: 20, background: colors.card, border: `1px solid ${colors.border}` }}>
+                    <AnalysisTierPicker lang={isAr ? "ar" : "en"} tier={tier} onTierChange={setTier} />
+                </div>
+
                 <div role="tablist" style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 22 }}>
                     {tabButton("url", t.tabUrl)}
                     {tabButton("files", t.tabFiles)}
@@ -150,7 +157,7 @@ export default function AnalyzeInput() {
                         </form>
                     )}
 
-                    {tab === "files" && <ImageAnalyzer showIntro={false} />}
+                    {tab === "files" && <ImageAnalyzer showIntro={false} tier={tier} />}
 
                     {tab === "text" && (
                         <form onSubmit={submitText} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -187,4 +194,3 @@ export default function AnalyzeInput() {
         </div>
     );
 }
-

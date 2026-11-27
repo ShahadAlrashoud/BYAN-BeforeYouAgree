@@ -2,8 +2,8 @@ import { detectRiskClauses } from "../../../nlp/extractClauses";
 import { scoreRisk } from "../../../nlp/riskScorer";
 import { createAnalysis, saveResult } from "@/database/db";
 import { validateFindings, scoreFromFindings } from "../../../nlp/evidenceValidator";
-import { ANALYSIS_VERSION, aiFlags, aiLimits } from "@/lib/aiConfig";
-import { AiError, callGroqChat } from "@/lib/aiClient";
+import { ANALYSIS_VERSION, aiFlags, aiLimits, providerConfig, TIERS, tierVersion } from "@/lib/aiConfig";
+import { AiError, callAiChat } from "@/lib/aiClient";
 import { urlCacheKey, urlHash } from "@/lib/urlKey";
 import {
     findCachedRecord,
@@ -13,8 +13,6 @@ import {
     recordUsage,
     getTodayUsage,
 } from "@/database/aiDb";
-
-const MAX_AI_CHARS = 12000;
 
 function secondsUntilUtcMidnight() {
     const now = new Date();
@@ -26,7 +24,7 @@ function secondsUntilUtcMidnight() {
 // Only active when FLAG_TOKEN_BUDGET is on and a budget is set. If the usage table cannot be read,
 // it lets the request through (and logs that it failed) instead of taking the whole site down.
 // Note: requests that run at the same moment can overshoot the budget slightly; that is why the budget
-// must leave headroom under Groq's daily limit.
+// must leave headroom under the provider's daily limit.
 async function assertWithinBudget(flags) {
     if (!flags.tokenBudget) return;
     const { dailyTokenBudget } = aiLimits();
@@ -239,7 +237,10 @@ function detectLanguage(text) {
     return ratio > 0.08 ? "ar" : "en";
 }
 
-async function assessWithAI(policyText, lang) {
+// tier: "free" (Groq, first FREE_MAX_CHARS characters) or "full" (OpenAI, up to FULL_MAX_CHARS).
+async function assessWithAI(policyText, lang, tier = "free") {
+    const { provider, maxChars } = TIERS[tier];
+
     const languageInstruction =
         lang === "ar"
             ? `Write "summary", "category", "plainExplanation", "riskReason" and "suggestedAction" in Modern Standard Arabic. "evidenceQuote" must stay EXACTLY as written in the policy.`
@@ -284,16 +285,16 @@ Return ONLY valid JSON in this exact format:
   ]
 }`;
 
-    // Same request as before; callGroqChat adds the 429 retry when FLAG_AI_RELIABILITY is on
-    const data = await callGroqChat({
-        model: "openai/gpt-oss-120b",
+    // Same request for either provider; callAiChat adds the 429 retry when FLAG_AI_RELIABILITY is on
+    const data = await callAiChat({
+        model: providerConfig(provider).model,
         temperature: 0,
         messages: [
             { role: "system", content: systemPrompt },
-            { role: "user", content: policyText.slice(0, MAX_AI_CHARS) }
+            { role: "user", content: policyText.slice(0, maxChars) }
         ],
         response_format: { type: "json_object" }
-    });
+    }, provider);
 
     const usage = data?.usage || null;
     const content = data.choices?.[0]?.message?.content;
@@ -314,10 +315,11 @@ Return ONLY valid JSON in this exact format:
 
 // Shared by URL and text analysis: scores, builds the record, and saves it
 // cacheKey is set only for URL analyses (never for screenshots) and is used to store the result in the cache.
-async function buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang, userId, cacheKey = null }) {
+async function buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang, userId, cacheKey = null, tier = "free" }) {
     const lang = detectLanguage(policyText);
     const flags = aiFlags();
     const hash = urlHash(cacheKey);
+    const { maxChars } = TIERS[tier];
 
     // Daily token budget: when it is reached this throws and NO model call is made
     await assertWithinBudget(flags);
@@ -326,7 +328,7 @@ async function buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang,
     let usage = null;
     let aiFailure = null;
     try {
-        const out = await assessWithAI(policyText, lang);
+        const out = await assessWithAI(policyText, lang, tier);
         ai = out.parsed;
         usage = out.usage;
     } catch (error) {
@@ -350,7 +352,7 @@ async function buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang,
             : aiFailure.kind === "rate_limited" ? "rate_limited" : "provider_error";
     }
 
-    // Tokens are recorded even when the answer was unusable, because Groq counted them
+    // Tokens are recorded even when the answer was unusable, because the provider counted them
     await logUsage(flags, { usage, method: rawFindings || mustFail ? "ai" : "keyword", hash });
 
     if (mustFail) {
@@ -394,12 +396,13 @@ async function buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang,
         clauses,                      // verified only, counted in the score
         rejectedFindings: rejected,   // no textual evidence, NOT counted
         analysisSource,
+        analysisTier: tier,
         // FLAG_SHOW_METHOD: which method made this result and why
         ...(flags.showMethod ? { analysisMethod: analysisSource, analysisReason } : {}),
         // FLAG_RESULT_CACHE: the date of the analysis, and whether it was served from the cache
         ...(flags.resultCache ? { analyzedAt: new Date().toISOString(), fromCache: false, analysisVersion: ANALYSIS_VERSION } : {}),
         coverage: {
-            analyzedChars: Math.min(policyText.length, MAX_AI_CHARS),
+            analyzedChars: Math.min(policyText.length, maxChars),
             totalChars: policyText.length
         },
         createdAt: new Date().toISOString()
@@ -411,8 +414,8 @@ async function buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang,
     const isEmptyResult = policyText.length < 50 || (clauses.length === 0 && !summary);
     if (flags.resultCache && cacheKey && analysisSource === "ai" && !isEmptyResult) {
         try {
-            await storeCachedRecord({ urlKey: cacheKey, version: ANALYSIS_VERSION, record });
-            await logAnalysisEvent(cacheKey, ANALYSIS_VERSION, "model");
+            await storeCachedRecord({ urlKey: cacheKey, version: tierVersion(tier), record });
+            await logAnalysisEvent(cacheKey, tierVersion(tier), "model");
         } catch {
             console.error("RESULT CACHE STORE FAILED");
         }
@@ -436,7 +439,8 @@ async function buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang,
 // The cache check. The analyze route calls this FIRST, before any fetch, model call or AI rate limit.
 // Returns { url, cacheKey, record }: record is the new result served from the cache, or null.
 // Any cache error is treated as a miss, so a cache problem never blocks an analysis.
-export async function lookupCachedAnalysis(rawUrl, preferredLang = "en", userId = null) {
+// Each tier reads only its own cache entries, so a free visitor never receives a full result.
+export async function lookupCachedAnalysis(rawUrl, preferredLang = "en", userId = null, tier = "free") {
     const url = normalizeUrl(rawUrl);
     if (!isValidHttpUrl(url)) return { url, cacheKey: null, record: null };
 
@@ -444,7 +448,7 @@ export async function lookupCachedAnalysis(rawUrl, preferredLang = "en", userId 
     if (!cacheKey || !aiFlags().resultCache) return { url, cacheKey, record: null };
 
     try {
-        const cached = await findCachedRecord(cacheKey, ANALYSIS_VERSION, aiLimits().cacheTtlDays);
+        const cached = await findCachedRecord(cacheKey, tierVersion(tier), aiLimits().cacheTtlDays);
         if (!cached) return { url, cacheKey, record: null };
         const record = await serveCachedRecord(cached, {
             url,
@@ -452,7 +456,7 @@ export async function lookupCachedAnalysis(rawUrl, preferredLang = "en", userId 
             userId,
             reused: aiFlags().reuseCached,
         });
-        await logAnalysisEvent(cacheKey, ANALYSIS_VERSION, "cache");
+        await logAnalysisEvent(cacheKey, tierVersion(tier), "cache");
         return { url, cacheKey, record };
     } catch {
         console.error("RESULT CACHE LOOKUP FAILED");
@@ -460,7 +464,7 @@ export async function lookupCachedAnalysis(rawUrl, preferredLang = "en", userId 
     }
 }
 
-export async function runAnalysisForUrl(rawUrl, preferredLang = "en", userId = null) {
+export async function runAnalysisForUrl(rawUrl, preferredLang = "en", userId = null, tier = "free") {
     const url = normalizeUrl(rawUrl);
 
     if (!isValidHttpUrl(url)) {
@@ -471,10 +475,10 @@ export async function runAnalysisForUrl(rawUrl, preferredLang = "en", userId = n
 
     const { text: policyText, resolvedUrl } = await fetchPolicyText(url);
 
-    return buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang, userId, cacheKey });
+    return buildAndSaveRecord({ policyText, url, resolvedUrl, preferredLang, userId, cacheKey, tier });
 }
 
-export async function runAnalysisForText(text, preferredLang = "en", userId = null) {
+export async function runAnalysisForText(text, preferredLang = "en", userId = null, tier = "free") {
     const policyText = (text || "").replace(/\s+/g, " ").trim();
 
     if (policyText.length < 50) {
@@ -489,6 +493,7 @@ export async function runAnalysisForText(text, preferredLang = "en", userId = nu
         url: label,
         resolvedUrl: label,
         preferredLang,
-        userId
+        userId,
+        tier
     });
 }

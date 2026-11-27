@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createWorker } from "tesseract.js";
 import { useTheme } from "../providers";
+import type { Tier } from "./AnalysisTierPicker";
 
 const MAX_IMAGES = 10;
 
@@ -11,8 +12,10 @@ type Item = { id: string; file: File; url: string };
 
 export default function ImageAnalyzer({
   showIntro = true,
+  tier = "free",
 }: {
   showIntro?: boolean;
+  tier?: Tier;
 }) {
   const router = useRouter();
   const { lang, colors } = useTheme();
@@ -105,11 +108,18 @@ export default function ImageAnalyzer({
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, lang }),
+        body: JSON.stringify({ text, lang, tier }),
       });
       const result = await res.json();
 
       if (!res.ok || !result?.id) {
+        if (result?.code === "access_required") {
+          throw new Error(
+            isAr
+              ? "التحليل الكامل يحتاج رمز وصول. اختر التحليل الكامل من صفحة الإدخال وأدخل الرمز."
+              : "The full analysis needs an access code. Choose Full analysis on the input page and enter the code."
+          );
+        }
         throw new Error(
           result?.error || (isAr ? "فشل التحليل." : "Analysis failed.")
         );

@@ -8,6 +8,7 @@ import { AiError } from "@/lib/aiClient";
 import { getClientIp } from "@/lib/clientIp";
 import { hashKey } from "@/database/accountDb";
 import { takeAnalysisSlot, noteCacheServe, takeDailyAllowance } from "@/database/aiDb";
+import { providerFor, PROVIDER_COOKIE } from "@/lib/providerAccess";
 
 // The "busy" answer: nothing was analyzed and no keyword result is returned.
 function busyResponse(code, lang, retryAfterSeconds) {
@@ -42,6 +43,16 @@ export async function POST(request) {
             );
         }
 
+        // "free" is the default. "full" needs the access cookie, checked here on the server.
+        // The page's picker only decides what is sent; this check is what enforces it.
+        const tier = body?.tier === "full" ? "full" : "free";
+        if (tier === "full" && providerFor(request.cookies.get(PROVIDER_COOKIE)?.value) !== "openai") {
+            return NextResponse.json(
+                { error: "Access code required.", code: "access_required" },
+                { status: 403 }
+            );
+        }
+
         const session = await getServerSession(authOptions);
         const userId = session?.user?.id || null;
 
@@ -53,7 +64,7 @@ export async function POST(request) {
         const rerun = body?.rerun === true && aiFlags().reuseCached;
 
         if (!text && !rerun) {
-            const cached = await lookupCachedAnalysis(url, preferredLang, userId);
+            const cached = await lookupCachedAnalysis(url, preferredLang, userId, tier);
             if (cached.record) {
                 // Counted under a separate kind, so cache hits never count toward the AI limits
                 if (aiFlags().analysisRateLimits) {
@@ -102,8 +113,8 @@ export async function POST(request) {
         }
 
         const result = text
-            ? await runAnalysisForText(text, preferredLang, userId)
-            : await runAnalysisForUrl(url, preferredLang, userId);
+            ? await runAnalysisForText(text, preferredLang, userId, tier)
+            : await runAnalysisForUrl(url, preferredLang, userId, tier);
 
         return NextResponse.json({ id: result.id, fromCache: false }, { status: 200 });
     } catch (error) {

@@ -86,4 +86,5 @@ export async function generateMetadata({ searchParams }) {
 
 export default function ResultsPage() {
     return <ResultsClient />;
+
 }

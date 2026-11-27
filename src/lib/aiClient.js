@@ -1,6 +1,7 @@
-// The one place that calls the Groq chat completions endpoint for analyses.
+// The one place that calls the chat completions endpoint for analyses.
+// Groq is the default; a visitor with a valid access cookie is sent to OpenAI (chosen in analysisService.js).
 // The request body is built by the caller (analysisService.js) and is passed through unchanged.
-import { aiFlags, aiLimits, groqUrl } from "./aiConfig";
+import { aiFlags, aiLimits, providerConfig } from "./aiConfig";
 
 // kind: "rate_limited" (HTTP 429) | "provider_error" | "invalid_response" | "budget"
 export class AiError extends Error {
@@ -29,21 +30,23 @@ function readRetryAfter(response) {
 const DEFAULT_RETRY_AFTER_SECONDS = 5;
 
 // Returns the parsed JSON response (it includes the `usage` object).
+// provider: "groq" (default) or "openai". The URL and API key come from providerConfig(provider).
 // Flag FLAG_AI_RELIABILITY off: a single attempt, exactly like before.
 // Flag on: on HTTP 429, waits for retry-after and retries up to 2 more times, then throws
 // AiError("rate_limited"). A retry-after longer than AI_MAX_RETRY_WAIT_SECONDS is not waited for.
-export async function callGroqChat(body) {
+export async function callAiChat(body, provider = "groq") {
     const maxRetries = aiFlags().aiReliability ? 2 : 0;
     const { maxRetryWaitSeconds } = aiLimits();
+    const { url, key } = providerConfig(provider);
 
     for (let attempt = 0; ; attempt++) {
         let response;
         try {
-            response = await fetch(groqUrl(), {
+            response = await fetch(url, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
+                    "Authorization": `Bearer ${key}`,
                 },
                 body: JSON.stringify(body),
             });

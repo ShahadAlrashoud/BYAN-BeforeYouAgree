@@ -5,14 +5,14 @@
 // ---------------------------------------------------------------------------------------------
 // ANALYSIS_VERSION: part of the cache key.
 // IT MUST BE BUMPED (v1 -> v2 -> ...) WHENEVER ANALYSIS CODE CHANGES: the AI prompts, the
-// extraction code, the scoring formula, clause weights, risk labels, MAX_AI_CHARS, the model.
-// If it is not bumped, people keep receiving cached results made by the old logic.
+// extraction code, the scoring formula, clause weights, risk labels, MAX_AI_CHARS, the model,
+// the provider. If it is not bumped, people keep receiving cached results made by the old logic.
 // Old cache rows are simply never read again after a bump; they are not deleted.
 // ---------------------------------------------------------------------------------------------
 // (ANALYSIS_VERSION_TEST exists only so the "version change bypasses the cache" test can run without a code
 // edit. It is ignored when NODE_ENV is "production".)
 export const ANALYSIS_VERSION =
-    (process.env.NODE_ENV !== "production" && process.env.ANALYSIS_VERSION_TEST) || "v1";
+    (process.env.NODE_ENV !== "production" && process.env.ANALYSIS_VERSION_TEST) || "v2";
 
 // Default for DAILY_TOKEN_BUDGET. Left unset (no limit enforced) until the team approves a figure
 // based on the measured usage of one real analysis. The environment variable still overrides it.
@@ -89,10 +89,53 @@ export function aiLimits() {
     };
 }
 
-const GROQ_DEFAULT_URL = "https://api.groq.com/openai/v1/chat/completions";
+// ---------------------------------------------------------------------------------------------
+// AI providers.
+// ---------------------------------------------------------------------------------------------
+const GROQ_MODEL = "openai/gpt-oss-120b";
+const DEFAULT_OPENAI_MODEL = "gpt-4.1-mini"; // تأكد من اسم النموذج في وثائق OpenAI قبل النشر
 
-// GROQ_API_URL exists only so tests can point the app at a local mock. It is ignored in production.
-export function groqUrl() {
-    if (process.env.NODE_ENV !== "production" && process.env.GROQ_API_URL) return process.env.GROQ_API_URL;
-    return GROQ_DEFAULT_URL;
+const PROVIDERS = {
+    groq: {
+        url: "https://api.groq.com/openai/v1/chat/completions",
+        keyEnv: "GROQ_API_KEY",
+        urlOverrideEnv: "GROQ_API_URL",
+    },
+    openai: {
+        url: "https://api.openai.com/v1/chat/completions",
+        keyEnv: "OPENAI_API_KEY",
+        urlOverrideEnv: "OPENAI_API_URL",
+    },
+};
+
+// The URL override exists only so tests can point at a local mock. It is ignored in production.
+export function providerConfig(name = "groq") {
+    const p = PROVIDERS[name];
+    if (!p) throw new Error("Unknown AI provider.");
+
+    const override = process.env.NODE_ENV !== "production" && process.env[p.urlOverrideEnv];
+    return {
+        name,
+        url: override || p.url,
+        key: process.env[p.keyEnv],
+        model: name === "openai" ? process.env.OPENAI_MODEL || DEFAULT_OPENAI_MODEL : GROQ_MODEL,
+    };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Analysis tiers.
+// "free": Groq, only the first FREE_MAX_CHARS characters of the policy. Open to everyone.
+// "full": OpenAI, up to FULL_MAX_CHARS characters. The server allows it only with the access cookie.
+// Each tier has its own cache entries (tierVersion), so a free visitor never receives a full result.
+// ---------------------------------------------------------------------------------------------
+export const FREE_MAX_CHARS = 12000;
+export const FULL_MAX_CHARS = intEnv("FULL_MAX_CHARS", 100000);
+
+export const TIERS = {
+    free: { provider: "groq", maxChars: FREE_MAX_CHARS },
+    full: { provider: "openai", maxChars: FULL_MAX_CHARS },
+};
+
+export function tierVersion(tier) {
+    return `${ANALYSIS_VERSION}-${tier}`;
 }

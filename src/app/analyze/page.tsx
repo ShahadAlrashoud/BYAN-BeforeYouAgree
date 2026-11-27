@@ -22,7 +22,9 @@ const content = {
         missingUrl: "Missing URL. Go back and paste a valid URL.",
         blocked:
             "This site blocks automated tools from reading it directly. Try copying the link to its Terms of Service or Privacy Policy page yourself and paste that instead.",
-        connectError: "Could not connect to API."
+        connectError: "Could not connect to API.",
+        accessRequired:
+            "The full analysis needs an access code. Choose Full analysis on the input page and enter the code.",
     },
     ar: {
         titlePrefix: "نقرأ ",
@@ -37,8 +39,10 @@ const content = {
         missingUrl: "الرابط مفقود. ارجع والصق رابطًا صالحًا.",
         blocked:
             "يمنع هذا الموقع الأدوات الآلية من قراءته مباشرة. حاول نسخ رابط صفحة شروط الخدمة أو سياسة الخصوصية بنفسك ولصقه هنا بدلاً من ذلك.",
-        connectError: "تعذر الاتصال بالخادم."
-    }
+        connectError: "تعذر الاتصال بالخادم.",
+        accessRequired:
+            "التحليل الكامل يحتاج رمز وصول. اختر التحليل الكامل من صفحة الإدخال وأدخل الرمز.",
+    },
 };
 
 function Spinner({ track, ring }: { track: string; ring: string }) {
@@ -74,6 +78,8 @@ function AnalyzeContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const url = searchParams.get("url");
+    // "full" only when the input page sent it. The server checks the access cookie either way.
+    const tier = searchParams.get("tier") === "full" ? "full" : "free";
     const [error, setError] = useState("");
     const { theme, lang, colors: themeColors } = useTheme();
     const isDark = theme === "dark";
@@ -107,7 +113,7 @@ function AnalyzeContent() {
                 const response = await fetch("/api/analyze", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ url, lang })
+                    body: JSON.stringify({ url, lang, tier })
                 });
 
                 const text = await response.text();
@@ -121,7 +127,8 @@ function AnalyzeContent() {
 
                 if (!response.ok) {
                     const message = data.error || "Analysis failed.";
-                    setError(message.startsWith("BLOCKED:") ? t.blocked : message);
+                    if (data.code === "access_required") setError(t.accessRequired);
+                    else setError(message.startsWith("BLOCKED:") ? t.blocked : message);
                     return;
                 }
 
