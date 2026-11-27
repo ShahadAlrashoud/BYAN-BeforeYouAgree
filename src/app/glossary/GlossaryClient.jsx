@@ -75,6 +75,20 @@ function letterOf(term, l) {
   return l === "en" ? first.toUpperCase() : first;
 }
 
+// Keeps the first entry for each id so React keys stay unique.
+// Fix the duplicate in data/glossary as well, since this skips the later entry.
+const UNIQUE_GLOSSARY = (() => {
+  const seen = new Set();
+  return GLOSSARY.filter((x) => {
+    if (seen.has(x.id)) {
+      console.warn(`Duplicate glossary id skipped: ${x.id}`);
+      return false;
+    }
+    seen.add(x.id);
+    return true;
+  });
+})();
+
 const visuallyHidden = {
   position: "absolute",
   width: 1,
@@ -346,7 +360,7 @@ export default function GlossaryClient() {
   // Full alphabet for this language, so the index keeps its shape while filtering.
   const alphabet = useMemo(() => {
     const set = new Set(
-      GLOSSARY.map((x) => letterOf(x[l].term ?? x.en.term, l)),
+      UNIQUE_GLOSSARY.map((x) => letterOf(x[l].term ?? x.en.term, l)),
     );
     return [...set].filter(Boolean).sort((a, b) => collator.compare(a, b));
   }, [l, collator]);
@@ -354,7 +368,7 @@ export default function GlossaryClient() {
   const { groups, total } = useMemo(() => {
     const needle = normalize(q.trim());
 
-    const list = GLOSSARY.filter((x) => {
+    const list = UNIQUE_GLOSSARY.filter((x) => {
       if (pdplOnly && !x.pdpl) return false;
       if (!needle) return true;
       return [x.en.term, x.en.def, x.ar.term, x.ar.def].some((s) =>
