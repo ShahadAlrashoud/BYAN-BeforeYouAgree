@@ -283,7 +283,6 @@ export default function WelcomeClient({
 
           <article className="wl-card">
             <span className="wl-chip">{t.demoLabel}</span>
-            <h3 className="wl-site">{t.demoSite}</h3>
 
             <div className="wl-gauge">
               <svg

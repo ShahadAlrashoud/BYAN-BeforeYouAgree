@@ -12,7 +12,6 @@ export const welcomeStrings = {
         tryIt: "Try it",
         demoTitle: "See an example",
         demoLabel: "Example, not a real analysis",
-        demoSite: "Sample Service (fictional)",
         demoSummary: "This fictional service shares some data with partners and keeps data for a long time.",
         demoQuoteLabel: "Quote from the policy (fictional)",
         demoScoreLabel: "Risk score",
