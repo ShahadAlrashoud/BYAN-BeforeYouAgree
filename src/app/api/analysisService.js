@@ -286,15 +286,22 @@ Return ONLY valid JSON in this exact format:
 }`;
 
     // Same request for either provider; callAiChat adds the 429 retry when FLAG_AI_RELIABILITY is on
-    const data = await callAiChat({
+    const body = {
         model: providerConfig(provider).model,
-        temperature: 0,
         messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: policyText.slice(0, maxChars) }
         ],
         response_format: { type: "json_object" }
-    }, provider);
+    };
+    // temperature is sent to Groq only; some reasoning models reject it
+    if (provider === "groq") body.temperature = 0;
+    // OpenAI only, optional: none | low | medium | high | xhigh | max
+    if (provider === "openai" && process.env.OPENAI_REASONING_EFFORT) {
+        body.reasoning_effort = process.env.OPENAI_REASONING_EFFORT;
+    }
+
+    const data = await callAiChat(body, provider);
 
     const usage = data?.usage || null;
     const content = data.choices?.[0]?.message?.content;

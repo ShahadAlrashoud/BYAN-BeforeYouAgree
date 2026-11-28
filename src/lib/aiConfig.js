@@ -12,7 +12,7 @@
 // (ANALYSIS_VERSION_TEST exists only so the "version change bypasses the cache" test can run without a code
 // edit. It is ignored when NODE_ENV is "production".)
 export const ANALYSIS_VERSION =
-    (process.env.NODE_ENV !== "production" && process.env.ANALYSIS_VERSION_TEST) || "v2";
+    (process.env.NODE_ENV !== "production" && process.env.ANALYSIS_VERSION_TEST) || "v3";
 
 // Default for DAILY_TOKEN_BUDGET. Left unset (no limit enforced) until the team approves a figure
 // based on the measured usage of one real analysis. The environment variable still overrides it.
