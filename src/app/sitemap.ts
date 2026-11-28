@@ -40,7 +40,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Glossary term pages. An entry whose Arabic is still awaiting review has no Arabic URL
   // listed (that page is noindex until the Arabic is approved).
   for (const term of GLOSSARY) {
-    add(`/glossary/${term.id}`, !term.arPending, 0.6, "monthly");
+    const arPending = "arPending" in term && Boolean(term.arPending);
+    add(`/glossary/${term.id}`, !arPending, 0.6, "monthly");
   }
 
   // /popular is listed only while POPULAR_PAGE is on AND the list has at least one entry.

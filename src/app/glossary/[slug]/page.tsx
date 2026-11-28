@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // Arabic view, so the Arabic URL of that entry is kept out of the index (noindex) and its
   // canonical points at the English page. English <-> Arabic hreflang is only added for
   // entries whose Arabic has been approved.
-  const arabicReady = !term.arPending;
+  const arabicReady = !("arPending" in term && term.arPending);
   const view = localized(term, lang);
   const title = lang === "ar" && arabicReady ? `${term.ar.term} | بيان` : `${term.en.term} | BYAN`;
 
